@@ -14,7 +14,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 /home/OWIPEX_V1.0/flask_app/app.py
-WorkingDirectory=/home/owipex/flask_app/
+WorkingDirectory=/home/OWIPEX_V1.0/flask_app/
 User=root
 Restart=always
 
