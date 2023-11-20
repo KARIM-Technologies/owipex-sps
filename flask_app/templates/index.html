@@ -49,7 +49,17 @@
     <button id="stopButton">STOP SPS</button>
 
     <script>
-        // Ihr vorhandenes Script
+        $("#startButton").click(function() {
+            $.post("/start_program", function(data) {
+                alert(data);
+            });
+        });
+
+        $("#stopButton").click(function() {
+            $.post("/stop_program", function(data) {
+                alert(data);
+            });
+        });
     </script>
 </body>
 </html>
