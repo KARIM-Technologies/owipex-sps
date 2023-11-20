@@ -13,7 +13,7 @@ Description=My Flask App
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/owipex/flask_app/app.py
+ExecStart=/usr/bin/python3 /home/OWIPEX_V1.0/flask_app/app.py
 WorkingDirectory=/home/owipex/flask_app/
 User=root
 Restart=always
