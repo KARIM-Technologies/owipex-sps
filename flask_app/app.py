@@ -15,7 +15,7 @@ def start_program():
         return "Programm bereits gestartet."
 
     try:
-        process = subprocess.Popen(["python3", "/home/owipex/h2o.py"])
+        process = subprocess.Popen(["python3", "/home/OWIPEX_V1.0/h2o.py"])
         return "Programm gestartet."
     except Exception as e:
         return str(e)
