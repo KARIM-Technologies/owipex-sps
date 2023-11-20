@@ -1,13 +1,7 @@
 
 import signal
 
-def signal_handler(sig, frame):
-    print('Shutting down gracefully...')
-    # Add any cleanup or shutdown code here
-    exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
 
 import logging.handlers
 import time
@@ -259,7 +253,24 @@ class FlowRateHandler:
             }
         else:
             return None
-        
+
+def signal_handler(sig, frame):
+    print('Shutting down gracefully...')
+    pumpRelaySw = False
+    co2RelaisSw = False
+    co2HeatingRelaySw = False
+    autoSwitch = False
+    powerButton = False
+    runtime_tracker.stop() 
+    print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
+    state_to_save = {key: globals()[key] for key in shared_attributes_keys}
+    save_state(state_to_save)
+    time.sleep(3)  # Das Skript wartet hier 2 Sekunden
+    print('Shutting down now.')  # Diese Zeile wird nach 2 Sekunden ausgeführt
+    exit(0)
+
+
+      
 pumpRelaySw = False
 co2RelaisSw = False
 co2HeatingRelaySw = False
@@ -423,7 +434,9 @@ def main():
             print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
         previous_power_state = powerButton
         time.sleep(2)
-
+        
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == '__main__':
     if ACCESS_TOKEN != "TEST_TOKEN":
