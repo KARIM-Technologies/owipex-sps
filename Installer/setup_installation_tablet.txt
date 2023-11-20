@@ -1,0 +1,103 @@
+1. Deutsche Tastatur auf dem Tablet Einstellen
+    Aplications ---> Settings --->Keyboard ---> Layout ---> German (English Löschen)
+
+Tablet IP 192.168.100.160
+Auf dem Router einstellen 
+
+2. Passwort aud dem Tablet ändern: 
+    Konsole: passwd
+
+WICHTIG!!!
+    sudo apt update
+    sudo apt upgrade
+
+3. Installer und Ordner auf Tablet Kopieren
+    Install Scripts auszuführen
+        auto_installer.sh
+    Datei erst ausführbar machen
+            chmod +x auto_installer.sh
+    Datei auszuführen
+            ./auto_installer.sh
+
+    Chromium Service installer 
+        chromium_starter.sh
+        siehe oben
+
+    SPS App Installer 
+        app_service_installer.sh
+        siehe oben
+
+
+4. Anpassen Ansicht
+    Schriftgröße auf 12 stellen
+    Icongröße auf 50 stellen
+    9.3 Scrollslider vergrößern öffnen Konfiguration
+        nano ~/.config/gtk-3.0/gtk.css
+
+    9.4 CSS Script hinzufügen
+        scrollbar slider {
+            /* Breite des Scrollbalkens */
+            min-width: 30px;
+            width: 30px;
+            min-height: 30px;
+            border-radius: 15px;
+        }
+
+        scrollbar {
+            -GtkScrollbar-has-backward-stepper: true;
+            -GtkScrollbar-has-forward-stepper: true;
+        }
+    9.5 Appereance 
+            Xfce-flat
+
+
+5. onboard
+    onboard in den autostart hinzufügen
+        Öffnen Sie das XFCE-Einstellungsmenü.
+        Wählen Sie "Sitzung und Startverhalten" oder "Session and Startup" (abhängig von Ihrer Spracheinstellung).
+        Wechseln Sie zum Tab "Autostart" oder "Application Autostart".
+        Klicken Sie auf "Hinzufügen" oder "Add".
+        Geben Sie im Dialogfeld die folgenden Informationen ein:
+        
+        Name: Onboard
+        Beschreibung: Virtuelle Tastatur
+        Ordner: /usr/bin/onboard
+        Klicken Sie auf "OK".
+        Schließen Sie das Einstellungsfenster.
+
+    ONBOARD Einstellungsfenster
+        Allgemein:  Beim bearbeten automatisch anzeigen
+                    Schwebendes Symbol
+        Thema: Droid
+        Fenster: Fensteroptionen: Durchsichtigkeit: Fenster20, Hintergrund50 
+                Wenn aktiv: Durchsichtigkeit einstellenauf 50 nach 1s
+
+Tablet Kabel 
+
+                                    Weipu Stecker 
+
+RS485
+
+Verdrillte Adern
+Braun           RS485+ (RS485A)     PIN 14
+Braun/Weiss     RS485- (RS485B)     PIN 15
+
+
+
+Sensorik
+
+PH Sonde
+Die Adresse der Sonde muss angepasst werden. Dafür verwenden wir das Skript "writeDeviceID_PHSonde.py"
+PH Sonde erhält die Adresse 0x03
+
+Anwendung in der Konsole: 
+sudo python3 writeDeviceID_PHSonde.py
+
+Weipu Stecker
+1 -> blau       DC -
+2 -> braun      DC +
+3 -> weiß       RS485 A  (RS485+)
+4 -> schwarz    RS485 B  (RS485-)
+
+
+
