@@ -1,3 +1,14 @@
+
+import signal
+
+def signal_handler(sig, frame):
+    print('Shutting down gracefully...')
+    # Add any cleanup or shutdown code here
+    exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
 import logging.handlers
 import time
 import os

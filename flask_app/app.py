@@ -35,3 +35,12 @@ def stop_program():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8081, threaded=True)
 
+
+@app.route('/stop_program', methods=['POST'])
+def stop_program():
+    global process
+    if process:
+        process.terminate()  # Sends a SIGTERM signal
+        process = None
+        return "Programm gestoppt."
+    return "Kein laufendes Programm gefunden."
