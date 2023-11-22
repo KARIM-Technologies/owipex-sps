@@ -1,8 +1,5 @@
 
 import signal
-
-
-
 import logging.handlers
 import time
 import os
@@ -14,7 +11,7 @@ from modbus_lib import DeviceManager
 from time import sleep
 from FlowCalculation import FlowCalculation
 
-ACCESS_TOKEN = "cX8xQLmWZcHPXTKzjHGC"  # Replace this with your actual access token
+ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN', 'Standardwert')
 THINGSBOARD_SERVER = '192.168.100.26'  # Replace with your Thingsboard server address
 THINGSBOARD_PORT = 1883
 
