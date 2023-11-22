@@ -59,7 +59,7 @@ def auto_start():
 
 if __name__ == '__main__':
     auto_start()  # Automatischer Start des Programms beim Starten der Flask-App
-    app.run(host='0.0.0.0', port=8081, threaded=True)
+    socketio.run(app, host='0.0.0.0', port=8081)
 
 
 @app.route('/stop_program', methods=['POST'])
