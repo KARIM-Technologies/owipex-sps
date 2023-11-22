@@ -110,7 +110,7 @@ def sync_state(result, exception=None):
         period = result.get('shared', {'powerButton': False})['powerButton']
 
 class RuntimeTracker:
-    def __init__(self, filename="home/OWIPEX_V1.0/data/runtime.txt"):
+    def __init__(self, filename="run_time.txt"):
         self.start_time = None
         self.total_runtime = 0
         self.filename = filename
