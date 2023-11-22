@@ -276,6 +276,7 @@ pumpRelaySw = False
 co2RelaisSw = False
 co2HeatingRelaySw = False
 minimumPHValueStop = 5
+ph_low_delay_start_time = None
 #countdownPHHigh = ph_high_delay_duration
 #countdownPHLow = ph_low_delay_duration
 
