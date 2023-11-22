@@ -57,6 +57,15 @@ apt install sudo -y
 # 5.1 flask installieren
 apt install onboard -y
 
+#5.2 Zeitserver Sync
+apt install ntp -y
+
+#Zeitzone einstellen
+timedatectl set-timezone Europe/Berlin
+timedatectl set-ntp true
+hwclock --systohc
+
+
 # Alte SSH-Hostschlüssel entfernen und neue generieren
 rm /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
