@@ -43,6 +43,8 @@ pip3 install numpy
 # 4.8 scipy installieren
 python3 -m pip install scipy
 
+pip3 install python-dotenv
+
 # 4.9 thingsboard libary installieren
 pip3 install tb-mqtt-client
 

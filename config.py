@@ -1,11 +1,8 @@
 import os
-
-
-
 # Configuration details for h2oMain.py
 
 # Thingsboard Server Configuration
-ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN', 'Standardwert')
+ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
 THINGSBOARD_SERVER = '192.168.100.26' #Standardt IP Adresse EDGE Server
 THINGSBOARD_PORT = 1883
 
