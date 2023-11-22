@@ -36,6 +36,10 @@
             background-color: #f44336; /* Rot */
             color: white;
         }
+        .status {
+            margin: 20px;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -47,6 +51,14 @@
     </div>
     <button id="startButton">START SPS</button>
     <button id="stopButton">STOP SPS</button>
+
+    <div class="status">
+        <div id="status">Status: Unbekannt</div>
+        <label>
+            <input type="checkbox" id="autoRestart" onclick="toggleAutoRestart()">
+            Automatischer Neustart
+        </label>
+    </div>
 
     <script>
         $("#startButton").click(function() {
@@ -60,6 +72,21 @@
                 alert(data);
             });
         });
+
+        function updateStatus() {
+            $.get("/status_program", function(data) {
+                $('#status').text('Status: ' + data.status);
+            });
+        }
+
+        function toggleAutoRestart() {
+            $.get("/toggle_auto_restart", function(data) {
+                alert('Automatischer Neustart: ' + (data.auto_restart ? 'Aktiviert' : 'Deaktiviert'));
+            });
+        }
+
+        setInterval(updateStatus, 5000); // Aktualisiert den Status alle 5 Sekunden
+
     </script>
 </body>
 </html>

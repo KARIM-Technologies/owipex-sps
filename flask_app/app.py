@@ -8,6 +8,13 @@ process = None
 def index():
     return render_template('index.html')
 
+@app.route('/status_program')
+def status_program():
+    global process
+    if process and process.poll() is None:
+        return jsonify({'status': 'running'})
+    return jsonify({'status': 'stopped'})
+
 @app.route('/start_program', methods=['POST'])
 def start_program():
     global process
