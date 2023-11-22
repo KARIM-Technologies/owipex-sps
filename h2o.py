@@ -44,8 +44,8 @@ def save_state(state_dict):
 
 #Laden des gespeicherten Zustands:
 def load_state():
-    if os.path.exists('state.json'):
-        with open('state.json', 'r') as file:
+    if os.path.exists('/data/state.json'):
+        with open('/data/state.json', 'r') as file:
             return json.load(file)
     return {}
 
@@ -110,7 +110,7 @@ def sync_state(result, exception=None):
         period = result.get('shared', {'powerButton': False})['powerButton']
 
 class RuntimeTracker:
-    def __init__(self, filename="runtime.txt"):
+    def __init__(self, filename="/data/runtime.txt"):
         self.start_time = None
         self.total_runtime = 0
         self.filename = filename
