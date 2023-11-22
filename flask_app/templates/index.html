@@ -70,7 +70,7 @@
     <div id="consoleOutput"></div>
 
     <script>
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var socket = io.connect('http://192.168.100.160:8081');
         socket.on('log_output', function(msg) {
             var consoleOutput = document.getElementById('consoleOutput');
             consoleOutput.innerHTML += msg.data;
