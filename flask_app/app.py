@@ -32,7 +32,16 @@ def stop_program():
     except Exception as e:
         return str(e)
 
+def auto_start():
+    global process
+    if process is None:
+        process = subprocess.Popen(["python3", "/home/OWIPEX_V1.0/h2o.py"])
+        print("Programm automatisch gestartet.")
+    else:
+        print("Programm läuft bereits.")
+
 if __name__ == '__main__':
+    auto_start()  # Automatischer Start des Programms beim Starten der Flask-App
     app.run(host='0.0.0.0', port=8081, threaded=True)
 
 
