@@ -1,6 +1,5 @@
 import sys
-sys.path.append('/home/OWIPEX_V1.0/libs')
-sys.path.append('/home/OWIPEX_V1.0/data')
+sys.path.append('./libs')
 
 import signal
 import logging.handlers
