@@ -1,0 +1,43 @@
+{
+    "master": {
+      "slaves": [
+        {
+          "type": "serial",
+          "method": "rtu",
+          "port": "/dev/ttyS0",
+          "baudrate": 9600,
+          "timeout": 35,
+          "stopbits": 1,
+          "bytesize": 8,
+          "byteOrder": "BIG",
+          "wordOrder": "BIG",
+          "retries": true,
+          "retryOnEmpty": true,
+          "retryOnInvalid": true,
+          "pollPeriod": 5000,
+          "unitId": 1,
+          "deviceName": "Modbus Temperature Sensor",
+          "sendDataOnlyOnChange": false,
+          "connectAttemptTimeMs": 5000,
+          "connectAttemptCount": 5,
+          "waitAfterFailedAttemptsMs": 300000,
+          "timeseries": [
+            {
+              "tag": "temperature",
+              "type": "16uint",
+              "functionCode": 3,
+              "objectsCount": 2,
+              "address": 3
+            },
+            {
+              "tag": "humidity",
+              "type": "16uint",
+              "functionCode": 1,
+              "objectsCount": 1,
+              "address": 1
+            }
+          ]
+        }
+      ]
+    }
+  }
