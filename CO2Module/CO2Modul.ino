@@ -3,18 +3,20 @@
 #include <ThingsBoard.h>
 #include <DallasTemperature.h>
 
-constexpr char WIFI_SSID[] = "FamMorbius";
-constexpr char WIFI_PASSWORD[] = "45927194145938492747";
-constexpr char THINGSBOARD_SERVER[] = "64.226.74.165";
-//constexpr char WIFI_SSID[] = "OWIPEX_0003";
-//constexpr char WIFI_PASSWORD[] = "78WDQEuz!";
-//constexpr char THINGSBOARD_SERVER[] = "192.168.100.26";
-constexpr char TOKEN[] = "ITaN499jq02yHbbwyHwa";
+//constexpr char WIFI_SSID[] = "FamMorbius";
+//constexpr char WIFI_PASSWORD[] = "45927194145938492747";
+//constexpr char THINGSBOARD_SERVER[] = "64.226.74.165";
+//constexpr char TOKEN[] = "o7RoMU1LkHnkbZJik5gJ";
+constexpr char WIFI_SSID[] = "OWIPEX_0003";
+constexpr char WIFI_PASSWORD[] = "78WDQEuz!";
+constexpr char THINGSBOARD_SERVER[] = "192.168.100.26";
+constexpr char TOKEN[] = "NahkWHVDhZmzcVRXplLF";
 constexpr uint16_t THINGSBOARD_PORT = 1883U;
 constexpr uint32_t MAX_MESSAGE_SIZE = 256U;
 
 constexpr int CO2_RELAY_PIN = 1;
 constexpr int HEATING_RELAY_PIN = 3;
+
 
 constexpr char CO2_RELAY_ATTR[] = "co2Relay";
 constexpr char HEATING_RELAY_ATTR[] = "heatingRelay";
@@ -31,6 +33,7 @@ constexpr int16_t telemetrySendInterval = 3000U;
 uint32_t previousDataSend;
 
 bool subscribed = false;
+bool heatingRelayControlledByTB = false; // Globale Variable
 
 TwoWire Sensor1Wire = TwoWire(0);
 TwoWire Sensor2Wire = TwoWire(1);
@@ -45,9 +48,10 @@ void processSharedAttributes(const Shared_Attribute_Data &data) {
   for (auto it = data.begin(); it != data.end(); ++it) {
     if (strcmp(it->key().c_str(), CO2_RELAY_ATTR) == 0) {
       digitalWrite(CO2_RELAY_PIN, it->value().as<bool>() ? HIGH : LOW);
-    } else if(strcmp(it->key().c_str(), HEATING_RELAY_ATTR) == 0) {
-      digitalWrite(HEATING_RELAY_PIN, it->value().as<bool>() ? HIGH : LOW);
-      USBSerial.print(CO2_RELAY_PIN);
+    } else if (strcmp(it->key().c_str(), HEATING_RELAY_ATTR) == 0) {
+      bool heatingRelayState = it->value().as<bool>();
+      digitalWrite(HEATING_RELAY_PIN, heatingRelayState ? HIGH : LOW);
+      heatingRelayControlledByTB = heatingRelayState;
     }
   }
 }
@@ -107,7 +111,12 @@ void loop() {
   float pressureBar1 = pressure1 / 100.0; // Umrechnung in Bar
   float mass1 = calculateMass(pressure1, temperature1, VOLUME); // Berechnung der Masse in kg
   float pressureBar2 = pressure2 / 100.0; // Umrechnung in Bar
-
+  
+  if (temperature2 < 35.0 && !heatingRelayControlledByTB) {
+    digitalWrite(HEATING_RELAY_PIN, HIGH); // Heizer einschalten
+  } else if (temperature2 >= 35.0 && !heatingRelayControlledByTB) {
+    digitalWrite(HEATING_RELAY_PIN, LOW); // Heizer ausschalten
+  }
   // Senden der Telemetriedaten
   if (millis() - previousDataSend > telemetrySendInterval) {
     previousDataSend = millis();
