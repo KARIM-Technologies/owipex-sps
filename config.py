@@ -6,6 +6,8 @@ ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
 THINGSBOARD_SERVER = '192.168.100.26' #Standardt IP Adresse EDGE Server
 THINGSBOARD_PORT = 1883
 
+#haha
+111
 # Machine Configuration
 calculatedFlowRate = 1.0
 powerButton = False
