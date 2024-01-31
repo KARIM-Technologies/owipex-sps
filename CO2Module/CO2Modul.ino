@@ -3,6 +3,8 @@
 #include <ThingsBoard.h>
 #include <DallasTemperature.h>
 
+#test
+
 //constexpr char WIFI_SSID[] = "FamMorbius";
 //constexpr char WIFI_PASSWORD[] = "45927194145938492747";
 //constexpr char THINGSBOARD_SERVER[] = "64.226.74.165";
