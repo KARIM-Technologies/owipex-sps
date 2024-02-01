@@ -1,25 +1,22 @@
-import RPi.GPIO as GPIO
+from periphery import GPIO
 import time
 
-class UPBoardRGB:
+class UPBoardController:
     def __init__(self):
         # Initialisierung der GPIO-Pins
         self.led_pins = {'R': 23, 'G': 12, 'B': 13}
         self.switch_pin = 25
-        self.setup_gpio()
+        self.gpio_pins = {}
 
-    def setup_gpio(self):
-        # GPIO-Modus einstellen
-        GPIO.setmode(GPIO.BCM)
-        # Pins als Ausgang setzen
-        for pin in self.led_pins.values():
-            GPIO.setup(pin, GPIO.OUT)
-        # Schalter-Pin als Eingang setzen
-        GPIO.setup(self.switch_pin, GPIO.IN)
+        # GPIO-Objekte erstellen
+        for color, pin in self.led_pins.items():
+            self.gpio_pins[color] = GPIO(pin, "out")
+        
+        self.switch_gpio = GPIO(self.switch_pin, "in")
 
     def set_led(self, color, state):
         # LED ein- oder ausschalten
-        GPIO.output(self.led_pins[color], state)
+        self.gpio_pins[color].write(state)
 
     def blink_led(self, color, blink_rate, duration=None):
         # LED für eine bestimmte Zeit blinken lassen
@@ -60,7 +57,9 @@ class UPBoardRGB:
 
     def cleanup(self):
         # GPIO-Pins säubern
-        GPIO.cleanup()
+        for gpio in self.gpio_pins.values():
+            gpio.close()
+        self.switch_gpio.close()
 
 # Beispiel zur Nutzung der Bibliothek
 if __name__ == '__main__':

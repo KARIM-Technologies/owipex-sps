@@ -10,6 +10,9 @@ fi
 apt update
 apt install python3-pip -y
 
+# installer GPIO Driver
+sudo apt install dkms 
+
 # 4.1.1 PIP3 upgraden
 python3 -m pip install --upgrade pip
 
@@ -40,6 +43,9 @@ pip3 install python-dotenv
 pip3 install tb-mqtt-client
 
 pip3 install tqdm
+
+#python GPIO Libary
+pip3 install python-periphery
 
 
 #5.2 Zeitserver Sync
