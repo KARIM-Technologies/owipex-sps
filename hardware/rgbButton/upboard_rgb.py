@@ -1,7 +1,7 @@
 from periphery import GPIO
 import time
 
-class UPBoardController:
+class UPBoardRGB:
     def __init__(self):
         # Initialisierung der GPIO-Pins
         self.led_pins = {'R': 23, 'G': 12, 'B': 13}
@@ -60,21 +60,3 @@ class UPBoardController:
         for gpio in self.gpio_pins.values():
             gpio.close()
         self.switch_gpio.close()
-
-# Beispiel zur Nutzung der Bibliothek
-if __name__ == '__main__':
-    controller = UPBoardRGB()
-    try:
-        while True:
-            duration = controller.read_switch_duration()
-            if duration:
-                print(f"Schalter wurde für {duration} Sekunden gedrückt.")
-                if duration < 2:
-                    controller.display_state('ready')
-                elif duration < 4:
-                    controller.display_state('running')
-                else:
-                    controller.display_state('stopped_error')
-    except KeyboardInterrupt:
-        # Bereinigung bei Unterbrechung
-        controller.cleanup()

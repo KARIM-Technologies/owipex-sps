@@ -1,25 +1,44 @@
-UPBoard RGB Button Controller Python-Bibliothek README
-Übersicht
-Die UPBoardController-Python-Bibliothek bietet eine Schnittstelle zur Steuerung von RGB-LEDs und zur Erfassung von Schaltereingaben auf dem UP Board Squared Pro über den 40-Pin-Header. Sie ermöglicht das Anzeigen verschiedener Zustände durch die Farben und Muster der LEDs sowie die Erfassung der Dauer von Schalterbetätigungen.
+UPBoardController Python Library Documentation
+Introduction
+The UPBoardRGB Python library provides an interface for controlling RGB LEDs and reading switch input on the UP Board Squared Pro. This library uses the python-periphery module for GPIO interactions, making it suitable for UP Board GPIO configurations.
 
-Funktionen
-Initialisierung und GPIO-Setup: Konfiguriert die GPIO-Pins für die LEDs und den Schalter.
-LED-Steuerung: Ermöglicht das Ein- und Ausschalten der LEDs, das Blinken und das Anzeigen von Zuständen durch Farben und Muster.
-Schaltereingabe-Erfassung: Misst die Dauer, für die der Schalter gedrückt wird.
-Anforderungen
-Python 3
-RPi.GPIO-Bibliothek
-Zugriff auf GPIO-Pins auf dem UP Board Squared Pro
 Installation
-Installieren Sie die benötigten Abhängigkeiten (z.B. RPi.GPIO) über pip und laden Sie das Skript auf Ihr UP Board.
+Install the pinctrl-upboard driver for UP Board GPIO access.
+Install the python-periphery library using pip:
+bash
+Copy code
+pip3 install python-periphery
+Class: UPBoardController
+Purpose: To control RGB LEDs and read switch inputs.
+Initialization: Sets up GPIO pins for LEDs and the switch.
+Methods
+set_led(color, state):
 
-Benutzung
-Importieren Sie die UPBoardController-Klasse in Ihr Python-Skript und instanziieren Sie ein Objekt. Verwenden Sie die Methoden set_led, blink_led, display_state, und read_switch_duration, um die LEDs zu steuern und die Schaltereingaben zu verarbeiten.
+Purpose: Turn an LED on or off.
+Parameters:
+color: String, the color of the LED ('R', 'G', 'B').
+state: Boolean, True for on, False for off.
+blink_led(color, blink_rate, duration=None):
 
-Beispiel
-Ein Beispielcode ist im Abschnitt "Beispiel zur Nutzung der Bibliothek" des Skripts enthalten. Dies zeigt, wie man Zustände anzeigt und Schalterbetätigungen erfasst.
+Purpose: Blink an LED at a specified rate.
+Parameters:
+color: String, the color of the LED.
+blink_rate: Float, time in seconds for one blink cycle.
+duration: Float (optional), total duration of blinking.
+display_state(state):
 
-Anpassung
-Das Skript kann leicht angepasst werden, um zusätzliche Funktionen oder Zustände hinzuzufügen. Überprüfen Sie die Pin-Zuweisungen und passen Sie sie bei Bedarf an Ihre Hardwarekonfiguration an.
+Purpose: Display a predefined state using LED patterns.
+Parameters:
+state: String, the name of the state to display.
+read_switch_duration():
 
-Lizenz
+Purpose: Measure the duration of a switch press.
+Returns: Float, duration in seconds.
+cleanup():
+
+Purpose: Clean up GPIO pins.
+Usage
+Import and instantiate UPBoardController in your Python script. Use the provided methods to control LEDs and read switch input.
+
+Customization
+You can modify the class to add more LED colors, states, or additional GPIO functionality.
