@@ -39,6 +39,9 @@ pip3 install python-dotenv
 # 4.9 thingsboard libary installieren
 pip3 install tb-mqtt-client
 
+pip3 install tqdm
+
+
 #5.2 Zeitserver Sync
 apt install ntp -y
 
