@@ -33,3 +33,12 @@ dev_manager = DeviceManager(port='/dev/ttymxc3', baudrate=9600, parity='N', stop
 dev_manager.add_device(device_id=0x01)
 sensor1 = dev_manager.get_device(device_id=0x01)
 temperature = sensor1.read_register(start_address=0x0003, register_count=2)
+
+
+
+## Sonden
+- RMD-ISHP105 PH Sonde
+    blau    = 0V
+    braun   = 12V 
+    weiss   = A
+    schwarz = B
