@@ -32,27 +32,30 @@ class UPBoardRGB:
     def display_state(self, state):
         # Zustände der Anlage anzeigen
         state_settings = {
-            'ready': ('G', True),
-            'running': ('B', True),
+            'ready': ('G', 'solid'),
+            'running': ('B', 'solid'),
             'warning': ('Y', 'blink', 1),
             'alarm': ('R', 'blink', 0.5),
-            'stopped_error': ('R', True),
-            'stopped_alarm': ('O', True)
+            'stopped_error': ('R', 'solid'),
+            'stopped_alarm': ('O', 'solid')
         }
-        color, pattern = state_settings[state]
+        color, pattern = state_settings[state][:2]
+
         if pattern == 'blink':
             blink_rate = state_settings[state][2]
             self.blink_led(color, blink_rate, 5)
+        elif pattern == 'solid':
+            self.set_led(color, True)
         else:
-            self.set_led(color, pattern)
+            self.set_led(color, False)
 
     def read_switch_duration(self):
         # Dauer des Schalterdrucks messen
         start_time = None
         while True:
-            if GPIO.input(self.switch_pin) and start_time is None:
+            if self.switch_gpio.read() and start_time is None:
                 start_time = time.time()
-            elif not GPIO.input(self.switch_pin) and start_time is not None:
+            elif not self.switch_gpio.read() and start_time is not None:
                 return time.time() - start_time
 
     def cleanup(self):
