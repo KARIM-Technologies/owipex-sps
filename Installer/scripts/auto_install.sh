@@ -47,13 +47,9 @@ pip3 install tqdm
 #python GPIO Libary
 pip3 install python-periphery
 
+pip3 install pynmea2
 
 #5.2 Zeitserver Sync
 apt install ntp -y
-
-#Zeitzone einstellen
-timedatectl set-timezone Europe/Berlin
-timedatectl set-ntp true
-hwclock --systohc
 
 echo "Alle Bibliotheken wurden erfolgreich installiert!"
