@@ -1,3 +1,14 @@
+# -----------------------------------------------------------------------------
+# Company: KARIM Technologies
+# Author: Sayed Amir Karim
+# Copyright: 2023 KARIM Technologies
+#
+# License: All Rights Reserved
+#
+# Module: UPBOard Installer Script V0.6
+# Description: Installer script for upboard pro2 
+# -----------------------------------------------------------------------------
+
 #!/bin/bash
 
 # Überprüfen, ob das Skript als root ausgeführt wird
@@ -49,7 +60,19 @@ pip3 install python-periphery
 
 pip3 install pynmea2
 
-#5.2 Zeitserver Sync
-apt install ntp -y
+#InstallGPS Driver
+sudo apt install gpsd gpsd-clients
+
+sudo apt install python3-gps
+
+sudo gpsd /dev/ttyACM0 -F /var/run/gpsd.sock
+
+# DEVICES-Einstellung aktualisieren
+sudo sed -i 's|DEVICES=".*"|DEVICES="/dev/ttyACM0"|' /etc/default/gpsd
+
+# START_DAEMON auf "true" setzen, falls es nicht bereits gesetzt ist
+sudo sed -i 's|START_DAEMON="false"|START_DAEMON="true"|' /etc/default/gpsd
+
+# gpsd neu starten, um Änderungen zu übernehmen
 
 echo "Alle Bibliotheken wurden erfolgreich installiert!"

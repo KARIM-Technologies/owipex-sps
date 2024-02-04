@@ -1,0 +1,33 @@
+# Projektbeschreibung: IoT-Steuerungssystem mit ThingsBoard Edge Server
+
+## Zielsetzung
+Entwicklung und Implementierung eines hochgradig integrierten IoT-Steuerungssystems zur Verwaltung und Überwachung von Sensorikdaten in Echtzeit. Das System nutzt einen ThingsBoard Edge Server, der auf einem UpBoard-Linux-Rechner mit Ubuntu 20.04 läuft, um eine effiziente Datenverarbeitung und -analyse am Rand des Netzwerks (Edge Computing) zu ermöglichen.
+
+## Systemkomponenten
+
+### Hardware-Basis
+- **UpBoard Linux-Rechner:** Zentrale Recheneinheit, die mit Ubuntu 20.04 LTS betrieben wird. Dieser Rechner dient als Host für den ThingsBoard Edge Server und das SPS-Steuerungsprogramm.
+- **RS485-Schnittstelle (ttyS0):** Dient als Kommunikationsgateway für den Anschluss und die Abfrage von Sensoren. Diese Schnittstelle ermöglicht die Sammlung von Daten aus einer Vielzahl von Sensoren, die für die Überwachung und Steuerung von Prozessen erforderlich sind.
+- **GPS-Empfänger (ttyACM0):** Bietet präzise Standortdaten für das System, was besonders für mobile Anwendungen oder Anwendungen, bei denen geographische Daten von Bedeutung sind, unerlässlich ist.
+
+### Software-Komponenten
+- **ThingsBoard Edge Server:** Eine Open-Source-IoT-Plattform, die auf dem UpBoard-Rechner läuft und für die lokale Datenverarbeitung, Geräteverwaltung und Integration mit dem zentralen ThingsBoard Server konfiguriert ist. Dies ermöglicht eine effiziente Verarbeitung und Analyse von Daten nahe der Datenquelle.
+- **Python SPS-Programm:** Ein auf Python 3 basierendes Steuerungsprogramm, das die gesamte Logik für die Erfassung, Verarbeitung und Analyse von Sensordaten sowie für die Steuerung von Aktoren abbildet. Dieses Programm ist das Herzstück der operativen Logik des Systems und ermöglicht eine flexible Anpassung an spezifische Anforderungen.
+
+## Funktionen und Merkmale
+- **Echtzeitdatenerfassung und -analyse:** Das System ist in der Lage, Daten von Sensoren in Echtzeit über die RS485-Schnittstelle zu erfassen, zu analysieren und darauf zu reagieren. Dies schließt Temperatur, Feuchtigkeit, Druck und andere relevante Umweltdaten ein.
+- **Standortbasierte Dienste:** Durch die Integration eines GPS-Empfängers kann das System standortbezogene Daten erfassen und verarbeiten, was für Tracking- und Navigationsanwendungen nützlich ist.
+- **Flexible Programmierung und Steuerung:** Das Python-SPS-Programm bietet eine hohe Flexibilität bei der Programmierung von Steuerungslogiken, was eine maßgeschneiderte Anpassung an unterschiedliche Anwendungsanforderungen ermöglicht.
+- **Edge Computing:** Der Einsatz eines ThingsBoard Edge Servers ermöglicht eine lokale Datenverarbeitung und -analyse, reduziert Latenzzeiten, minimiert die Bandbreitennutzung und unterstützt den Betrieb auch bei unterbrochener Verbindung zum zentralen Server.
+
+## Anwendungsbereiche
+Dieses System eignet sich für eine breite Palette von Anwendungen, darunter:
+- Industrielle Automatisierung und Überwachung
+- Umweltüberwachung und -management
+- Fahrzeug- und Asset-Tracking
+- Smart Agriculture und Fernüberwachung von Anlagen
+
+## Zukünftige Erweiterungen und Anpassungen
+Das System ist so konzipiert, dass es flexibel erweitert und an spezifische Anforderungen angepasst werden kann, einschließlich der Integration zusätzlicher Sensoren, der Erweiterung der Steuerungslogik und der Anpassung an neue IoT-Anwendungsfälle.
+
+Diese Projektbeschreibung dient als Grundlage für die zukünftige Zusammenarbeit und Entwicklung, um sicherzustellen, dass alle Beteiligten ein klares Verständnis des Projekts und seiner Ziele haben.
