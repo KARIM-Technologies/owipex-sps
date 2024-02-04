@@ -5,7 +5,7 @@
 #
 # License: All Rights Reserved
 #
-# Module: Modbus Lib V0.5
+# Module: Test Modbus Lib V0.5
 # Description: Modbus Communication Test Script
 # -----------------------------------------------------------------------------
 
