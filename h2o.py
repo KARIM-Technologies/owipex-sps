@@ -186,6 +186,9 @@ class PHHandler:
         return measuredPHValue_telem, temperaturPHSens_telem
 
     def correct_ph_value(self, raw_value):
+        if raw_value is None:
+            print("Fehler: raw_value ist None. Überprüfen Sie die Sensorverbindung.")
+            return 7  # Oder einen anderen Standardwert oder Fehlerbehandlungsmechanismus verwenden
         return self.slope * raw_value + self.intercept
 
     def calibrate(self, high_ph_value, low_ph_value, measured_high, measured_low):
