@@ -16,12 +16,15 @@
 import math
 import json
 from scipy.interpolate import interp1d
+import os
 
 class FlowCalculation:
-    def __init__(self, calibration_file):
+    def __init__(self, calibration_file, file_path="total_volume.txt"):
         self.g = 9.81  # gravitational constant, m/s^2
+        self.file_path = file_path  # Pfad zur Speicherdatei
         self.load_calibration_data(calibration_file)
-        self.total_volume = 0.0  # Initialisiert die Variable für die Gesamtdurchflussmenge
+        self.load_total_volume_from_file()  # Lade gespeicherten Wert beim Start
+
 
     def load_calibration_data(self, calibration_file):
         with open(calibration_file, 'r') as f:
@@ -73,3 +76,6 @@ class FlowCalculation:
 
     def convert_to_cubic_meters_per_hour(self, flow_rate):
         return flow_rate  # Bereits in m3/h
+    
+    def __del__(self):
+        self.save_total_volume_to_file()  # Speichere den aktuellen Wert beim Löschen der Klasse
