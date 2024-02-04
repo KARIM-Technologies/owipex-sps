@@ -5,7 +5,7 @@
 #
 # License: All Rights Reserved
 #
-# Module: Modbus Lib V0.6
+# Module: Modbus Lib V0.5
 # Description: Modbus Communication Test Script
 # -----------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@
 from modbus_lib import DeviceManager
 
 # Create DeviceManager
-dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+dev_manager = DeviceManager(port='/dev/ttymxc3', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 
 # Add devices
 dev_manager.add_device(device_id=0x01)
