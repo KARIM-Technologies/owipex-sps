@@ -82,6 +82,20 @@
     sudo apt-get install mraa-tools mraa-examples libmraa2 libmraa-dev libupm-dev libupm2 upm-examples
     sudo apt-get install python-mraa python3-mraa libmraa-java
 
+5. Here some system outputs:
+
+uname -a:
+Linux lidarbox 5.4.0-1-generic #0~upboard2-Ubuntu SMP Sun Oct 25 14:06:23 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+
+dmesg|grep pinctrl:
+[ 0.306554] pinctrl core: initialized pinctrl subsystem
+
+mraa-gpio version:
+Version v2.0.0 on Unknown platform
+
+mraa-gpio list
+No Pins
+
 1. Initialisieren des Codes
     .env anpassen
         #Datei umbenennen in .env
