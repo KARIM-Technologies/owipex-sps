@@ -7,7 +7,9 @@ import time
 import os
 import gpsDataLib
 import json
+import threading
 
+from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
 from modbus_lib import DeviceManager
 from time import sleep
@@ -258,6 +260,48 @@ class FlowRateHandler:
         else:
             return None
 
+class TotalFlowManager:
+    def __init__(self, update_interval=60):
+        self.last_update_time = time.time()  # Zeitstempel der letzten Aktualisierung
+        self.total_flow = 0
+        self.load_total_flow()
+
+    def load_total_flow(self):
+        try:
+            with open('total_flow.json', 'r') as file:
+                data = json.load(file)
+                self.total_flow = data['total_flow']
+        except FileNotFoundError:
+            self.total_flow = 0
+
+    def save_total_flow(self):
+        with open('total_flow.json', 'w') as file:
+            json.dump({'total_flow': self.total_flow}, file)
+
+    def reset_total_flow(self):
+        self.total_flow = 0
+        self.save_total_flow()
+
+    def update_flow_rate(self, flow_rate_l_min):
+        current_time = time.time()
+        elapsed_time_in_minutes = (current_time - self.last_update_time) / 60  # Verstrichene Zeit in Minuten
+        self.last_update_time = current_time  # Aktualisiere den Zeitstempel der letzten Aktualisierung
+
+        # Berechne die zusätzliche Menge basierend auf der verstrichenen Zeit
+        additional_flow = flow_rate_l_min * elapsed_time_in_minutes
+        self.total_flow += additional_flow
+
+        print(f"Aktualisierte Gesamtdurchflussmenge: {self.total_flow} L")
+        self.save_total_flow()
+
+    def start_periodic_save(self):
+        def save_periodically():
+            while True:
+                self.save_total_flow()
+                time.sleep(self.update_interval)
+        threading.Thread(target=save_periodically, daemon=True).start()
+
+
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
     pumpRelaySw = False
@@ -292,7 +336,7 @@ ph_handler.load_calibration()
         
 def main():
     #def Global Variables for Main Funktion
-    global ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw
+    global ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -310,11 +354,10 @@ def main():
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 
-    #if (radarSensorActive):
-    #    flow_rate_handler = FlowRateHandler(Radar_Sensor)
-    #    flow_data = flow_rate_handler.fetch_and_calculate()
-
     previous_power_state = False
+
+    total_flow_manager = TotalFlowManager()
+    total_flow_manager.start_periodic_save()
 
     while not client.stopped:
         attributes, telemetry = get_data()
@@ -330,6 +373,8 @@ def main():
         print("maximumPHVal", maximumPHVal)
         print("gemessener_high_wert", gemessener_high_wert)
         print("gemessener_low_wert", gemessener_low_wert)
+        # Optional: Sie können hier die aktuelle Gesamtdurchflussmenge ausgeben oder anderweitig verwenden
+        
 
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
@@ -342,12 +387,16 @@ def main():
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
             flow_data = flow_rate_handler.fetch_and_calculate()
+
             if flow_data:
+                # Update the total flow using the calculated flow rate
+                total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
                 print(f"Water Level: {flow_data['water_level']} mm")
                 print(f"Flow Rate: {flow_data['flow_rate']} m3/h")
                 print(f"Flow Rate (Liters per Minute): {flow_data['flow_rate_l_min']} L/min")
                 print(f"Flow Rate (Liters per Hour): {flow_data['flow_rate_l_h']} L/h")
                 print(f"Flow Rate (Cubic Meters per Minute): {flow_data['flow_rate_m3_min']} m3/min")
+                print(f"Aktuelle Gesamtdurchflussmenge: {total_flow_manager.total_flow} L")
 
         print("Vor der Kalibrierung:")
         print("Steigung (slope):", ph_handler.slope)
