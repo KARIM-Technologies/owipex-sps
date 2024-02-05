@@ -418,6 +418,7 @@ def main():
                 # Update the total flow using the calculated flow rate
                 total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
                 total_flow = total_flow_manager.total_flow
+                flow_rate_l_min = flow_data['flow_rate_m3_min']
                 print(f"Water Level: {flow_data['water_level']} mm")
                 print(f"Flow Rate: {flow_data['flow_rate']} m3/h")
                 print(f"Flow Rate (Liters per Minute): {flow_data['flow_rate_l_min']} L/min")
@@ -499,6 +500,7 @@ def main():
                 #co2HeatingRelaySw = False
                 ph_low_delay_start_time = None
                 ph_high_delay_start_time = None
+                
                 
                   
                 
