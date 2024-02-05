@@ -7,7 +7,9 @@ import time
 import os
 import gpsDataLib
 import json
+import threading
 
+from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
 from modbus_lib import DeviceManager
 from time import sleep
@@ -136,25 +138,47 @@ class RuntimeTracker:
         return self.total_runtime / 3600  # Rückgabe in Stunden
 
 class GPSHandler:
-    def __init__(self):
-        pass  # Hier können Sie Initialisierungscode hinzufügen, falls benötigt.
+    def __init__(self, update_interval=60):
+        self.update_interval = update_interval  # Zeitintervall für GPS-Updates in Sekunden
+        self.callGpsSwitch = False
+        self.latest_gps_data = (None, None, None, None)
+        
+        # Initialisierungscode...
 
-    def fetch_and_display_data(self, callGpsSwitch):
-        if callGpsSwitch:
-            timestamp, latitude, longitude, altitude = gpsDataLib.fetch_and_process_gps_data(timeout=10)
-            if timestamp is not None:
-                # Ausgabe der GPS-Daten für Debugging-Zwecke
-                print(f"Zeitstempel: {timestamp}")
-                print(f"Breitengrad: {latitude}")
-                print(f"Längengrad: {longitude}")
-                print(f"Höhe: {altitude if altitude is not None else 'nicht verfügbar'}")
-                return timestamp, latitude, longitude, altitude
+    def start_gps_updates(self):
+        self.callGpsSwitch = True
+        thread = threading.Thread(target=self.fetch_and_display_data)
+        thread.daemon = True  # Damit der Thread mit dem Hauptprogramm beendet wird
+        thread.start()
+
+    def stop_gps_updates(self):
+        self.callGpsSwitch = False
+
+    def fetch_and_display_data(self):
+        while self.callGpsSwitch:
+            # Versuche, GPS-Daten zu holen
+            new_timestamp, new_latitude, new_longitude, new_altitude = gpsDataLib.fetch_and_process_gps_data(timeout=10)
+            
+            # Überprüfe, ob neue Daten verfügbar sind (basierend auf dem Vorhandensein eines Timestamps)
+            if new_timestamp is not None:
+                # Aktualisiere die gespeicherten GPS-Daten nur, wenn neue Daten empfangen wurden
+                self.latest_gps_data = (new_timestamp, new_latitude, new_longitude, new_altitude)
+                
+                # Ausgabe der neuen GPS-Daten für Debugging-Zwecke
+                print(f"Zeitstempel: {new_timestamp}")
+                print(f"Breitengrad: {new_latitude}")
+                print(f"Längengrad: {new_longitude}")
+                print(f"Höhe: {new_altitude if new_altitude is not None else 'nicht verfügbar'}")
             else:
-                print("Keine GPS-Daten verfügbar.", callGpsSwitch)
-                return None, None, None, None
-        else:
-            print("GPS-Aufruf ist deaktiviert.", callGpsSwitch)
-            return None, None, None, None
+                # Wenn keine neuen Daten verfügbar sind, behalte den letzten gültigen Eintrag
+                # und gebe eine Meldung aus, dass keine neuen Daten verfügbar sind
+                print("Keine neuen GPS-Daten verfügbar. Letzte gültige Daten werden beibehalten.")
+
+            time.sleep(self.update_interval)  # Warten bis zum nächsten Update
+
+
+    def get_latest_gps_data(self):
+        return self.latest_gps_data
         
 class TurbidityHandler:
     def __init__(self, sensor):
@@ -258,6 +282,48 @@ class FlowRateHandler:
         else:
             return None
 
+class TotalFlowManager:
+    def __init__(self, update_interval=60):
+        self.last_update_time = time.time()  # Zeitstempel der letzten Aktualisierung
+        self.total_flow = 0
+        self.load_total_flow()
+
+    def load_total_flow(self):
+        try:
+            with open('total_flow.json', 'r') as file:
+                data = json.load(file)
+                self.total_flow = data['total_flow']
+        except FileNotFoundError:
+            self.total_flow = 0
+
+    def save_total_flow(self):
+        with open('total_flow.json', 'w') as file:
+            json.dump({'total_flow': self.total_flow}, file)
+
+    def reset_total_flow(self):
+        self.total_flow = 0
+        self.save_total_flow()
+
+    def update_flow_rate(self, flow_rate_l_min):
+        current_time = time.time()
+        elapsed_time_in_minutes = (current_time - self.last_update_time) / 60  # Verstrichene Zeit in Minuten
+        self.last_update_time = current_time  # Aktualisiere den Zeitstempel der letzten Aktualisierung
+
+        # Berechne die zusätzliche Menge basierend auf der verstrichenen Zeit
+        additional_flow = flow_rate_l_min * elapsed_time_in_minutes
+        self.total_flow += additional_flow
+
+        print(f"Aktualisierte Gesamtdurchflussmenge: {self.total_flow} L")
+        self.save_total_flow()
+
+    def start_periodic_save(self):
+        def save_periodically():
+            while True:
+                self.save_total_flow()
+                time.sleep(self.update_interval)
+        threading.Thread(target=save_periodically, daemon=True).start()
+
+
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
     pumpRelaySw = False
@@ -292,7 +358,7 @@ ph_handler.load_calibration()
         
 def main():
     #def Global Variables for Main Funktion
-    global ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw
+    global total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -310,11 +376,14 @@ def main():
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 
-    #if (radarSensorActive):
-    #    flow_rate_handler = FlowRateHandler(Radar_Sensor)
-    #    flow_data = flow_rate_handler.fetch_and_calculate()
-
     previous_power_state = False
+
+    total_flow_manager = TotalFlowManager()
+    total_flow_manager.start_periodic_save()
+
+    # Initialisierung des GPSHandlers
+    gps_handler = GPSHandler(update_interval=15)  # GPS-Daten alle 60 Sekunden aktualisieren
+    gps_handler.start_gps_updates()
 
     while not client.stopped:
         attributes, telemetry = get_data()
@@ -330,24 +399,31 @@ def main():
         print("maximumPHVal", maximumPHVal)
         print("gemessener_high_wert", gemessener_high_wert)
         print("gemessener_low_wert", gemessener_low_wert)
+        # Optional: Sie können hier die aktuelle Gesamtdurchflussmenge ausgeben oder anderweitig verwenden
+        
 
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
 
-        gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.fetch_and_display_data(callGpsSwitch) 
+        gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
         client.send_attributes(attributes)
         client.send_telemetry(telemetry)
         
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
             flow_data = flow_rate_handler.fetch_and_calculate()
+
             if flow_data:
+                # Update the total flow using the calculated flow rate
+                total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
+                total_flow = total_flow_manager.total_flow
                 print(f"Water Level: {flow_data['water_level']} mm")
                 print(f"Flow Rate: {flow_data['flow_rate']} m3/h")
                 print(f"Flow Rate (Liters per Minute): {flow_data['flow_rate_l_min']} L/min")
                 print(f"Flow Rate (Liters per Hour): {flow_data['flow_rate_l_h']} L/h")
                 print(f"Flow Rate (Cubic Meters per Minute): {flow_data['flow_rate_m3_min']} m3/min")
+                print(f"Aktuelle Gesamtdurchflussmenge: {total_flow_manager.total_flow} L")
 
         print("Vor der Kalibrierung:")
         print("Steigung (slope):", ph_handler.slope)

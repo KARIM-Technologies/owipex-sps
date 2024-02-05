@@ -59,6 +59,8 @@ radarSensorOffset = 0.0
 flow_rate_l_min = 20.0
 flow_rate_l_h = 20.0
 flow_rate_m3_min = 20.0
+total_flow = 0.0
+
 
 # GPS Configuration
 gpsTimestamp = 1.0
@@ -71,7 +73,7 @@ gpsHeight = 1.0
 telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisSw', 'co2HeatingRelaySw', 'pumpRelaySw', 'calculatedFlowRate', 'waterLevelHeight_telem', 'measuredTurbidity_telem',
                   'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
                   'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
-                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH']
+                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow']
 
 attributes_keys = ['ip_address', 'macaddress']
 
