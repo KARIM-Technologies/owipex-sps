@@ -65,6 +65,8 @@ sudo apt install gpsd gpsd-clients -y
 
 sudo apt install python3-gps -y
 
+sudo apt install nano -y
+
 sudo gpsd /dev/ttyACM0 -F /var/run/gpsd.sock
 
 # DEVICES-Einstellung aktualisieren
@@ -75,4 +77,11 @@ sudo sed -i 's|START_DAEMON="false"|START_DAEMON="true"|' /etc/default/gpsd
 
 # gpsd neu starten, um Änderungen zu übernehmen
 
+#UP Board Libs Installieren
+sudo wget https://github.com/up-division/pinctrl-upboard/releases/download/v1.1.3/pinctrl-upboard_1.1.3_all.deb -y
+
+sudo dpkg -i pinctrl-upboard_1.1.3_all.deb -y
+
 echo "Alle Bibliotheken wurden erfolgreich installiert!"
+
+sudo reboot
