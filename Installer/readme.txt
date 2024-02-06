@@ -55,3 +55,84 @@ css
 Copy code
 ssh -p 1000"X" root@portal.owipex.io  #X ist die fortlaufende portnumer
 Hierbei ist tabletbenutzername der Benutzername auf dem Tablet.
+
+## 3. Klonen des Git-Repositories
+
+Nachdem Git erfolgreich installiert und konfiguriert wurde, ist der nächste Schritt das Klonen des spezifischen Git-Repositories, das die Codebasis und Konfigurationen für unser IoT-System enthält. In diesem Fall werden wir das Repository `owipex-sps` von KARIM-Technologies klonen.
+
+### Voraussetzungen
+
+- Git muss auf Ihrem System installiert sein (siehe vorheriger Abschnitt).
+- Eine Internetverbindung.
+
+### Schritte zum Klonen des Repositories
+
+1. **Öffnen Sie ein Terminal**: Navigieren Sie zum gewünschten Verzeichnis auf Ihrem Server, in dem das Repository geklont werden soll.
+
+2. **Klonen Sie das Repository**: Verwenden Sie den folgenden Befehl, um das Repository `owipex-sps` zu klonen. Ersetzen Sie `<Zielverzeichnis>` mit dem Pfad des Verzeichnisses, in dem Sie das Repository speichern möchten, oder lassen Sie diesen Teil weg, um das Repository in einem neuen Verzeichnis mit dem Namen des Repositories zu klonen:
+
+    ```bash
+    git clone https://github.com/KARIM-Technologies/owipex-sps.git <Zielverzeichnis>
+    ```
+
+    Wenn Sie den Pfad `<Zielverzeichnis>` weglassen, erstellt Git automatisch ein neues Verzeichnis namens `owipex-sps` im aktuellen Verzeichnis und speichert dort das geklonte Repository.
+
+3. **Wechseln Sie in das Repository-Verzeichnis**: Nachdem das Klonen abgeschlossen ist, navigieren Sie in das Verzeichnis des geklonten Repositories:
+
+    ```bash
+    cd owipex-sps
+    ```
+
+    (oder `cd <Zielverzeichnis>`, falls Sie einen spezifischen Pfad angegeben haben).
+
+4. **Überprüfen Sie den Status**: Optional können Sie den Status des Repositories überprüfen, um sicherzustellen, dass alles korrekt geklont wurde. Führen Sie dazu folgenden Befehl aus:
+
+    ```bash
+    git status
+    ```
+
+## 4. Ausführen des Installer-Skripts
+
+Nachdem das Repository erfolgreich geklont wurde, müssen spezifische Installationsskripte ausgeführt werden, um die Umgebung und Abhängigkeiten für unser IoT-System zu konfigurieren. Dazu gehört das Skript `auto_install.sh`, das im `Installer/scripts`-Verzeichnis des geklonten Repositories liegt.
+
+### Voraussetzungen
+
+- Sie haben das `owipex-sps` Repository erfolgreich geklont (siehe vorheriger Abschnitt).
+- Sie haben Terminalzugriff mit den notwendigen Berechtigungen (die Ausführung einiger Skripte erfordert möglicherweise `root`-Zugriff).
+
+### Schritte zum Ausführen des Installer-Skripts
+
+1. **Wechseln Sie in das Skriptverzeichnis**: Navigieren Sie in das `Installer/scripts`-Verzeichnis innerhalb des geklonten `owipex-sps` Repositories:
+
+    ```bash
+    cd owipex-sps/Installer/scripts
+    ```
+
+2. **Machen Sie das Skript ausführbar**: Bevor Sie das Skript ausführen können, müssen Sie sicherstellen, dass es die notwendigen Ausführungsberechtigungen hat. Verwenden Sie den `chmod`-Befehl, um das Skript ausführbar zu machen:
+
+    ```bash
+    chmod +x auto_install.sh
+    ```
+
+3. **Versuchen Sie, das Skript auszuführen**: Wenn Sie das Skript ohne `sudo` ausführen, werden Sie möglicherweise aufgefordert, es als `root`-Benutzer auszuführen:
+
+    ```bash
+    ./auto_install.sh
+    ```
+
+    Die Ausgabe wird darauf hinweisen: "Bitte führen Sie das Skript als Root aus."
+
+4. **Führen Sie das Skript als Root aus**: Um das Skript mit Administratorrechten auszuführen, verwenden Sie `sudo`:
+
+    ```bash
+    sudo ./auto_install.sh
+    ```
+
+    Dies startet den Installationsprozess. Folgen Sie den Anweisungen auf dem Bildschirm, um die Installation abzuschließen.
+
+### Wichtige Hinweise
+
+- Stellen Sie sicher, dass Sie alle erforderlichen Informationen zur Hand haben, da das Skript möglicherweise Eingaben während des Installationsprozesses anfordert.
+- Überprüfen Sie nach Abschluss der Installation die Protokolle und Ausgaben, um sicherzustellen, dass alles erfolgreich installiert wurde und keine Fehler aufgetreten sind.
+
+Mit diesen Schritten haben Sie das notwendige Installationsskript ausgeführt, um die Umgebung für Ihre IoT-Systeme einzurichten und zu konfigurieren.

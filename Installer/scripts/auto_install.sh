@@ -22,7 +22,7 @@ apt update
 apt install python3-pip -y
 
 # installer GPIO Driver
-sudo apt install dkms 
+sudo apt install dkms -y
 
 # 4.1.1 PIP3 upgraden
 python3 -m pip install --upgrade pip
@@ -61,9 +61,9 @@ pip3 install python-periphery
 pip3 install pynmea2
 
 #InstallGPS Driver
-sudo apt install gpsd gpsd-clients
+sudo apt install gpsd gpsd-clients -y
 
-sudo apt install python3-gps
+sudo apt install python3-gps -y
 
 sudo gpsd /dev/ttyACM0 -F /var/run/gpsd.sock
 

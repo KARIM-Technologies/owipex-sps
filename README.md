@@ -100,3 +100,92 @@ No Pins
     .env anpassen
         #Datei umbenennen in .env
         #cp env.example .env
+
+
+# Installationsdokumentation für IoT-Systeme
+
+## 1. Installation der Linux Distribution Ubuntu Server 22.04 LTS
+
+Um die Basis für unsere IoT-Systeme zu schaffen, beginnen wir mit der Installation von Ubuntu Server 22.04 LTS. Dieses Betriebssystem bietet langfristigen Support (LTS) und ist für die Stabilität und Sicherheit kritischer Anwendungen optimiert.
+
+### Voraussetzungen
+
+- Ein kompatibler Server oder eine virtuelle Maschine.
+- Ein USB-Stick mit mindestens 4 GB Speicherplatz für das Installationsmedium.
+- Eine Internetverbindung für den Download der Software und Updates während der Installation.
+
+### Schritte zur Installation
+
+1. **Ubuntu Server 22.04 LTS herunterladen**: Gehen Sie zur offiziellen Ubuntu-Website und laden Sie das ISO-Abbild für Ubuntu Server 22.04 LTS herunter. [Ubuntu Server Download](https://ubuntu.com/download/server)
+
+2. **Bootfähiges USB-Laufwerk erstellen**: Verwenden Sie ein Tool wie Rufus oder Etcher, um das heruntergeladene ISO-Abbild auf einen USB-Stick zu übertragen und bootfähig zu machen.
+
+3. **Von USB booten**: Stellen Sie sicher, dass der Server/virtuelle Maschine so eingestellt ist, dass von USB gebootet wird. Dies kann in den BIOS- oder UEFI-Einstellungen konfiguriert werden.
+
+4. **Installationsprozess starten**: Folgen Sie den Anweisungen auf dem Bildschirm. Wählen Sie die gewünschte Sprache, Standort, Tastaturlayout und weitere Einstellungen.
+
+5. **Festplattenpartitionierung**: Entscheiden Sie, ob Sie die gesamte Festplatte verwenden oder manuelle Partitionierung für erweiterte Konfigurationen vornehmen möchten.
+
+6. **Benutzer- und Servereinstellungen**: Legen Sie den Benutzernamen, das Passwort und den Hostnamen für Ihren Server fest. Es wird empfohlen, während der Installation die Option für die automatischen Sicherheitsupdates zu aktivieren.
+
+7. **Softwareauswahl**: Für ein minimales Setup können Sie die vorgegebenen Optionen übernehmen oder zusätzliche Softwarepakete nach Bedarf auswählen.
+
+8. **Installation abschließen**: Nachdem alle Einstellungen konfiguriert sind, startet die Installation. Entfernen Sie nach Abschluss das USB-Laufwerk und starten Sie den Server neu.
+
+9. **Erster Login**: Nach dem Neustart können Sie sich mit dem zuvor erstellten Benutzernamen und Passwort anmelden.
+
+Mit diesen Schritten haben Sie erfolgreich Ubuntu Server 22.04 LTS als Grundlage für Ihre IoT-Systeme installiert.
+
+
+## 2. Installation von Git
+
+Nachdem Ubuntu Server 22.04 LTS installiert ist, ist der nächste Schritt die Installation von Git. Git ist ein unverzichtbares Werkzeug für die Versionskontrolle und wird benötigt, um unsere IoT-Systemkonfigurationen und -Code sicher zu verwalten.
+
+### Voraussetzungen
+
+- Ein funktionierendes Ubuntu Server 22.04 LTS System.
+- Administratorrechte (in der Regel Zugriff über den Benutzer `root` oder die Möglichkeit, Befehle mit `sudo` auszuführen).
+
+### Schritte zur Installation
+
+1. **Paketlisten aktualisieren**: Aktualisieren Sie zuerst die Paketlisten, um sicherzustellen, dass Sie die neuesten Versionen der Software installieren. Öffnen Sie ein Terminal und führen Sie folgenden Befehl aus:
+
+    ```bash
+    sudo apt update
+    ```
+
+2. **Git installieren**: Installieren Sie Git mit dem `apt` Paketmanager durch Ausführen des folgenden Befehls:
+
+    ```bash
+    sudo apt install git -y
+    ```
+
+    Die Option `-y` bestätigt automatisch, dass Sie mit der Installation fortfahren möchten.
+
+3. **Git-Version überprüfen**: Nach der Installation können Sie die installierte Git-Version überprüfen, um sicherzustellen, dass die Installation erfolgreich war. Führen Sie dazu folgenden Befehl aus:
+
+    ```bash
+    git --version
+    ```
+
+    Die Ausgabe sollte die installierte Git-Version anzeigen, z.B. `git version 2.XX.X`.
+
+4. **Git konfigurieren**: Konfigurieren Sie Git mit Ihrem Namen und Ihrer E-Mail-Adresse, die in Ihren Commits verwendet werden. Ersetzen Sie `Ihr Name` und `ihre.email@example.com` mit Ihren eigenen Informationen:
+
+    ```bash
+    git config --global user.name "Ihr Name"
+    git config --global user.email "ihre.email@example.com"
+    ```
+
+### Überprüfung der Git-Konfiguration
+
+- Um die aktuelle Konfiguration zu überprüfen, können Sie folgende Befehle ausführen:
+
+    ```bash
+    git config --global user.name
+    git config --global user.email
+    ```
+
+    Diese Befehle geben den Namen und die E-Mail-Adresse aus, die Sie für Git konfiguriert haben.
+
+Mit der Installation und Konfiguration von Git ist Ihr System nun bereit für die Versionskontrolle Ihrer IoT-Projekte.
