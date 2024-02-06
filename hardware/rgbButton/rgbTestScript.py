@@ -1,45 +1,37 @@
-from upboard_rgb import UPBoardRGB
+from UPBoardRGB import UPBoardRGB
 import time
 
-def test_leds(controller):
-    # Testet verschiedene LED-Zustände
-    print("Testing LEDs...")
-    for color in ['R', 'G', 'B']:
-        print(f"Setting {color} LED on...")
-        controller.set_led(color, True)
-        time.sleep(1)
-        print(f"Setting {color} LED off...")
-        controller.set_led(color, False)
-        time.sleep(1)
+def main():
+    rgb = UPBoardRGB()
+    print("UPBoard RGB LED Tester")
+    print("----------------------")
+    print("Verfügbare Farben: R (Rot), G (Grün), B (Blau), Y (Gelb), C (Cyan), M (Magenta), W (Weiß), O (Orange)")
+    print("Geben Sie 'exit' ein, um das Programm zu beenden.")
 
-def test_blink_led(controller):
-    # Testet das Blinken der LED
-    print("Blinking red LED...")
-    controller.blink_led('R', 0.5, 5)
+    try:
+        while True:
+            color_code = input("Wählen Sie eine Farbe (Buchstabenkürzel) oder 'exit': ").strip().upper()
+            if color_code == 'EXIT':
+                break
 
-def test_display_state(controller):
-    # Testet die Anzeige verschiedener Zustände
-    states = ['ready', 'running', 'warning', 'alarm', 'stopped_error', 'stopped_alarm']
-    for state in states:
-        print(f"Displaying state: {state}")
-        controller.display_state(state)
-        time.sleep(5)
+            if color_code not in rgb.color_map:
+                print("Ungültiges Farbkürzel. Bitte versuchen Sie es erneut.")
+                continue
 
-def test_read_switch(controller):
-    # Testet das Erfassen der Schaltereingabe
-    print("Press the switch...")
-    duration = controller.read_switch_duration()
-    print(f"Switch was pressed for {duration:.2f} seconds.")
+            # Blinkintervall und Anzahl der Blinkvorgänge einstellen
+            interval = float(input("Blinkintervall eingeben (0.1 für langsam bis 1 für dauerhaft, '0' für einmaliges Blinken): "))
+            blink_count = int(input("Anzahl der Blinkvorgänge eingeben (999 für unendlich): "))
+
+            # Führt den Blink- oder Leuchttest durch
+            if interval == 1:  # Dauerhaftes Leuchten
+                rgb.set_color(color_code)
+            else:
+                rgb.blink_led(color_code, interval, blink_count)
+
+    except KeyboardInterrupt:
+        print("Programm durch Benutzerabbruch beendet.")
+    finally:
+        rgb.cleanup()
 
 if __name__ == "__main__":
-    controller = UPBoardRGB()
-    try:
-        test_leds(controller)
-        test_blink_led(controller)
-        test_display_state(controller)
-        test_read_switch(controller)
-    except KeyboardInterrupt:
-        print("Test interrupted by user.")
-    finally:
-        controller.cleanup()
-        print("GPIO cleanup done.")
+    main()

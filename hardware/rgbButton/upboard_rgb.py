@@ -3,63 +3,44 @@ import time
 
 class UPBoardRGB:
     def __init__(self):
-        # Initialisierung der GPIO-Pins
-        self.led_pins = {'R': 23, 'G': 12, 'B': 13}
+        self.led_pins = {'R': 12, 'G': 13, 'B': 23}
         self.switch_pin = 25
         self.gpio_pins = {}
 
-        # GPIO-Objekte erstellen
         for color, pin in self.led_pins.items():
             self.gpio_pins[color] = GPIO(pin, "out")
+            self.gpio_pins[color].write(True)  # LEDs initial ausschalten
         
         self.switch_gpio = GPIO(self.switch_pin, "in")
 
-    def set_led(self, color, state):
-        # LED ein- oder ausschalten
-        self.gpio_pins[color].write(state)
-
-    def blink_led(self, color, blink_rate, duration=None):
-        # LED für eine bestimmte Zeit blinken lassen
-        start_time = time.time()
-        while True:
-            self.set_led(color, True)
-            time.sleep(blink_rate)
-            self.set_led(color, False)
-            time.sleep(blink_rate)
-            if duration and (time.time() - start_time > duration):
-                break
-
-    def display_state(self, state):
-        # Zustände der Anlage anzeigen
-        state_settings = {
-            'ready': ('G', 'solid'),
-            'running': ('B', 'solid'),
-            'warning': ('Y', 'blink', 1),
-            'alarm': ('R', 'blink', 0.5),
-            'stopped_error': ('R', 'solid'),
-            'stopped_alarm': ('O', 'solid')
+        # Mapping von Buchstabenkürzeln zu LED-Kombinationen
+        self.color_map = {
+            'R': 'R', 'G': 'G', 'B': 'B',
+            'Y': 'RG', 'C': 'GB', 'M': 'RB',
+            'W': 'RGB', 'O': 'R',  # Beispiel für Orange, ähnlich Rot
+            '': ''  # Ausschalten aller LEDs
         }
-        color, pattern = state_settings[state][:2]
 
-        if pattern == 'blink':
-            blink_rate = state_settings[state][2]
-            self.blink_led(color, blink_rate, 5)
-        elif pattern == 'solid':
-            self.set_led(color, True)
-        else:
-            self.set_led(color, False)
+    def set_color(self, color_code):
+        combination = self.color_map.get(color_code, '')
+        for color in self.led_pins.keys():
+            self.gpio_pins[color].write(not (color in combination))
 
-    def read_switch_duration(self):
-        # Dauer des Schalterdrucks messen
-        start_time = None
+    def blink_led(self, color_code, blink_rate, blink_count=999):
+        count = 0
         while True:
-            if self.switch_gpio.read() and start_time is None:
-                start_time = time.time()
-            elif not self.switch_gpio.read() and start_time is not None:
-                return time.time() - start_time
+            self.set_color(color_code)
+            time.sleep(blink_rate)
+            self.set_color('')  # Ausschalten
+            time.sleep(blink_rate)
+            
+            if blink_count != 999:
+                count += 1
+                if count >= blink_count:
+                    break
+
 
     def cleanup(self):
-        # GPIO-Pins säubern
         for gpio in self.gpio_pins.values():
             gpio.close()
         self.switch_gpio.close()
