@@ -236,3 +236,4 @@ Nachdem das Repository erfolgreich geklont wurde, müssen spezifische Installati
 - Überprüfen Sie nach Abschluss der Installation die Protokolle und Ausgaben, um sicherzustellen, dass alles erfolgreich installiert wurde und keine Fehler aufgetreten sind.
 
 Mit diesen Schritten haben Sie das notwendige Installationsskript ausgeführt, um die Umgebung für Ihre IoT-Systeme einzurichten und zu konfigurieren.
+Im Bios unter BOOT 
