@@ -189,3 +189,50 @@ Nachdem Ubuntu Server 22.04 LTS installiert ist, ist der nächste Schritt die In
     Diese Befehle geben den Namen und die E-Mail-Adresse aus, die Sie für Git konfiguriert haben.
 
 Mit der Installation und Konfiguration von Git ist Ihr System nun bereit für die Versionskontrolle Ihrer IoT-Projekte.
+
+
+## 4. Ausführen des Installer-Skripts
+
+Nachdem das Repository erfolgreich geklont wurde, müssen spezifische Installationsskripte ausgeführt werden, um die Umgebung und Abhängigkeiten für unser IoT-System zu konfigurieren. Dazu gehört das Skript `auto_install.sh`, das im `Installer/scripts`-Verzeichnis des geklonten Repositories liegt.
+
+### Voraussetzungen
+
+- Sie haben das `owipex-sps` Repository erfolgreich geklont (siehe vorheriger Abschnitt).
+- Sie haben Terminalzugriff mit den notwendigen Berechtigungen (die Ausführung einiger Skripte erfordert möglicherweise `root`-Zugriff).
+
+### Schritte zum Ausführen des Installer-Skripts
+
+1. **Wechseln Sie in das Skriptverzeichnis**: Navigieren Sie in das `Installer/scripts`-Verzeichnis innerhalb des geklonten `owipex-sps` Repositories:
+
+    ```bash
+    cd owipex-sps/Installer/scripts
+    ```
+
+2. **Machen Sie das Skript ausführbar**: Bevor Sie das Skript ausführen können, müssen Sie sicherstellen, dass es die notwendigen Ausführungsberechtigungen hat. Verwenden Sie den `chmod`-Befehl, um das Skript ausführbar zu machen:
+
+    ```bash
+    chmod +x auto_install.sh
+    ```
+
+3. **Versuchen Sie, das Skript auszuführen**: Wenn Sie das Skript ohne `sudo` ausführen, werden Sie möglicherweise aufgefordert, es als `root`-Benutzer auszuführen:
+
+    ```bash
+    ./auto_install.sh
+    ```
+
+    Die Ausgabe wird darauf hinweisen: "Bitte führen Sie das Skript als Root aus."
+
+4. **Führen Sie das Skript als Root aus**: Um das Skript mit Administratorrechten auszuführen, verwenden Sie `sudo`:
+
+    ```bash
+    sudo ./auto_install.sh
+    ```
+
+    Dies startet den Installationsprozess. Folgen Sie den Anweisungen auf dem Bildschirm, um die Installation abzuschließen.
+
+### Wichtige Hinweise
+
+- Stellen Sie sicher, dass Sie alle erforderlichen Informationen zur Hand haben, da das Skript möglicherweise Eingaben während des Installationsprozesses anfordert.
+- Überprüfen Sie nach Abschluss der Installation die Protokolle und Ausgaben, um sicherzustellen, dass alles erfolgreich installiert wurde und keine Fehler aufgetreten sind.
+
+Mit diesen Schritten haben Sie das notwendige Installationsskript ausgeführt, um die Umgebung für Ihre IoT-Systeme einzurichten und zu konfigurieren.
