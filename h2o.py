@@ -115,7 +115,7 @@ def sync_state(result, exception=None):
 
 class UPBoardRGBAsync:
     def __init__(self):
-        self.led_pins = {'R': 12, 'G': 13, 'B': 23}
+        self.led_pins = {'R': 5, 'G': 6, 'B': 26}
         self.gpio_pins = {}
         self.blink_thread = None
         self.stop_blink = threading.Event()
