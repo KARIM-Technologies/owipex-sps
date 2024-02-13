@@ -80,7 +80,10 @@ sudo sed -i 's|START_DAEMON="false"|START_DAEMON="true"|' /etc/default/gpsd
 #UP Board Libs Installieren
 sudo wget https://github.com/up-division/pinctrl-upboard/releases/download/v1.1.3/pinctrl-upboard_1.1.3_all.deb -y
 
-sudo dpkg -i pinctrl-upboard_1.1.3_all.deb -y
+sudo dpkg -i pinctrl-upboard_1.1.3_all.deb
+
+sudo apt-get install avahi-daemon -y
+
 
 echo "Alle Bibliotheken wurden erfolgreich installiert!"
 

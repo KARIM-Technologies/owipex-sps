@@ -1,0 +1,44 @@
+In Ubuntu 22.04.3 LTS und anderen neueren Ubuntu-Versionen wird das Netzwerk standardmäßig durch netplan verwaltet, nicht mehr durch die /etc/network/interfaces Datei. Netplan ist ein Netzwerkkonfigurationstool, das YAML-Konfigurationsdateien verwendet, um Netzwerkeinstellungen zu definieren. Hier ist, wie du eine statische IP-Adresse mit Netplan konfigurieren kannst:
+
+Schritt 1: Finde die Netplan-Konfigurationsdatei
+Netplan-Konfigurationsdateien befinden sich im Verzeichnis /etc/netplan/. Sie können verschiedene Namen haben, typischerweise enden sie auf .yaml. Um die vorhandenen Konfigurationsdateien zu sehen, verwende:
+
+bash
+Copy code
+ls /etc/netplan/
+Schritt 2: Bearbeite die Netplan-Konfigurationsdatei
+Öffne die Konfigurationsdatei mit einem Texteditor deiner Wahl, z.B. nano. Du benötigst Superuser-Rechte, um diese Datei zu bearbeiten:
+
+bash
+Copy code
+sudo nano /etc/netplan/00-installer-config.yaml
+Ersetze 00-netcfg.yaml durch den tatsächlichen Dateinamen in deinem /etc/netplan Verzeichnis.
+
+Schritt 3: Konfiguriere eine statische IP-Adresse
+In der Netplan-Konfigurationsdatei kannst du deine Netzwerkschnittstelle für eine statische IP konfigurieren. Hier ist ein Beispiel, wie die Konfiguration aussehen könnte:
+
+yaml
+Copy code
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp3s0:
+      dhcp4: no
+      addresses:
+        - 192.168.1.100/24
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+enp3s0: Ersetze dies durch den Namen deiner Netzwerkschnittstelle. Du kannst den Namen mit ip link show herausfinden.
+dhcp4: no: Deaktiviert DHCP für diese Schnittstelle.
+addresses: Füge deine statische IP-Adresse hinzu, gefolgt von /24, was die Subnetzmaske (255.255.255.0) angibt.
+gateway4: Das ist das Standardgateway, üblicherweise die IP-Adresse deines Routers.
+nameservers: Hier kannst du einen oder mehrere DNS-Server angeben.
+Schritt 4: Anwenden der Konfiguration
+Nachdem du die Netplan-Konfigurationsdatei bearbeitet hast, wende die Änderungen an mit:
+
+bash
+Copy code
+sudo netplan apply
+Dieser Befehl aktiviert die neuen Netzwerkeinstellungen basierend auf deiner Konfigurationsdatei.

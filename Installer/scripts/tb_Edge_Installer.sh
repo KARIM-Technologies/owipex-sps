@@ -20,7 +20,7 @@ sudo apt -y install postgresql-15
 sudo service postgresql start
 
 # Setze das PostgreSQL-Passwort
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'OW!P3X?';"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'OW!P3X';"
 
 # Erstelle ThingsBoard Edge DB
 sudo su - postgres -c "psql -c \"CREATE DATABASE owipex_db;\""

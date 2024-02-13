@@ -1,0 +1,8 @@
+sudo apt install git
+sud apt install nano
+
+
+IP 192.168.178.1
+routername owipex_net
+router passwort OW!p3x123456
+WLAN passwort   OWiP3X12
