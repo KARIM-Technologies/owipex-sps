@@ -6,3 +6,5 @@ IP 192.168.178.1
 routername owipex_net
 router passwort OW!p3x123456
 WLAN passwort   OWiP3X12
+
+00:07:32:A5:87:E5

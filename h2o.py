@@ -135,7 +135,7 @@ class SwitchMonitor:
                     global powerButton
                     powerButton = True
                     rgb_controller.start_blinking('G', blink_rate=None)  # Rote LED leuchtet dauerhaft
-                    //rgb_controller.start_blinking('G', 0.5, blink_count=99)
+                    #rgb_controller.start_blinking('G', 0.5, blink_count=99)
                 elif 3 <= press_duration < 6:
                     global autoSwitch
                     autoSwitch = True
@@ -480,7 +480,7 @@ def main():
         client.subscribe_to_attribute(attribute, attribute_callback)
 
     rgb_controller.start_blinking('B', blink_rate=None)  # Rote LED leuchtet dauerhaft
-    //rgb_controller.start_blinking('G', 0.5, blink_count=99)
+    #rgb_controller.start_blinking('G', 0.5, blink_count=99)
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 
