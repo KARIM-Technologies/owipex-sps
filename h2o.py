@@ -551,9 +551,9 @@ def main():
                     co2HeatingRelaySw = False
             else:
                 print("automode OFF", autoSwitch)
-                #pumpRelaySw = False
-                #co2RelaisSw = False
-                #co2HeatingRelaySw = False
+                pumpRelaySw = False
+                co2RelaisSw = False
+                co2HeatingRelaySw = False
                 ph_low_delay_start_time = None
                 ph_high_delay_start_time = None
         else:

@@ -1,28 +1,27 @@
+import requests
 import subprocess
 import time
 
 # Konfiguration
-SERVER_HOST = 'localhost'
-MAIN_SCRIPT_PATH = '/pfad/zu/deinem/hauptscript.py'  # Aktualisiere dies entsprechend
+SERVER_URL = 'http://localhost:8080'
+MAIN_SCRIPT_PATH = '/home/owipex_adm/owipex-sps/h2o.py'
 CHECK_INTERVAL = 10  # Sekunden zwischen den Überprüfungen
 MAX_RETRIES = 5  # Maximale Anzahl an Wiederholungsversuchen
 
-def ping_server(host):
+def check_server_availability(url):
     try:
-        output = subprocess.run(['ping', '-c', '1', host], stdout=subprocess.DEVNULL)
-        return output.returncode == 0
-    except Exception as e:
-        print(f"Fehler beim Pingen: {e}")
+        response = requests.get(url)
+        return response.status_code == 200
+    except requests.exceptions.RequestException:
         return False
 
 def start_main_script(script_path):
-    # `sudo` hinzugefügt und den Pfad angepasst
-    subprocess.Popen(['sudo', 'python', script_path])
+    subprocess.Popen(['python3', script_path])
 
 def main():
     retries = 0
     while retries < MAX_RETRIES:
-        if ping_server(SERVER_HOST):
+        if check_server_availability(SERVER_URL):
             print("Server ist erreichbar. Hauptskript wird gestartet.")
             start_main_script(MAIN_SCRIPT_PATH)
             break

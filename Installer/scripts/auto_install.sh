@@ -84,6 +84,34 @@ sudo dpkg -i pinctrl-upboard_1.1.3_all.deb
 
 sudo apt-get install avahi-daemon -y
 
+#OWIPEX OS Installieren
+sudo git clone https://github.com/KARIM-Technologies/owipex-sps.git
+
+cd owipex_sps
+
+sudo chown owipex_adm:owipex_adm h2o.py state.json total_flow.json
+echo "Alle Bibliotheken wurden erfolgreich installiert!"
+
+#Berechtigung setzen für Seriell
+sudo usermod -a -G dialout owipex_adm
+
+# Pfad zur udev-Regel-Datei
+UDEV_RULES_PATH="/etc/udev/rules.d/50-gpio.rules"
+
+# Inhalt der udev-Regel
+UDEV_RULES_CONTENT='SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\''chown -R root:gpiouser /sys/class/gpio && chmod -R 770 /sys/class/gpio; chown -R root:gpiouser /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio; chown -R root:gpiouser /sys$devpath && chmod -R 770 /sys$devpath'\''"'
+
+# Erstellen der udev-Regel-Datei mit den benötigten Berechtigungen
+echo "$UDEV_RULES_CONTENT" | sudo tee $UDEV_RULES_PATH > /dev/null
+
+# udev-Regeln neu laden, damit Änderungen wirksam werden
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+sudo groupadd gpiouser
+sudo adduser "owipex_adm" gpiouser
+
+sudo apt-get install inetutils-ping -y
 
 echo "Alle Bibliotheken wurden erfolgreich installiert!"
 
