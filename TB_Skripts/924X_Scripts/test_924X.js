@@ -16,10 +16,10 @@ function openAddEntityDialog() {
 function AddEntityDialogController(instance) {
     let vm = instance;
 
-    vm.wb_x_system_types = ["WB-W-M5/A5","WB-WP-M5/A5","WB-W-M8/A8","WB-WP-M8/A8","WB-KSP-M8/A8","WB-W-M14/A14","WB-RT-M28/A28","OWPX-924_"];
+    vm.owx_system_types = ["OWX-924"];
 
     vm.addEntityFormGroup = vm.fb.group({
-     wb_x_system_type: [null, [vm.validators.required]],
+     owx_system_types: [null, [vm.validators.required]],
     });
 
     vm.labelDisplayFn=function(option) {
@@ -28,14 +28,14 @@ function AddEntityDialogController(instance) {
         }
         return ""
     }
-    vm.filteredWBXSystemTypes = vm.wb_x_system_types;
-    vm.filterWBXSystemTypes=function(value) {
+    vm.filteredOWXSystemTypes = vm.owx_system_types;
+    vm.filterZGMSystemTypes=function(value) {
         if(value!=undefined){
             const filterValue = value.toLowerCase();
-            vm.filteredWBXSystemTypes = vm.wb_x_system_types.filter(type => type.toLowerCase().includes(filterValue));
+            vm.filteredOWXSystemTypes = vm.owx_system_types.filter(type => type.toLowerCase().includes(filterValue));
         }
         else{
-            vm.filteredWBXSystemTypes = vm.wb_x_system_types;
+            vm.filteredOWXSystemTypes = vm.owx_system_types;
         }
     }
 
@@ -66,14 +66,14 @@ function AddEntityDialogController(instance) {
   "entityFilter": {
     "type": "assetType",
     "resolveMultiple": true,
-    "assetType": "WB-X-Systems"
+    "assetType": "OWX-924_"
   },
   "entityFields": [{
   "type": "ENTITY_FIELD",
   "key": "name"}  
 ],
   "keyFilters": [
-	{"key":{"type":"ENTITY_FIELD","key":"name"},"valueType":"STRING","predicate":{"operation":"STARTS_WITH","value":{"defaultValue":vm.addEntityFormGroup.value.wb_x_system_type,"dynamicValue":null},"type":"STRING"}}  ],
+	{"key":{"type":"ENTITY_FIELD","key":"name"},"valueType":"STRING","predicate":{"operation":"STARTS_WITH","value":{"defaultValue":vm.addEntityFormGroup.value.owx_system_types,"dynamicValue":null},"type":"STRING"}}  ],
   "latestValues": [],
   "pageLink": {
     "dynamic": true,
@@ -93,7 +93,7 @@ widgetContext.entityService.findEntityDataByQuery({
   "entityFilter": {
     "type": "deviceType",
     "resolveMultiple": true,
-    "deviceType": "WB-X-MASTER-ST-IMX8_V1.0"
+    "deviceType": "924XXXX-MASTER-ST-X86_8_64"
   },
   "entityFields": [{
   "type": "ENTITY_FIELD",
@@ -119,7 +119,7 @@ widgetContext.entityService.findEntityDataByQuery({
   "entityFilter": {
     "type": "deviceType",
     "resolveMultiple": true,
-    "deviceType": "WB-X-CO2-ST-ESP32C2_V1.0"
+    "deviceType": "924XXXX-CO2-ST-32S3"
   },
   "entityFields": [{
   "type": "ENTITY_FIELD",
@@ -145,7 +145,7 @@ widgetContext.entityService.findEntityDataByQuery({
   "entityFilter": {
     "type": "deviceType",
     "resolveMultiple": true,
-    "deviceType": "WB-X-P-ST-ESP32C2_V1.0"
+    "deviceType": "924XXXX-P-ST-32S3"
   },
   "entityFields": [{
   "type": "ENTITY_FIELD",
@@ -171,7 +171,7 @@ widgetContext.entityService.findEntityDataByQuery({
   "entityFilter": {
     "type": "edgeType",
     "resolveMultiple": true,
-    "edgeType": "WB-X-EDGE-ARM64-8GB-RASP_V1.0"
+    "edgeType": "OWX-924_XXXX-EDGE"
   },
   "entityFields": [{
   "type": "ENTITY_FIELD",
@@ -192,33 +192,7 @@ widgetContext.entityService.findEntityDataByQuery({
     },
     "textSearch": ""
   }
-}),
-widgetContext.entityService.findEntityDataByQuery({
-    "entityFilter": {
-      "type": "deviceType",
-      "resolveMultiple": true,
-      "deviceType": "WB-X-GATE_V1.0"
-    },
-    "entityFields": [{
-    "type": "ENTITY_FIELD",
-    "key": "name"}  
-  ],
-    "keyFilters": [],
-    "latestValues": [],
-    "pageLink": {
-      "dynamic": true,
-      "page": 0,
-      "pageSize": 1,
-      "sortOrder": {
-        "direction": "DESC",
-        "key": {
-          "key": "createdTime",
-          "type": "ENTITY_FIELD"
-        }
-      },
-      "textSearch": ""
-    }
-  }),
+})
 ]).subscribe(
             function (result) {
                 console.log("Result: ",result)
@@ -227,46 +201,45 @@ widgetContext.entityService.findEntityDataByQuery({
                 var _co2Name;
                 var _pwName;
                 var _edgeName;
-                var _gateName;
                 
                 if(result[0].data.length==0){
-                    _assetName=vm.addEntityFormGroup.value.wb_x_system_type+"_0001"
+                    _assetName=vm.addEntityFormGroup.value.owx_system_types+"_0001"
+                    _spsName="ZGM-X-SPS_924"+"_0001"
+                    _co2Name="ZGM-X-CO2_924"+"_0001"
+                    _pwName="ZGM-X-PW_924"+"_0001"
+                    _edgeName="ZGM-X-EDGE_924"+"_0001"
                 }
                 else{
                     var nameArray=result[0].data[0].latest.ENTITY_FIELD.name.value.split("_")
                     var lastIndex=parseInt(nameArray[nameArray.length - 1]);
-                    _assetName=vm.addEntityFormGroup.value.wb_x_system_type+"_"+intToFourDigitString(lastIndex+1)
+                    _assetName=vm.addEntityFormGroup.value.owx_system_types+"_"+intToFourDigitString(lastIndex+1)
+
+                    var spsNameArray=result[1].data[0].latest.ENTITY_FIELD.name.value.split("_")
+                    var spsLastIndex=parseInt(spsNameArray[spsNameArray.length - 1]);
+                    _spsName="ZGM-X-SPS_924"+intToFourDigitString(spsLastIndex+1)
+    
+                    var co2NameArray=result[2].data[0].latest.ENTITY_FIELD.name.value.split("_")
+                    var co2LastIndex=parseInt(co2NameArray[co2NameArray.length - 1]);
+                    _co2Name="ZGM-X-CO2_924"+intToFourDigitString(co2LastIndex+1)
+    
+                    var pwNameArray=result[3].data[0].latest.ENTITY_FIELD.name.value.split("_")
+                    var pwLastIndex=parseInt(pwNameArray[pwNameArray.length - 1]);
+                    _pwName="ZGM-X-PW_924"+intToFourDigitString(pwLastIndex+1)
+    
+                    var edgeNameArray=result[4].data[0].latest.ENTITY_FIELD.name.value.split("_")
+                    var edgeLastIndex=parseInt(edgeNameArray[edgeNameArray.length - 1]);
+                    _edgeName="ZGM-X-EDGE_924"+intToFourDigitString(edgeLastIndex+1)
                 }
 
-                var spsNameArray=result[1].data[0].latest.ENTITY_FIELD.name.value.split("_")
-                var spsLastIndex=parseInt(spsNameArray[spsNameArray.length - 1]);
-                _spsName="WB-X-SPS_"+intToFourDigitString(spsLastIndex+1)
-
-                var co2NameArray=result[2].data[0].latest.ENTITY_FIELD.name.value.split("_")
-                var co2LastIndex=parseInt(co2NameArray[co2NameArray.length - 1]);
-                _co2Name="WB-X-CO2_"+intToFourDigitString(co2LastIndex+1)
-
-                var pwNameArray=result[3].data[0].latest.ENTITY_FIELD.name.value.split("_")
-                var pwLastIndex=parseInt(pwNameArray[pwNameArray.length - 1]);
-                _pwName="WB-X-PW_"+intToFourDigitString(pwLastIndex+1)
-
-                var edgeNameArray=result[4].data[0].latest.ENTITY_FIELD.name.value.split("_")
-                var edgeLastIndex=parseInt(edgeNameArray[edgeNameArray.length - 1]);
-                _edgeName="WB-X-EDGE_"+intToFourDigitString(edgeLastIndex+1)
-
-                var edgeNameArray=result[4].data[0].latest.ENTITY_FIELD.name.value.split("_")
-                var edgeLastIndex=parseInt(edgeNameArray[edgeNameArray.length - 1]);
-                _gateName="WB-X-GATE_"+intToFourDigitString(gateLastIndex+1)
     
                 console.log(_assetName,_spsName,_co2Name,_pwName,_edgeName)
                 
                 
-            widgetContext.rxjs.forkJoin([assetService.saveAsset({name: _assetName,type: "WB-X-Systems",label: _assetName}),
-            deviceService.saveDevice({name: _spsName,type: "WB-X-MASTER-ST-IMX8_V1.0",label: _spsName}),
-            deviceService.saveDevice({name: _co2Name,type: "WB-X-CO2-ST-ESP32C2_V1.0",label: _spsName}),
-            deviceService.saveDevice({name: _pwName,type: "WB-X-P-ST-ESP32C2_V1.0",label: _spsName}),
-            deviceService.saveDevice({name: _gateName,type: "WB-X-GATE_V1.0",label: _gateName}),
-            widgetContext.entityService.edgeService.saveEdge({name: _edgeName,type: "WB-X-EDGE-ARM64-8GB-RASP_V1.0",label: _edgeName
+            widgetContext.rxjs.forkJoin([assetService.saveAsset({name: _assetName,type: "OWX-924_",label: _assetName}),
+            deviceService.saveDevice({name: _spsName,type: "924XXXX-MASTER-ST-X86_8_64",label: _spsName}),
+            deviceService.saveDevice({name: _co2Name,type: "924XXXX-CO2-ST-32S3",label: _spsName}),
+            deviceService.saveDevice({name: _pwName,type: "924XXXX-P-ST-32S3",label: _spsName}),
+            widgetContext.entityService.edgeService.saveEdge({name: _edgeName,type: "OWX-924_XXXX-EDGE",label: _edgeName
                 ,routingKey: guid()
                 ,secret: generateSecret(20) 
             })
@@ -326,26 +299,6 @@ widgetContext.entityService.findEntityDataByQuery({
     },
     {
         "key": "pumpRelais",
-        "value": false
-    }
-    {
-        "key": "isBackupController",
-        "value": false
-    }
-    {
-        "key": "swPressMaster",
-        "value": false
-    }
-    {
-        "key": "phSensTemp",
-        "value": false
-    }
-    {
-        "key": "gasBottleSize",
-        "value": false
-    }
-    {
-        "key": "isEmptyMessage",
         "value": false
     }
 ]

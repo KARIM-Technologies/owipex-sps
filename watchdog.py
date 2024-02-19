@@ -5,8 +5,8 @@ import time
 # Konfiguration
 SERVER_URL = 'http://localhost:8080'
 MAIN_SCRIPT_PATH = '/home/owipex_adm/owipex-sps/h2o.py'
-CHECK_INTERVAL = 10  # Sekunden zwischen den Überprüfungen
-MAX_RETRIES = 5  # Maximale Anzahl an Wiederholungsversuchen
+CHECK_INTERVAL = 25  # Sekunden zwischen den Überprüfungen
+MAX_RETRIES = 15  # Maximale Anzahl an Wiederholungsversuchen
 
 def check_server_availability(url):
     try:
