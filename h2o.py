@@ -336,7 +336,7 @@ class FlowRateHandler:
 
 class TotalFlowManager:
     def __init__(self, update_interval=60):
-        self.last_update_time = time.time()  # Zeitstempel der letzten Aktualisierung
+        self.update_interval = update_interval  # Zeitstempel der letzten Aktualisierung
         self.total_flow = 0
         self.load_total_flow()
 
@@ -410,10 +410,14 @@ turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
 ph_handler.load_calibration()
 rgb_controller = UPBoardRGBAsync()
+
+# Vor der main-Funktion:
+DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
+last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim ersten Durchlauf Daten gesendet werden
         
 def main():
     #def Global Variables for Main Funktion
-    global switch_monitor, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global switch_monitor, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -441,13 +445,15 @@ def main():
 
 
     # Initialisierung des GPSHandlers
-    gps_handler = GPSHandler(update_interval=15)  # GPS-Daten alle 60 Sekunden aktualisieren
+    gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
     gps_handler.start_gps_updates()
 
     #Laden der alten werte
     saved_state = load_state()
     globals().update(saved_state)
     previous_power_state = False
+
+    last_send_time = time.time()
 
     while not client.stopped:
         attributes, telemetry = get_data()
@@ -473,8 +479,16 @@ def main():
             
 
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
-        client.send_attributes(attributes)
-        client.send_telemetry(telemetry)
+
+        current_time = time.time()
+        if current_time - last_send_time >= DATA_SEND_INTERVAL:
+            # Aktualisiere den letzten Sendungszeitpunkt
+            last_send_time = current_time
+            
+            # Sende Daten
+            client.send_attributes(attributes)
+            client.send_telemetry(telemetry)
+
         
         
 
