@@ -10,7 +10,7 @@ Type=simple
 User=owipex_adm
 WorkingDirectory=/home/owipex_adm/owipex-sps
 ExecStart=/usr/bin/python3 /home/owipex_adm/owipex-sps/watchdog.py
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target" | sudo tee /etc/systemd/system/h2o_watchdog.service

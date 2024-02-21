@@ -113,6 +113,8 @@ sudo adduser "owipex_adm" gpiouser
 
 sudo apt-get install inetutils-ping -y
 
+pip3 install psutil
+
 echo "Alle Bibliotheken wurden erfolgreich installiert!"
 
 sudo reboot

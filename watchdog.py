@@ -1,6 +1,7 @@
 import requests
 import subprocess
 import time
+import psutil  # Zusätzliches Modul zur Überprüfung laufender Prozesse
 
 # Konfiguration
 SERVER_URL = 'http://localhost:8080'
@@ -15,23 +16,36 @@ def check_server_availability(url):
     except requests.exceptions.RequestException:
         return False
 
+def is_main_script_running(script_path):
+    # Überprüft, ob ein Prozess mit dem Skriptpfad läuft
+    for process in psutil.process_iter(['cmdline']):
+        if script_path in process.info['cmdline']:
+            return True
+    return False
+
 def start_main_script(script_path):
-    subprocess.Popen(['python3', script_path])
+    if not is_main_script_running(script_path):
+        subprocess.Popen(['python3', script_path])
+        print("Hauptskript gestartet.")
+    else:
+        print("Hauptskript läuft bereits.")
 
 def main():
-    retries = 0
-    while retries < MAX_RETRIES:
-        if check_server_availability(SERVER_URL):
-            print("Server ist erreichbar. Hauptskript wird gestartet.")
-            start_main_script(MAIN_SCRIPT_PATH)
-            break
-        else:
-            print(f"Server nicht erreichbar. Versuche erneut in {CHECK_INTERVAL} Sekunden...")
-            time.sleep(CHECK_INTERVAL)
-            retries += 1
+    while True:  # Ändern Sie dies in eine Endlosschleife
+        retries = 0
+        while retries < MAX_RETRIES:
+            if check_server_availability(SERVER_URL):
+                print("Server ist erreichbar. Überprüfe Hauptskript.")
+                start_main_script(MAIN_SCRIPT_PATH)
+                break
+            else:
+                print(f"Server nicht erreichbar. Versuche erneut in {CHECK_INTERVAL} Sekunden...")
+                time.sleep(CHECK_INTERVAL)
+                retries += 1
 
-    if retries == MAX_RETRIES:
-        print("Maximale Anzahl an Versuchen erreicht. Skript wird beendet.")
+        if retries == MAX_RETRIES:
+            print("Maximale Anzahl an Versuchen erreicht. Warte, bevor erneut versucht wird...")
+        time.sleep(CHECK_INTERVAL)  # Wartezeit, bevor die Überprüfungsschleife neu gestartet wird
 
 if __name__ == '__main__':
     main()
