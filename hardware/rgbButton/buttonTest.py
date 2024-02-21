@@ -1,11 +1,12 @@
 from periphery import GPIO
+import time  # Import des time-Moduls
 
 # Konfiguration
-switch_line = 25  # Liniennummer des Switches
+switch_line = 21  # Liniennummer des Switches
 
 def main():
     # Initialisierung des GPIO-Pins für den Switch
-    switch_gpio = GPIO("/dev/gpiochip0", switch_line, "in")
+    switch_gpio = GPIO(switch_line, "in")
 
     print("Überwachung des Switch-Zustandes. Drücken Sie CTRL+C zum Beenden.")
 
