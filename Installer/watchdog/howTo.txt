@@ -1,0 +1,12 @@
+Anweisungen zur Verwendung des Skripts:
+Kopieren Sie den obigen Skriptinhalt in eine Datei namens setupPowerWatchdogService.sh in Ihrem bevorzugten Editor.
+Passen Sie die USER, WORKING_DIRECTORY und SCRIPT_PATH Variablen an Ihre spezifische Konfiguration und die Pfade in Ihrem System an.
+Speichern Sie die Datei und geben Sie ihr Ausführungsrechte:
+bash
+Copy code
+chmod +x setupPowerWatchdogService.sh
+Führen Sie das Skript als root oder mit sudo aus, um den Service einzurichten:
+bash
+Copy code
+sudo ./setupPowerWatchdogService.sh
+Dieses Skript erstellt die Service-Datei mit den angegebenen Konfigurationen, aktiviert den Service, um ihn beim Systemstart auszuführen, und startet ihn sofort. Sie können den Status des Services mit sudo systemctl status powerWatchdog überprüfen und die Logs mit sudo journalctl -u powerWatchdog einsehen.
