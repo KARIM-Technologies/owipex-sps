@@ -1,0 +1,35 @@
+Ändern der /etc/hosts Datei:
+Öffne auch diese Datei in einem Texteditor:
+
+bash
+Copy code
+sudo nano /etc/hosts
+Finde die Zeile, die mit 127.0.0.1 beginnt, und ändere den alten Hostnamen am Ende dieser Zeile in den neuen Hostnamen. Wenn es eine Zeile mit 127.0.1.1 gibt, ändere auch hier den Hostnamen entsprechend.
+
+Die Zeilen könnten vorher so aussehen:
+
+sql
+Copy code
+127.0.0.1       localhost
+127.0.1.1       alter-hostname
+Und nach der Änderung so:
+
+Copy code
+127.0.0.1       localhost
+127.0.1.1       neuer-hostname
+Speichere die Datei und schließe den Editor.
+
+Schritt 4: Änderungen übernehmen
+Um die Änderung des Hostnamens zu übernehmen, kannst du entweder den systemctl Befehl verwenden, um den hostname Dienst neu zu starten, oder das System neu starten. Ein Neustart ist der sicherste Weg, um sicherzustellen, dass alle Dienste mit dem neuen Hostnamen aktualisiert werden:
+
+bash
+Copy code
+sudo reboot
+Nach dem Neustart sollte dein Ubuntu Server 22.04.3 den neuen Hostnamen verwenden. Du kannst dies überprüfen, indem du erneut den hostname Befehl ausführst.
+
+
+2 / 2
+
+
+
+
