@@ -1,0 +1,22 @@
+SIM Karte entfernen
+Gerät Starten
+
+Modem einrichten
+    192.168.100.1
+        QuickWizzard
+            Cellular Settings
+                APN = shared.m2m.ch
+
+
+        WB-NET_924_XXXX
+        PSW
+
+
+        tenant@thingsboard.org
+        OWX Passwort
+
+        IP Table anpassen
+
+
+        
+        SIM Aktivieren
