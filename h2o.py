@@ -111,18 +111,6 @@ def sync_state(result, exception=None):
     else:
         period = result.get('shared', {'powerButton': False})['powerButton']
 
-
-    def stop_blinking(self):
-        if self.blink_thread is not None:
-            self.stop_blink.set()
-            self.blink_thread.join()
-            self.blink_thread = None
-
-    def cleanup(self):
-        self.stop_blinking()
-        for gpio in self.gpio_pins.values():
-            gpio.close()
-
 class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
@@ -334,8 +322,6 @@ def signal_handler(sig, frame):
     autoSwitch = False
     powerButton = False
     runtime_tracker.stop() 
-    rgb_controller.stop_blinking()
-    rgb_controller.cleanup()
     print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
     state_to_save = {key: globals()[key] for key in shared_attributes_keys}
     save_state(state_to_save)
@@ -363,6 +349,25 @@ ph_handler.load_calibration()
 # Vor der main-Funktion:
 DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
 last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim ersten Durchlauf Daten gesendet werden
+
+# Variablen für den vorherigen Zustand initialisieren, falls noch nicht geschehen
+if 'previous_attributes' not in globals():
+    previous_attributes = {}
+if 'previous_telemetry' not in globals():
+    previous_telemetry = {}
+
+def round_float_values(data):
+    """Rundet alle Float-Werte in einem Dictionary auf zwei Nachkommastellen und gibt sie vor dem Runden aus."""
+    rounded_data = {}
+    for key, val in data.items():
+        if isinstance(val, float):
+            print(f"Vor dem Runden: {key} = {val}")
+            rounded_val = round(val, 2)
+            print(f"Nach dem Runden: {key} = {rounded_val}")
+            rounded_data[key] = rounded_val
+        else:
+            rounded_data[key] = val
+    return rounded_data
         
 def main():
     #def Global Variables for Main Funktion
@@ -416,12 +421,28 @@ def main():
 
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
 
-        #Sendeintervall festlegen
+        #Datenfilterunf und Aufbereitung
         current_time = time.time()
-        if current_time - last_send_time >= DATA_SEND_INTERVAL:  
+        if current_time - last_send_time >= DATA_SEND_INTERVAL:
             last_send_time = current_time
-            client.send_attributes(attributes)
-            client.send_telemetry(telemetry)
+            
+            # Runde die Float-Werte in attributes und telemetry
+            attributes_rounded = round_float_values(attributes)
+            telemetry_rounded = round_float_values(telemetry)
+            
+            # Bestimme die geänderten und gerundeten Attribute und Telemetrie
+            changed_attributes = {key: val for key, val in attributes_rounded.items() if previous_attributes.get(key) != val}
+            changed_telemetry = {key: val for key, val in telemetry_rounded.items() if previous_telemetry.get(key) != val}
+            
+            # Aktualisiere den vorherigen Zustand mit den gerundeten Werten
+            previous_attributes.update(changed_attributes)
+            previous_telemetry.update(changed_telemetry)
+            
+            # Sende nur die geänderten und gerundeten Daten
+            if changed_attributes:
+                client.send_attributes(changed_attributes)
+            if changed_telemetry:
+                client.send_telemetry(changed_telemetry)
 
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
