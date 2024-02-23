@@ -355,23 +355,28 @@ if 'previous_attributes' not in globals():
     previous_attributes = {}
 if 'previous_telemetry' not in globals():
     previous_telemetry = {}
+# Initialisiere Variablen für den vorherigen Zustand der shared Variablen, falls noch nicht geschehen
+if 'previous_powerButton' not in globals():
+    previous_powerButton = powerButton
+if 'previous_pumpRelaySw' not in globals():
+    previous_pumpRelaySw = pumpRelaySw
+if 'previous_co2RelaisSw' not in globals():
+    previous_co2RelaisSw = co2RelaisSw
+if 'previous_autoSwitch' not in globals():
+    previous_autoSwitch = autoSwitch
 
 def round_float_values(data):
-    """Rundet alle Float-Werte in einem Dictionary auf zwei Nachkommastellen und gibt sie vor dem Runden aus."""
-    rounded_data = {}
-    for key, val in data.items():
-        if isinstance(val, float):
-            print(f"Vor dem Runden: {key} = {val}")
-            rounded_val = round(val, 2)
-            print(f"Nach dem Runden: {key} = {rounded_val}")
-            rounded_data[key] = rounded_val
-        else:
-            rounded_data[key] = val
-    return rounded_data
+    """Rundet alle Float-Werte in einem Dictionary auf eine Nachkommastelle."""
+    return {key: round(val, 4) if isinstance(val, float) else val for key, val in data.items()}
+
+previous_powerButton = None
+previous_pumpRelaySw = None
+previous_co2RelaisSw = None
+previous_autoSwitch = None
         
 def main():
     #def Global Variables for Main Funktion
-    global switch_monitor, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global previous_powerButton, previous_pumpRelaySw, previous_autoSwitch, previous_co2RelaisSw, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -421,7 +426,30 @@ def main():
 
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
 
-        #Datenfilterunf und Aufbereitung
+        # Überprüfe auf Änderungen in den shared Variablen und sende sofort
+        shared_variables_changed = False
+        shared_attributes = {}
+        if powerButton != previous_powerButton:
+            shared_variables_changed = True
+            shared_attributes['powerButton'] = powerButton
+            previous_powerButton = powerButton
+        if pumpRelaySw != previous_pumpRelaySw:
+            shared_variables_changed = True
+            shared_attributes['pumpRelaySw'] = pumpRelaySw
+            previous_pumpRelaySw = pumpRelaySw
+        if co2RelaisSw != previous_co2RelaisSw:
+            shared_variables_changed = True
+            shared_attributes['co2RelaisSw'] = co2RelaisSw
+            previous_co2RelaisSw = co2RelaisSw
+        if autoSwitch != previous_autoSwitch:
+            shared_variables_changed = True
+            shared_attributes['autoSwitch'] = autoSwitch
+            previous_autoSwitch = autoSwitch
+        # Wenn eine der shared Variablen geändert wurde, sende die geänderten Daten sofort
+        if shared_variables_changed:
+            client.send_attributes(shared_attributes)
+                #Datenfilterunf und Aufbereitung
+            
         current_time = time.time()
         if current_time - last_send_time >= DATA_SEND_INTERVAL:
             last_send_time = current_time
