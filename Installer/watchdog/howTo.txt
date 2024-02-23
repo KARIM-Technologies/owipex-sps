@@ -10,3 +10,15 @@ bash
 Copy code
 sudo ./setupPowerWatchdogService.sh
 Dieses Skript erstellt die Service-Datei mit den angegebenen Konfigurationen, aktiviert den Service, um ihn beim Systemstart auszuführen, und startet ihn sofort. Sie können den Status des Services mit sudo systemctl status powerWatchdog überprüfen und die Logs mit sudo journalctl -u powerWatchdog einsehen.
+
+
+Laden Sie die Systemd-Konfiguration neu und starten Sie den Service neu:
+bash
+Copy code
+sudo systemctl daemon-reload
+sudo systemctl restart powerWatchdog.service
+Überprüfen Sie den Status des Services, um sicherzustellen, dass er jetzt erfolgreich gestartet wird:
+bash
+Copy code
+sudo systemctl status powerWatchdog.service
+Diese Schritte sollten das Problem beheben, dass der Service nicht startet, und sicherstellen, dass der Service unter dem Benutzer owipex_adm läuft und auf das powerWatchdog.py Skript in /home/owipex_adm/owipex-sps zugreift.

@@ -112,57 +112,6 @@ def sync_state(result, exception=None):
         period = result.get('shared', {'powerButton': False})['powerButton']
 
 
-class UPBoardRGBAsync:
-    def __init__(self):
-        self.led_pins = {'R': 5, 'G': 6, 'B': 26}
-        self.gpio_pins = {}
-        self.blink_thread = None
-        self.stop_blink = threading.Event()
-
-        for color, pin in self.led_pins.items():
-            self.gpio_pins[color] = GPIO(pin, "out")
-            self.set_led(color, False)  # Initial ausschalten
-
-    def set_led(self, color, state):
-        # Zustand für jede Farbe setzen
-        for c in color:
-            self.gpio_pins[c].write(not state)
-
-    def start_blinking(self, color_code, blink_rate=None, blink_count=999):
-        if self.blink_thread is not None:
-            self.stop_blinking()
-
-        self.stop_blink.clear()
-        # Übergebe None oder einen speziellen Wert für blink_rate, um dauerhaftes Leuchten zu signalisieren
-        self.blink_thread = threading.Thread(target=self._blink_led, args=(color_code, blink_rate, blink_count))
-        self.blink_thread.start()
-
-    def _blink_led(self, color_code, blink_rate, blink_count):
-        if blink_rate is None:  # Wenn blink_rate None ist, leuchte dauerhaft
-            self.set_led(color_code, True)
-            while not self.stop_blink.is_set() and blink_count == 999:
-                time.sleep(0.1)  # Kurzes Schlafen, um CPU-Zeit zu sparen und auf stop-Befehl zu überprüfen
-        else:
-            count = 0
-            while not self.stop_blink.is_set() and (blink_count == 999 or count < blink_count):
-                self.set_led(color_code, True)
-                time.sleep(blink_rate)
-                self.set_led(color_code, False)
-                time.sleep(blink_rate)
-                count += 1
-
-
-    def stop_blinking(self):
-        if self.blink_thread is not None:
-            self.stop_blink.set()
-            self.blink_thread.join()
-            self.blink_thread = None
-
-    def cleanup(self):
-        self.stop_blinking()
-        for gpio in self.gpio_pins.values():
-            gpio.close()
-
 class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
@@ -384,8 +333,6 @@ def signal_handler(sig, frame):
     autoSwitch = False
     powerButton = False
     runtime_tracker.stop() 
-    rgb_controller.stop_blinking()
-    rgb_controller.cleanup()
     print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
     state_to_save = {key: globals()[key] for key in shared_attributes_keys}
     save_state(state_to_save)
@@ -409,7 +356,7 @@ ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
 ph_handler.load_calibration()
-rgb_controller = UPBoardRGBAsync()
+
 
 # Vor der main-Funktion:
 DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
@@ -433,8 +380,7 @@ def main():
     for attribute in shared_attributes_keys:
         client.subscribe_to_attribute(attribute, attribute_callback)
 
-    rgb_controller.start_blinking('B', blink_rate=None)  # Rote LED leuchtet dauerhaft
-    #rgb_controller.start_blinking('G', 0.5, blink_count=99)
+    
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 

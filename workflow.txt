@@ -17,6 +17,10 @@ Modem einrichten
 
         IP Table anpassen
 
+        Watchdog Service installieren
 
-        
+        Gateway confoigurieren
+
+
+
         SIM Aktivieren
