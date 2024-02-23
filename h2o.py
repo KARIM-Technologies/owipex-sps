@@ -8,7 +8,7 @@ import os
 import gpsDataLib
 import json
 import threading
-
+import config
 
 from periphery import GPIO
 from threading import Thread
@@ -111,6 +111,52 @@ def sync_state(result, exception=None):
     else:
         period = result.get('shared', {'powerButton': False})['powerButton']
 
+class DataSender:
+    def __init__(self, client):
+        self.client = client
+        self.last_telemetry_time_fast = 0
+        self.last_telemetry_time_slow = 0
+        self.last_attribute_time = 0
+        self.last_telemetry_data = {}
+        self.last_attribute_data = {}
+
+    def send_telemetry(self, telemetry_data):
+        current_time = time.time()
+        for key, value in telemetry_data.items():
+            fast = key in config.TELEMETRY_KEYS_FAST
+            interval = config.TELEMETRY_INTERVAL_FAST if fast else config.TELEMETRY_INTERVAL_SLOW
+            last_time = self.last_telemetry_time_fast if fast else self.last_telemetry_time_slow
+            if current_time - last_time >= interval and self._data_changed({key: value}, self.last_telemetry_data.get(key, None)):
+                self.client.send_telemetry({key: value})
+                if fast:
+                    self.last_telemetry_time_fast = current_time
+                else:
+                    self.last_telemetry_time_slow = current_time
+                self.last_telemetry_data[key] = value
+
+    def send_attributes(self, attributes_data):
+        current_time = time.time()
+        if current_time - self.last_attribute_time >= self.attribute_interval and self._data_changed(attributes_data, self.last_attribute_data):
+            self.client.send_attributes(attributes_data)
+            self.last_attribute_time = current_time
+            self.last_attribute_data = attributes_data
+
+    def send_attributes(self, attributes_data):
+        current_time = time.time()
+        if current_time - self.last_attribute_time >= config.ATTRIBUTE_INTERVAL:
+            for key, value in attributes_data.items():
+                if self._data_changed({key: value}, self.last_attribute_data.get(key, None)):
+                    self.client.send_attributes({key: value})
+                    self.last_attribute_data[key] = value
+            self.last_attribute_time = current_time
+
+    def _compare_values(self, new_value, last_value):
+        if isinstance(new_value, float) and isinstance(last_value, float):
+            # Vergleiche nur bis zu den ersten zwei Nachkommastellen
+            return round(new_value, 2) != round(last_value, 2)
+        else:
+            return new_value != last_value
+
 
 class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
@@ -197,9 +243,9 @@ class TurbidityHandler:
 
 class PHHandler:
     def __init__(self, sensor):
-        self.sensor = sensor  # Hier übergeben Sie die PH_Sensor-Instanz
-        self.slope = 1  # Anfangswert, wird durch Kalibrierung aktualisiert
-        self.intercept = 0  # Anfangswert, wird durch Kalibrierung aktualisiert
+        self.sensor = sensor  
+        self.slope = 1  
+        self.intercept = 0  
 
     def fetch_and_display_data(self):
         raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
@@ -213,7 +259,7 @@ class PHHandler:
     def correct_ph_value(self, raw_value):
         if raw_value is None:
             print("Fehler: raw_value ist None. Überprüfen Sie die Sensorverbindung.")
-            return 7  # Oder einen anderen Standardwert oder Fehlerbehandlungsmechanismus verwenden
+            return 7  
         return self.slope * raw_value + self.intercept
 
     def calibrate(self, high_ph_value, low_ph_value, measured_high, measured_low):
@@ -364,7 +410,7 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 def main():
     #def Global Variables for Main Funktion
-    global switch_monitor, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -399,44 +445,28 @@ def main():
     globals().update(saved_state)
     previous_power_state = False
 
-    last_send_time = time.time()
+ 
 
     while not client.stopped:
         attributes, telemetry = get_data()
-        #PH Initial
-
-        
         runtime_tracker_var = runtime_tracker.get_total_runtime()   
         maximumPHVal = targetPHValue + targetPHtolerrance
-        minimumPHVal = targetPHValue - targetPHtolerrance   
-        #print("targetPHValue", targetPHValue)
-        #print("targetPHtolerrance", targetPHtolerrance)
-        #print("minimumPHVal", minimumPHVal)
-        #print("maximumPHVal", maximumPHVal)
-        #print("gemessener_high_wert", gemessener_high_wert)
-        #print("gemessener_low_wert", gemessener_low_wert)
-        # Optional: Sie können hier die aktuelle Gesamtdurchflussmenge ausgeben oder anderweitig verwenden
-        
+        minimumPHVal = targetPHValue - targetPHtolerrance  
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
         print("co2RelaisSwSig", co2RelaisSwSig)
         print("co2RelaisSw", co2RelaisSw)
-            
-
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
 
-        current_time = time.time()
-        if current_time - last_send_time >= DATA_SEND_INTERVAL:
-            # Aktualisiere den letzten Sendungszeitpunkt
-            last_send_time = current_time
-            
-            # Sende Daten
-            client.send_attributes(attributes)
-            client.send_telemetry(telemetry)
+        telemetry_data = {key: globals()[key] for key in telemetry_keys if key in globals()}
+        attributes_data = {key: globals()[key] for key in attributes_keys if key in globals()}
 
-        
-        
+        # Übergebe die erstellten Dictionaries an die `send_telemetry` und `send_attributes` Methoden
+        data_sender.send_telemetry(telemetry_data)
+        data_sender.send_attributes(attributes_data)
+
+
 
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)

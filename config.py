@@ -85,3 +85,13 @@ shared_attributes_keys = ['minimumPHValueStop', 'ph_low_delay_start_time', 'ph_h
                           'turbidityOffset', 'radarSensorActive', 'autoSwitch', 'callGpsSwitch', 'powerButton', 'co2RelaisSwSig',
                           'calibratePH', 'targetPHValue', 'targetPHtolerrance', 'gemessener_high_wert',
                           'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal']
+
+
+# Zeitintervalle für das Senden der Daten
+TELEMETRY_INTERVAL_FAST = 10  # Schnelles Intervall in Sekunden
+TELEMETRY_INTERVAL_SLOW = 60  # Langsames Intervall in Sekunden
+ATTRIBUTE_INTERVAL = 300  # Intervall für das Senden von Attributen in Sekunden
+
+# Definition, welche Telemetriedaten schnell bzw. langsam gesendet werden sollen
+TELEMETRY_KEYS_FAST = ['calculatedFlowRate', 'powerButton', 'autoSwitch']
+TELEMETRY_KEYS_SLOW = ['runtime_tracker_var', 'waterLevelHeight_telem', 'measuredTurbidity_telem']

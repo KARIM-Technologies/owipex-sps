@@ -82,7 +82,8 @@ sudo wget https://github.com/up-division/pinctrl-upboard/releases/download/v1.1.
 
 sudo dpkg -i pinctrl-upboard_1.1.3_all.deb
 
-sudo apt-get install avahi-daemon -y
+
+
 
 #OWIPEX OS Installieren
 sudo git clone https://github.com/KARIM-Technologies/owipex-sps.git
