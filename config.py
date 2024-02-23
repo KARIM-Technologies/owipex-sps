@@ -21,7 +21,7 @@ runtime_tracker_var = 0.0
 
 # PH Configuration
 minimumPHVal = 6.8
-minimumPHValStop = 6.5
+minimumPHValStop = 5
 maximumPHVal = 7.8
 ph_low_delay_duration = 180  # in sek
 ph_high_delay_duration = 600  # in sek
@@ -73,15 +73,16 @@ gpsHeight = 1.0
 telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisSw', 'co2HeatingRelaySw', 'pumpRelaySw', 'calculatedFlowRate', 'waterLevelHeight_telem', 'measuredTurbidity_telem',
                   'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
                   'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
-                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow']
+                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'minimumPHValStop']
 
 attributes_keys = ['ip_address', 'macaddress']
 
 
 
 # Lists for different groups of attributes
-shared_attributes_keys = ['minimumPHValueStop', 'ph_low_delay_start_time', 'ph_high_delay_duration', 
+shared_attributes_keys = ['ph_low_delay_start_time', 'ph_high_delay_duration', 
                           'maximumPHVal', 'PHValueOffset', 'maximumTurbidity', 'turbiditySensorActive', 
                           'turbidityOffset', 'radarSensorActive', 'autoSwitch', 'callGpsSwitch', 'powerButton', 'co2RelaisSwSig',
                           'calibratePH', 'targetPHValue', 'targetPHtolerrance', 'gemessener_high_wert',
-                          'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal']
+                          'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal', 'minimumPHValStop', 'ph_high_delay_duration', 'ph_low_delay_duration'
+]
