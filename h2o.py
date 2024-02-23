@@ -112,6 +112,17 @@ def sync_state(result, exception=None):
         period = result.get('shared', {'powerButton': False})['powerButton']
 
 
+    def stop_blinking(self):
+        if self.blink_thread is not None:
+            self.stop_blink.set()
+            self.blink_thread.join()
+            self.blink_thread = None
+
+    def cleanup(self):
+        self.stop_blinking()
+        for gpio in self.gpio_pins.values():
+            gpio.close()
+
 class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
@@ -174,7 +185,6 @@ class GPSHandler:
                 # Wenn keine neuen Daten verfügbar sind, behalte den letzten gültigen Eintrag
                 # und gebe eine Meldung aus, dass keine neuen Daten verfügbar sind
                 print("Keine neuen GPS-Daten verfügbar. Letzte gültige Daten werden beibehalten.")
-
             time.sleep(self.update_interval)  # Warten bis zum nächsten Update
 
 
@@ -184,7 +194,6 @@ class GPSHandler:
 class TurbidityHandler:
     def __init__(self, sensor):
         self.sensor = sensor  # Hier übergeben Sie die Trub_Sensor-Instanz
-
     def fetch_and_display_data(self, turbiditySensorActive):
         if turbiditySensorActive:
             measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
@@ -217,14 +226,6 @@ class PHHandler:
         return self.slope * raw_value + self.intercept
 
     def calibrate(self, high_ph_value, low_ph_value, measured_high, measured_low):
-        """
-        Kalibriert den pH-Sensor mit gegebenen Hoch- und Tiefwerten.
-
-        :param high_ph_value: Bekannter pH-Wert der High-Kalibrierlösung (z.B. 10)
-        :param low_ph_value: Bekannter pH-Wert der Low-Kalibrierlösung (z.B. 7)
-        :param measured_high: Gemessener Wert des Sensors in der High-Kalibrierlösung
-        :param measured_low: Gemessener Wert des Sensors in der Low-Kalibrierlösung
-        """
         # Berechnung der Steigung und des y-Achsenabschnitts
         self.slope = (high_ph_value - low_ph_value) / (measured_high - measured_low)
         self.intercept = high_ph_value - self.slope * measured_high
@@ -333,6 +334,8 @@ def signal_handler(sig, frame):
     autoSwitch = False
     powerButton = False
     runtime_tracker.stop() 
+    rgb_controller.stop_blinking()
+    rgb_controller.cleanup()
     print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
     state_to_save = {key: globals()[key] for key in shared_attributes_keys}
     save_state(state_to_save)
@@ -357,7 +360,6 @@ turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
 ph_handler.load_calibration()
 
-
 # Vor der main-Funktion:
 DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
 last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim ersten Durchlauf Daten gesendet werden
@@ -380,7 +382,6 @@ def main():
     for attribute in shared_attributes_keys:
         client.subscribe_to_attribute(attribute, attribute_callback)
 
-    
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 
@@ -391,7 +392,7 @@ def main():
 
 
     # Initialisierung des GPSHandlers
-    gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
+    gps_handler = GPSHandler(update_interval=300)  # GPS-Daten alle 60 Sekunden aktualisieren
     gps_handler.start_gps_updates()
 
     #Laden der alten werte
@@ -409,34 +410,18 @@ def main():
         runtime_tracker_var = runtime_tracker.get_total_runtime()   
         maximumPHVal = targetPHValue + targetPHtolerrance
         minimumPHVal = targetPHValue - targetPHtolerrance   
-        #print("targetPHValue", targetPHValue)
-        #print("targetPHtolerrance", targetPHtolerrance)
-        #print("minimumPHVal", minimumPHVal)
-        #print("maximumPHVal", maximumPHVal)
-        #print("gemessener_high_wert", gemessener_high_wert)
-        #print("gemessener_low_wert", gemessener_low_wert)
-        # Optional: Sie können hier die aktuelle Gesamtdurchflussmenge ausgeben oder anderweitig verwenden
-        
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
-        print("co2RelaisSwSig", co2RelaisSwSig)
-        print("co2RelaisSw", co2RelaisSw)
-            
 
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
 
+        #Sendeintervall festlegen
         current_time = time.time()
-        if current_time - last_send_time >= DATA_SEND_INTERVAL:
-            # Aktualisiere den letzten Sendungszeitpunkt
+        if current_time - last_send_time >= DATA_SEND_INTERVAL:  
             last_send_time = current_time
-            
-            # Sende Daten
             client.send_attributes(attributes)
             client.send_telemetry(telemetry)
-
-        
-        
 
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
@@ -447,24 +432,11 @@ def main():
                 total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
                 total_flow = total_flow_manager.total_flow
                 flow_rate_l_min = flow_data['flow_rate_m3_min']
-                #print(f"Water Level: {flow_data['water_level']} mm")
-                #print(f"Flow Rate: {flow_data['flow_rate']} m3/h")
-                #print(f"Flow Rate (Liters per Minute): {flow_data['flow_rate_l_min']} L/min")
-                #print(f"Flow Rate (Liters per Hour): {flow_data['flow_rate_l_h']} L/h")
-                #print(f"Flow Rate (Cubic Meters per Minute): {flow_data['flow_rate_m3_min']} m3/min")
-                #print(f"Aktuelle Gesamtdurchflussmenge: {total_flow_manager.total_flow} L")
-
-        #print("Vor der Kalibrierung:")
-        #print("Steigung (slope):", ph_handler.slope)
-        #print("y-Achsenabschnitt (intercept):", ph_handler.intercept)
 
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
             ph_handler.save_calibration()
             calibratePH = False
-            #print("Nach der Kalibrierung:")
-            #print("Steigung (slope):", ph_handler.slope)
-            #print("y-Achsenabschnitt (intercept):", ph_handler.intercept)
         else:
             measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
             measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
@@ -475,7 +447,6 @@ def main():
                 if minimumPHValueStop > measuredPHValue_telem:
                     powerButton = False
                 if measuredPHValue_telem > maximumPHVal:
-                    #print("measuredPHValue_telem", measuredPHValue_telem)
                     print("maximumPHVal", maximumPHVal)
                     co2RelaisSw = True
                     print("co2RelaisSw", co2RelaisSw)
@@ -523,13 +494,8 @@ def main():
             co2HeatingRelaySw = False
             autoSwitch = False
             runtime_tracker.stop() 
-            #print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
-            print("co2RelaisSwSig", co2RelaisSwSig)
-            print("co2RelaisSw", co2RelaisSw)
             time.sleep(2)
 
-    
-    
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
