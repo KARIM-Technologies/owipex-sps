@@ -225,8 +225,6 @@ class PHHandler:
         state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
         save_state(state_to_save)
         print("Kalibrierungswerte gespeichert.")
-        
-
 
     def load_calibration(self):
         global ph_slope, ph_intercept
@@ -339,6 +337,9 @@ co2RelaisSw = False
 co2HeatingRelaySw = False
 minimumPHValueStop = 5
 
+#countdownPHHigh = ph_high_delay_duration
+#countdownPHLow = ph_low_delay_duration
+
 runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
@@ -354,16 +355,28 @@ if 'previous_attributes' not in globals():
     previous_attributes = {}
 if 'previous_telemetry' not in globals():
     previous_telemetry = {}
+# Initialisiere Variablen für den vorherigen Zustand der shared Variablen, falls noch nicht geschehen
+if 'previous_powerButton' not in globals():
+    previous_powerButton = powerButton
+if 'previous_pumpRelaySw' not in globals():
+    previous_pumpRelaySw = pumpRelaySw
+if 'previous_co2RelaisSw' not in globals():
+    previous_co2RelaisSw = co2RelaisSw
+if 'previous_autoSwitch' not in globals():
+    previous_autoSwitch = autoSwitch
 
 def round_float_values(data):
     """Rundet alle Float-Werte in einem Dictionary auf eine Nachkommastelle."""
-    return {key: round(val, 4) if isinstance(val, float) else val for key, val in data.items()}
+    return {key: round(val, 2) if isinstance(val, float) else val for key, val in data.items()}
 
-previous_shared_attributes = {key: None for key in shared_attributes_keys}
+previous_powerButton = None
+previous_pumpRelaySw = None
+previous_co2RelaisSw = None
+previous_autoSwitch = None
         
 def main():
     #def Global Variables for Main Funktion
-    global minimumPHValStop, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global previous_powerButton, previous_pumpRelaySw, previous_autoSwitch, previous_co2RelaisSw, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -381,6 +394,9 @@ def main():
 
     # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
+
+    
+
     total_flow_manager = TotalFlowManager()
     total_flow_manager.start_periodic_save()
 
@@ -392,6 +408,7 @@ def main():
     #Laden der alten werte
     saved_state = load_state()
     globals().update(saved_state)
+    previous_power_state = False
 
     last_send_time = time.time()
 
@@ -409,36 +426,49 @@ def main():
 
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
 
-       # Überprüfe auf Änderungen in den Shared Attributes und sende sofort
+        # Überprüfe auf Änderungen in den shared Variablen und sende sofort
         shared_variables_changed = False
         shared_attributes = {}
-
-        for key in shared_attributes_keys:
-            current_value = globals().get(key)
-            if current_value != previous_shared_attributes[key]:
-                shared_variables_changed = True
-                shared_attributes[key] = current_value
-                previous_shared_attributes[key] = current_value
-
-        # Wenn eines der Shared Attributes geändert wurde, sende die geänderten Daten sofort
+        if powerButton != previous_powerButton:
+            shared_variables_changed = True
+            shared_attributes['powerButton'] = powerButton
+            previous_powerButton = powerButton
+        if pumpRelaySw != previous_pumpRelaySw:
+            shared_variables_changed = True
+            shared_attributes['pumpRelaySw'] = pumpRelaySw
+            previous_pumpRelaySw = pumpRelaySw
+        if co2RelaisSw != previous_co2RelaisSw:
+            shared_variables_changed = True
+            shared_attributes['co2RelaisSw'] = co2RelaisSw
+            previous_co2RelaisSw = co2RelaisSw
+        if autoSwitch != previous_autoSwitch:
+            shared_variables_changed = True
+            shared_attributes['autoSwitch'] = autoSwitch
+            previous_autoSwitch = autoSwitch
+        # Wenn eine der shared Variablen geändert wurde, sende die geänderten Daten sofort
         if shared_variables_changed:
             client.send_attributes(shared_attributes)
+                #Datenfilterunf und Aufbereitung
             
         current_time = time.time()
         if current_time - last_send_time >= DATA_SEND_INTERVAL:
             last_send_time = current_time
             
             # Runde die Float-Werte in attributes und telemetry
+            attributes_rounded = round_float_values(attributes)
             telemetry_rounded = round_float_values(telemetry)
             
             # Bestimme die geänderten und gerundeten Attribute und Telemetrie
-           
+            changed_attributes = {key: val for key, val in attributes_rounded.items() if previous_attributes.get(key) != val}
             changed_telemetry = {key: val for key, val in telemetry_rounded.items() if previous_telemetry.get(key) != val}
             
             # Aktualisiere den vorherigen Zustand mit den gerundeten Werten
+            previous_attributes.update(changed_attributes)
             previous_telemetry.update(changed_telemetry)
             
             # Sende nur die geänderten und gerundeten Daten
+            if changed_attributes:
+                client.send_attributes(changed_attributes)
             if changed_telemetry:
                 client.send_telemetry(changed_telemetry)
 
@@ -453,16 +483,18 @@ def main():
                 flow_rate_l_min = flow_data['flow_rate_m3_min']
 
         if calibratePH:
-                ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
-                ph_handler.save_calibration()
-                calibratePH = False
-
-        if powerButton:
-
+            ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
+            ph_handler.save_calibration()
+            calibratePH = False
+        else:
             measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
             measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
+
+        if powerButton:
             runtime_tracker.start()
             if autoSwitch:
+                if minimumPHValueStop > measuredPHValue_telem:
+                    powerButton = False
                 if measuredPHValue_telem > maximumPHVal:
                     print("maximumPHVal", maximumPHVal)
                     co2RelaisSw = True
@@ -478,13 +510,10 @@ def main():
                     countdownPHHigh = ph_high_delay_duration - (time.time() - ph_high_delay_start_time)
                 else:
                     ph_high_delay_start_time = None
-
                 if measuredPHValue_telem < minimumPHVal:
                     if measuredPHValue_telem < minimumPHValStop:
                         autoSwitch = False
                         powerButton = False
-                        ph_low_delay_start_time = None
-                        countdownPHLow = ph_low_delay_duration
                     if ph_low_delay_start_time is None:
                         ph_low_delay_start_time = time.time()
                     elif time.time() - ph_low_delay_start_time >= ph_low_delay_duration:
@@ -514,7 +543,7 @@ def main():
             co2HeatingRelaySw = False
             autoSwitch = False
             runtime_tracker.stop() 
-            time.sleep(1)
+            time.sleep(2)
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
