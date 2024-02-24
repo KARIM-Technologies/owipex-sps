@@ -363,7 +363,7 @@ previous_shared_attributes = {key: None for key in shared_attributes_keys}
         
 def main():
     #def Global Variables for Main Funktion
-    global minimumPHValStop, previous_powerButton, previous_pumpRelaySw, previous_autoSwitch, previous_co2RelaisSw, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global minimumPHValStop, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -429,20 +429,16 @@ def main():
             last_send_time = current_time
             
             # Runde die Float-Werte in attributes und telemetry
-            attributes_rounded = round_float_values(attributes)
             telemetry_rounded = round_float_values(telemetry)
             
             # Bestimme die geänderten und gerundeten Attribute und Telemetrie
-            changed_attributes = {key: val for key, val in attributes_rounded.items() if previous_attributes.get(key) != val}
+           
             changed_telemetry = {key: val for key, val in telemetry_rounded.items() if previous_telemetry.get(key) != val}
             
             # Aktualisiere den vorherigen Zustand mit den gerundeten Werten
-            previous_attributes.update(changed_attributes)
             previous_telemetry.update(changed_telemetry)
             
             # Sende nur die geänderten und gerundeten Daten
-            if changed_attributes:
-                client.send_attributes(changed_attributes)
             if changed_telemetry:
                 client.send_telemetry(changed_telemetry)
 
