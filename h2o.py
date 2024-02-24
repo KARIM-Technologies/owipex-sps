@@ -111,58 +111,6 @@ def sync_state(result, exception=None):
     else:
         period = result.get('shared', {'powerButton': False})['powerButton']
 
-
-class UPBoardRGBAsync:
-    def __init__(self):
-        self.led_pins = {'R': 5, 'G': 6, 'B': 26}
-        self.gpio_pins = {}
-        self.blink_thread = None
-        self.stop_blink = threading.Event()
-
-        for color, pin in self.led_pins.items():
-            self.gpio_pins[color] = GPIO(pin, "out")
-            self.set_led(color, False)  # Initial ausschalten
-
-    def set_led(self, color, state):
-        # Zustand für jede Farbe setzen
-        for c in color:
-            self.gpio_pins[c].write(not state)
-
-    def start_blinking(self, color_code, blink_rate=None, blink_count=999):
-        if self.blink_thread is not None:
-            self.stop_blinking()
-
-        self.stop_blink.clear()
-        # Übergebe None oder einen speziellen Wert für blink_rate, um dauerhaftes Leuchten zu signalisieren
-        self.blink_thread = threading.Thread(target=self._blink_led, args=(color_code, blink_rate, blink_count))
-        self.blink_thread.start()
-
-    def _blink_led(self, color_code, blink_rate, blink_count):
-        if blink_rate is None:  # Wenn blink_rate None ist, leuchte dauerhaft
-            self.set_led(color_code, True)
-            while not self.stop_blink.is_set() and blink_count == 999:
-                time.sleep(0.1)  # Kurzes Schlafen, um CPU-Zeit zu sparen und auf stop-Befehl zu überprüfen
-        else:
-            count = 0
-            while not self.stop_blink.is_set() and (blink_count == 999 or count < blink_count):
-                self.set_led(color_code, True)
-                time.sleep(blink_rate)
-                self.set_led(color_code, False)
-                time.sleep(blink_rate)
-                count += 1
-
-
-    def stop_blinking(self):
-        if self.blink_thread is not None:
-            self.stop_blink.set()
-            self.blink_thread.join()
-            self.blink_thread = None
-
-    def cleanup(self):
-        self.stop_blinking()
-        for gpio in self.gpio_pins.values():
-            gpio.close()
-
 class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
@@ -384,8 +332,6 @@ def signal_handler(sig, frame):
     autoSwitch = False
     powerButton = False
     runtime_tracker.stop() 
-    rgb_controller.stop_blinking()
-    rgb_controller.cleanup()
     print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
     state_to_save = {key: globals()[key] for key in shared_attributes_keys}
     save_state(state_to_save)
@@ -399,17 +345,13 @@ def signal_handler(sig, frame):
 pumpRelaySw = False
 co2RelaisSw = False
 co2HeatingRelaySw = False
-minimumPHValueStop = 5
-
-#countdownPHHigh = ph_high_delay_duration
-#countdownPHLow = ph_low_delay_duration
+minimumPHValStop = 5
 
 runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
 ph_handler.load_calibration()
-rgb_controller = UPBoardRGBAsync()
 
 # Vor der main-Funktion:
 DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
@@ -417,7 +359,7 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 def main():
     #def Global Variables for Main Funktion
-    global switch_monitor, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValueStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
 
     saved_state = load_state()
     globals().update(saved_state)
@@ -432,10 +374,6 @@ def main():
     # Subscribe to individual attributes using the defined lists
     for attribute in shared_attributes_keys:
         client.subscribe_to_attribute(attribute, attribute_callback)
-
-    rgb_controller.start_blinking('B', blink_rate=None)  # Rote LED leuchtet dauerhaft
-    #rgb_controller.start_blinking('G', 0.5, blink_count=99)
-    # Now rpc_callback will process rpc requests from the server
     client.set_server_side_rpc_request_handler(rpc_callback)
 
     
@@ -451,7 +389,6 @@ def main():
     #Laden der alten werte
     saved_state = load_state()
     globals().update(saved_state)
-    previous_power_state = False
 
     last_send_time = time.time()
 
@@ -463,34 +400,17 @@ def main():
         runtime_tracker_var = runtime_tracker.get_total_runtime()   
         maximumPHVal = targetPHValue + targetPHtolerrance
         minimumPHVal = targetPHValue - targetPHtolerrance   
-        #print("targetPHValue", targetPHValue)
-        #print("targetPHtolerrance", targetPHtolerrance)
-        #print("minimumPHVal", minimumPHVal)
-        #print("maximumPHVal", maximumPHVal)
-        #print("gemessener_high_wert", gemessener_high_wert)
-        #print("gemessener_low_wert", gemessener_low_wert)
-        # Optional: Sie können hier die aktuelle Gesamtdurchflussmenge ausgeben oder anderweitig verwenden
-        
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
-        print("co2RelaisSwSig", co2RelaisSwSig)
-        print("co2RelaisSw", co2RelaisSw)
-            
-
         gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
+        client.send_attributes(attributes)
 
         current_time = time.time()
         if current_time - last_send_time >= DATA_SEND_INTERVAL:
             # Aktualisiere den letzten Sendungszeitpunkt
             last_send_time = current_time
-            
-            # Sende Daten
-            client.send_attributes(attributes)
             client.send_telemetry(telemetry)
-
-        
-        
 
         if (radarSensorActive):
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
@@ -501,24 +421,12 @@ def main():
                 total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
                 total_flow = total_flow_manager.total_flow
                 flow_rate_l_min = flow_data['flow_rate_m3_min']
-                #print(f"Water Level: {flow_data['water_level']} mm")
-                #print(f"Flow Rate: {flow_data['flow_rate']} m3/h")
-                #print(f"Flow Rate (Liters per Minute): {flow_data['flow_rate_l_min']} L/min")
-                #print(f"Flow Rate (Liters per Hour): {flow_data['flow_rate_l_h']} L/h")
-                #print(f"Flow Rate (Cubic Meters per Minute): {flow_data['flow_rate_m3_min']} m3/min")
-                #print(f"Aktuelle Gesamtdurchflussmenge: {total_flow_manager.total_flow} L")
-
-        #print("Vor der Kalibrierung:")
-        #print("Steigung (slope):", ph_handler.slope)
-        #print("y-Achsenabschnitt (intercept):", ph_handler.intercept)
 
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
             ph_handler.save_calibration()
             calibratePH = False
-            #print("Nach der Kalibrierung:")
-            #print("Steigung (slope):", ph_handler.slope)
-            #print("y-Achsenabschnitt (intercept):", ph_handler.intercept)
+
         else:
             measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
             measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
@@ -526,13 +434,8 @@ def main():
         if powerButton:
             runtime_tracker.start()
             if autoSwitch:
-                if minimumPHValueStop > measuredPHValue_telem:
-                    powerButton = False
                 if measuredPHValue_telem > maximumPHVal:
-                    #print("measuredPHValue_telem", measuredPHValue_telem)
-                    print("maximumPHVal", maximumPHVal)
                     co2RelaisSw = True
-                    print("co2RelaisSw", co2RelaisSw)
                     co2HeatingRelaySw = True
                     pumpRelaySw = False
                     if ph_high_delay_start_time is None:
@@ -540,7 +443,7 @@ def main():
                     elif time.time() - ph_high_delay_start_time >= ph_high_delay_duration:
                         autoSwitch = False
                         powerButton = False
-                        countdownPHHigh = ph_high_delay_duration
+                        
                     countdownPHHigh = ph_high_delay_duration - (time.time() - ph_high_delay_start_time)
                 else:
                     ph_high_delay_start_time = None
@@ -553,7 +456,6 @@ def main():
                     elif time.time() - ph_low_delay_start_time >= ph_low_delay_duration:
                         autoSwitch = False
                         powerButton = False
-                        countdownPHLow = ph_low_delay_duration
                     countdownPHLow = ph_low_delay_duration - (time.time() - ph_low_delay_start_time)
                 else:
                     ph_low_delay_start_time = None
@@ -570,6 +472,8 @@ def main():
                 co2HeatingRelaySw = False
                 ph_low_delay_start_time = None
                 ph_high_delay_start_time = None
+                countdownPHLow = ph_low_delay_duration
+                countdownPHHigh = ph_high_delay_duration
         else:
             print("Power Switch OFF.", powerButton)        
             pumpRelaySw = False
@@ -577,9 +481,6 @@ def main():
             co2HeatingRelaySw = False
             autoSwitch = False
             runtime_tracker.stop() 
-            #print(f"Gesamtlaufzeit: {runtime_tracker.get_total_runtime()} Stunden")
-            print("co2RelaisSwSig", co2RelaisSwSig)
-            print("co2RelaisSw", co2RelaisSw)
             time.sleep(2)
 
     
