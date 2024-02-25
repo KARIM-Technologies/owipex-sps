@@ -465,6 +465,7 @@ def main():
                     pumpRelaySw = True
                     co2RelaisSw = False
                     co2HeatingRelaySw = False
+
             else:
                 print("automode OFF", autoSwitch)
                 pumpRelaySw = False
@@ -472,14 +473,15 @@ def main():
                 co2HeatingRelaySw = False
                 ph_low_delay_start_time = None
                 ph_high_delay_start_time = None
-                countdownPHLow = ph_low_delay_duration
-                countdownPHHigh = ph_high_delay_duration
+                
         else:
             print("Power Switch OFF.", powerButton)        
             pumpRelaySw = False
             co2RelaisSw = False
             co2HeatingRelaySw = False
             autoSwitch = False
+            countdownPHLow = ph_low_delay_duration
+            countdownPHHigh = ph_high_delay_duration
             runtime_tracker.stop() 
             time.sleep(2)
 

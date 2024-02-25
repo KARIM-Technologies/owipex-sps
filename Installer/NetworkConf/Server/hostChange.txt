@@ -35,4 +35,5 @@ Nach dem Neustart sollte dein Ubuntu Server 22.04.3 den neuen Hostnamen verwende
 
 
 
-
+#Altes Board Clone
+sudo systemctl disable h2o_watchdog.service
