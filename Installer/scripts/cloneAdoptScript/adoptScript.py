@@ -72,11 +72,50 @@ def modify_thingsboard_gateway_config(config_path, hostname):
     except json.JSONDecodeError as e:
         print(f"Fehler beim Parsen der Thingsboard Gateway-Konfigurationsdatei: {e}")
 
+def confirm_and_restart():
+    response = input("Möchten Sie den Rechner jetzt neu starten? (ja/nein): ").lower()
+    if response == "ja":
+        print("Der Rechner wird neu gestartet...")
+        run_command("sudo reboot")
+    else:
+        print("Der Neustart wurde abgebrochen.")
+
+def verify_changes(tb_edge_conf_path, env_path, tb_gateway_config_path, expected_values):
+    errors = []
+
+    # Überprüfen der tb-edge.conf
+    with open(tb_edge_conf_path, 'r') as file:
+        tb_edge_contents = file.read()
+        for key, value in expected_values['tb_edge'].items():
+            if f"{key}=\"{value}\"" not in tb_edge_contents:
+                errors.append(f"{key} nicht korrekt in tb-edge.conf gesetzt.")
+
+    # Überprüfen der .env-Datei
+    with open(env_path, 'r') as file:
+        env_contents = file.read()
+        key, value = list(expected_values['env'].items())[0]  # Nur ein Schlüssel-Wert-Paar erwartet
+        if f"{key}={value}" not in env_contents:
+            errors.append(f"{key} nicht korrekt in .env gesetzt.")
+
+    # Überprüfen der tb_gateway.json
+    with open(tb_gateway_config_path, 'r') as file:
+        tb_gateway_config = json.load(file)
+        for key, value in expected_values['tb_gateway'].items():
+            if tb_gateway_config.get(key) != value:
+                errors.append(f"{key} nicht korrekt in tb_gateway.json gesetzt.")
+
+    if errors:
+        print("Fehler bei der Überprüfung der Konfigurationsänderungen:")
+        for error in errors:
+            print(error)
+    else:
+        print("Alle Konfigurationsänderungen korrekt durchgeführt.")
+
 def main():
     hostname = get_input("Bitte geben Sie den gewünschten Hostnamen ein (924XXXX): ")
     os.system(f"sudo hostnamectl set-hostname {hostname}")
 
-    source_netplan_path = "/home/owipex_adm/owipex-sps/Installer/NetworkConf/IPConf/01-netcfg.yaml"
+    source_netplan_path = "/home/owipex_adm/owipex-sps/Installer/NetworkConf/IPConf/00-installer-config.yaml"
     copy_netplan_config(source_netplan_path)
 
     tb_edge_conf_path = "/etc/tb-edge/conf/tb-edge.conf"
@@ -88,7 +127,12 @@ def main():
 
     adjust_tb_edge_conf(tb_edge_conf_path, cloud_rpc_host, cloud_rpc_port, cloud_routing_key, cloud_routing_secret, postgres_password)
 
-    tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.yaml"
+    # .env Datei für owipex-sps anpassen
+    env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
+    with open("/home/owipex_adm/owipex-sps/.env", "w") as file:
+        file.write(env_content)
+
+    tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
     modify_thingsboard_gateway_config(tb_gateway_config_path, hostname)
 
     run_command("sudo systemctl disable h2o_watchdog.service")
@@ -96,6 +140,35 @@ def main():
     install_and_start_service(installer_script_path)
 
     print("Anpassungen abgeschlossen.")
+
+    # Erwartete Werte definieren
+    expected_values = {
+        'tb_edge': {
+            'export CLOUD_RPC_HOST': "146.190.179.185",
+            'export CLOUD_RPC_PORT': "7070",
+            # Fügen Sie hier weitere Schlüssel-Werte ein, die überprüft werden sollen
+        },
+        'env': {
+            'THINGSBOARD_ACCESS_TOKEN': f"WbXsPs2{hostname}"
+        },
+        'tb_gateway': {
+            'host': "146.190.179.185",
+            'accessToken': f"WbXgAAte2{hostname}"
+        }
+    }
+
+    
+
+    tb_edge_conf_path = "/etc/tb-edge/conf/tb-edge.conf"
+    env_path = "/home/owipex_adm/owipex-sps/.env"
+    tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
+
+    # Überprüfung durchführen
+    verify_changes(tb_edge_conf_path, env_path, tb_gateway_config_path, expected_values)
+
+
+    # Überprüfung und Neustart
+    confirm_and_restart()
 
 if __name__ == "__main__":
     main()
