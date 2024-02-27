@@ -20,3 +20,24 @@ Modem einrichten
 
         
         SIM Aktivieren
+
+
+
+
+        sudo nano /etc/systemd/system/powerWatchdog.service
+Und korrigieren Sie den Pfad in der ExecStart-Zeile, um den korrekten Pfad zum powerWatchdog.py Skript widerzuspiegeln.
+
+Service neu laden und starten: Nachdem Sie die Änderungen vorgenommen haben, laden Sie die systemd Konfiguration neu und starten Sie den Service erneut:
+
+bash
+Copy code
+sudo systemctl daemon-reload
+sudo systemctl restart powerWatchdog.service
+Status überprüfen: Überprüfen Sie den Status des Services erneut, um sicherzustellen, dass er nun erfolgreich startet:
+
+bash
+Copy code
+sudo systemctl status powerWatchdog.service
+
+#Altes Board Clone
+sudo systemctl disable h2o_watchdog.service

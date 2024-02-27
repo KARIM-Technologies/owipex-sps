@@ -7,20 +7,13 @@ Finde die Zeile, die mit 127.0.0.1 beginnt, und ändere den alten Hostnamen am E
 
 Die Zeilen könnten vorher so aussehen:
 
-sql
-Copy code
 127.0.0.1       localhost
-127.0.1.1       alter-hostname
-
-
-
-
+127.0.1.1       9240002
 
 Und nach der Änderung so:
 
-Copy code
 127.0.0.1       localhost
-127.0.1.1       neuer-hostname
+127.0.1.1       924"index"
 
 Speichere die Datei und schließe den Editor.
 
