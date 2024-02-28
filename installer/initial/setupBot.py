@@ -61,16 +61,25 @@ def copy_netplan_config(source_path, destination_path="/etc/netplan/00-installer
 
 def modify_thingsboard_gateway_config(config_path, hostname):
     try:
+        # Öffne die Konfigurationsdatei und lade den JSON-Inhalt
         with open(config_path, 'r') as file:
             config = json.load(file)
-        config['host'] = "146.190.179.185"
-        config['accessToken'] = f"WbXgAAte2{hostname}"
+        
+        # Aktualisiere die Werte für 'host' und 'accessToken' innerhalb des 'thingsboard'-Objekts
+        config['thingsboard']['host'] = "146.190.179.185"
+        config['thingsboard']['security']['accessToken'] = f"WbXgAAte2{hostname}"
+        
+        # Schreibe die aktualisierte Konfiguration zurück in die Datei
         with open(config_path, 'w') as file:
             json.dump(config, file, indent=4)
+            
+        print("ThingsBoard Gateway-Konfigurationsdatei erfolgreich aktualisiert.")
+        
     except IOError as e:
         print(f"Fehler beim Lesen/Schreiben der Thingsboard Gateway-Konfigurationsdatei: {e}")
     except json.JSONDecodeError as e:
         print(f"Fehler beim Parsen der Thingsboard Gateway-Konfigurationsdatei: {e}")
+
 
 def confirm_and_restart():
     response = input("Möchten Sie den Rechner jetzt neu starten? (ja/nein): ").lower()
