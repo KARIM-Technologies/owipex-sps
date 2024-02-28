@@ -20,7 +20,8 @@ from time import sleep
 from libs.FlowCalculation import FlowCalculation
 
 from dotenv import load_dotenv
-load_dotenv()
+dotenv_path = '/etc/owipex/.env'
+load_dotenv(dotenv_path=dotenv_path)
 ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
 THINGSBOARD_SERVER = 'localhost'  # Replace with your Thingsboard server address
 THINGSBOARD_PORT = 1883

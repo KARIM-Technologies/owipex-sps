@@ -2,7 +2,7 @@
 
 # Definiere den Zielordner
 TARGET_DIR="/etc/owipex"
-SOURCE_DIR="/home/owipex_adm/owipex-sps"
+SOURCE_DIR="/home/owipex_adm/owipex-sps/src"
 
 # Liste der Dateien, die verschoben werden sollen
 FILES_TO_MOVE="calibration_data.json state.json run_time.txt total_flow.json ph_calibration.json"

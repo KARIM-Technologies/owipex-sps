@@ -98,7 +98,7 @@ def main():
 
     # .env Datei für owipex-sps anpassen
     env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
-    with open("/home/owipex_adm/owipex-sps/.env", "w") as file:
+    with open("/etc/owipex/.env", "w") as file:
         file.write(env_content)
 
     tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
