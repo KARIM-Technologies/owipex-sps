@@ -237,3 +237,6 @@ Nachdem das Repository erfolgreich geklont wurde, müssen spezifische Installati
 
 Mit diesen Schritten haben Sie das notwendige Installationsskript ausgeführt, um die Umgebung für Ihre IoT-Systeme einzurichten und zu konfigurieren.
 Im Bios unter BOOT 
+
+
+git clone -b feature/externalFiles https://github.com/KARIM-Technologies/owipex-sps.git

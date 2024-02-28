@@ -126,8 +126,6 @@ def main():
     installer_script_path = "/home/owipex_adm/owipex-sps/installer/powerWatchdog/powerWatchdogInstaller.sh"
     install_and_start_service(installer_script_path)
 
-
-
     print("Anpassungen abgeschlossen.")
 
     # Überprüfung und Neustart

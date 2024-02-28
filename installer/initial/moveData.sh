@@ -5,7 +5,7 @@ TARGET_DIR="/etc/owipex"
 SOURCE_DIR="/home/owipex_adm/owipex-sps/src"
 
 # Liste der Dateien, die verschoben werden sollen
-FILES_TO_MOVE="calibration_data.json state.json run_time.txt total_flow.json ph_calibration.json"
+FILES_TO_MOVE="run_time.txt total_flow.json ph_calibration.json"
 
 # Überprüfe, ob das Skript als Root ausgeführt wird
 if [ "$(id -u)" != "0" ]; then
@@ -18,6 +18,9 @@ if [ ! -d "$TARGET_DIR" ]; then
   mkdir -p "$TARGET_DIR"
   echo "Verzeichnis $TARGET_DIR erstellt."
 fi
+
+# Ändere den Eigentümer des Verzeichnisses zu owipex_adm
+sudo chown owipex_adm:owipex_adm /etc/owipex
 
 # Verschiebe die definierten Dateien
 for file in $FILES_TO_MOVE; do
