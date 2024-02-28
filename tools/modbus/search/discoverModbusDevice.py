@@ -35,7 +35,7 @@ class ModbusClient:
         return devices
 
 # Erstellen Sie ein ModbusClient-Objekt mit Ihren spezifischen Port- und Verbindungseinstellungen
-client = ModbusClient(port='/dev/ttymS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+client = ModbusClient(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 
 # Finden Sie alle Geräte und drucken Sie ihre IDs aus
 devices = client.discover_devices()

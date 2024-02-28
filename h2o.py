@@ -1,5 +1,7 @@
 import sys
 sys.path.append('./libs')
+CONFIG_PATH = "/etc/owipex/"
+
 
 import signal
 import logging.handlers
@@ -41,15 +43,14 @@ from config import *
 shared_attributes_keys
 
 
-#Speichern des aktuellen Zustands:
 def save_state(state_dict):
-    with open('state.json', 'w') as file:
+    with open(os.path.join(CONFIG_PATH, 'state.json'), 'w') as file:
         json.dump(state_dict, file)
 
-#Laden des gespeicherten Zustands:
 def load_state():
-    if os.path.exists('state.json'):
-        with open('state.json', 'r') as file:
+    state_file_path = os.path.join(CONFIG_PATH, 'state.json')
+    if os.path.exists(state_file_path):
+        with open(state_file_path, 'r') as file:
             return json.load(file)
     return {}
 
@@ -115,7 +116,7 @@ class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
         self.total_runtime = 0
-        self.filename = filename
+        self.filename = os.path.join(CONFIG_PATH, filename)  # Diese Zeile behalten
         
         # Lade die gespeicherte Laufzeit, wenn die Datei existiert
         if os.path.exists(self.filename):
@@ -229,28 +230,33 @@ class PHHandler:
         self.intercept = high_ph_value - self.slope * measured_high
 
     def save_calibration(self):
-        global ph_slope, ph_intercept
-        ph_slope = self.slope
-        ph_intercept = self.intercept
-        state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
-        save_state(state_to_save)
+        # Pfad zur Kalibrierungsdatei
+        calibration_file_path = os.path.join(CONFIG_PATH, 'ph_calibration.json')
+        
+        # Kalibrierungsdaten speichern
+        calibration_data = {'ph_slope': self.slope, 'ph_intercept': self.intercept}
+        with open(calibration_file_path, 'w') as file:
+            json.dump(calibration_data, file)
         print("Kalibrierungswerte gespeichert.")
-
+    
     def load_calibration(self):
-        global ph_slope, ph_intercept
-        saved_state = load_state()
-        self.slope = saved_state.get('ph_slope', 1)  # Standardwert ist 1
-        self.intercept = saved_state.get('ph_intercept', 0)  # Standardwert ist 0
+        # Pfad zur Kalibrierungsdatei
+        calibration_file_path = os.path.join(CONFIG_PATH, 'ph_calibration.json')
+        
+        if os.path.exists(calibration_file_path):
+            with open(calibration_file_path, 'r') as file:
+                calibration_data = json.load(file)
+                self.slope = calibration_data.get('ph_slope', 1)
+                self.intercept = calibration_data.get('ph_intercept', 0)
         print("Kalibrierungswerte geladen.")
 
 class FlowRateHandler:
     def __init__(self, radar_sensor):
         self.radar_sensor = radar_sensor
         
-        # Pfad zur Kalibrierungsdatei
-        calibration_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "calibration_data.json")
+        # Pfad zur Kalibrierungsdatei aktualisieren
+        calibration_file_path = os.path.join(CONFIG_PATH, "calibration_data.json")
         
-        # Erstelle eine Instanz der FlowCalculation-Klasse
         self.flow_calculator = FlowCalculation(calibration_file_path)
         
         # Hole den 0-Referenzwert
@@ -284,20 +290,22 @@ class FlowRateHandler:
 
 class TotalFlowManager:
     def __init__(self, update_interval=60):
-        self.update_interval = update_interval  # Zeitstempel der letzten Aktualisierung
+        self.update_interval = update_interval
         self.total_flow = 0
         self.load_total_flow()
 
     def load_total_flow(self):
+        total_flow_file_path = os.path.join(CONFIG_PATH, 'total_flow.json')
         try:
-            with open('total_flow.json', 'r') as file:
+            with open(total_flow_file_path, 'r') as file:
                 data = json.load(file)
                 self.total_flow = data['total_flow']
         except FileNotFoundError:
             self.total_flow = 0
 
     def save_total_flow(self):
-        with open('total_flow.json', 'w') as file:
+        total_flow_file_path = os.path.join(CONFIG_PATH, 'total_flow.json')
+        with open(total_flow_file_path, 'w') as file:
             json.dump({'total_flow': self.total_flow}, file)
 
     def reset_total_flow(self):
