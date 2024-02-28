@@ -84,7 +84,7 @@ def main():
     hostname = get_input("Bitte geben Sie den gewünschten Hostnamen ein (924XXXX): ")
     os.system(f"sudo hostnamectl set-hostname {hostname}")
 
-    source_netplan_path = "/home/owipex_adm/owipex-sps/installer/initial/networkConf/IPConf/00-installer-config.yaml"
+    source_netplan_path = "/home/owipex_adm/owipex-sps/installer/networkConf/IPConf/00-installer-config.yaml"
     copy_netplan_config(source_netplan_path)
 
     tb_edge_conf_path = "/etc/tb-edge/conf/tb-edge.conf"
