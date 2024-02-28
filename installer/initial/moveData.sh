@@ -5,7 +5,7 @@ TARGET_DIR="/etc/owipex"
 SOURCE_DIR="/home/owipex_adm/owipex-sps/src"
 
 # Liste der Dateien, die verschoben werden sollen
-FILES_TO_MOVE="run_time.txt total_flow.json ph_calibration.json"
+FILES_TO_MOVE="calibration_data.json run_time.txt total_flow.json"
 
 # Überprüfe, ob das Skript als Root ausgeführt wird
 if [ "$(id -u)" != "0" ]; then
