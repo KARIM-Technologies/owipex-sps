@@ -1,33 +1,8 @@
-SIM Karte entfernen
-Gerät Starten
+starten des scripts setupBot
 
-Modem einrichten
-    192.168.100.1
-        QuickWizzard
-            Cellular Settings
-                APN = shared.m2m.ch
+sudo python3 setupBot.py
 
 
-        WB-NET_924_XXXX
-        PSW
-
-
-        tenant@thingsboard.org
-        OWX Passwort
-
-        IP Table anpassen
-
-
-        
-        SIM Aktivieren
-
-
-
-
-        sudo nano /etc/systemd/system/powerWatchdog.service
-Und korrigieren Sie den Pfad in der ExecStart-Zeile, um den korrekten Pfad zum powerWatchdog.py Skript widerzuspiegeln.
-
-Service neu laden und starten: Nachdem Sie die Änderungen vorgenommen haben, laden Sie die systemd Konfiguration neu und starten Sie den Service erneut:
 
 bash
 Copy code
