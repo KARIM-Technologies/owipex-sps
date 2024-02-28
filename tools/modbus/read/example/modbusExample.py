@@ -12,7 +12,7 @@
 # This script tests the functions of the Modbus library by KARIM Technologies.
 # Two sensors are connected to the same port, and their temperature values, as well as another value, are read.
 
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 
 # Create DeviceManager
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)

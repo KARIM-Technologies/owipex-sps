@@ -14,7 +14,7 @@
 
 import subprocess
 import time
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 
 def publish_mqtt(topic, message, device_token):
     command = f"mosquitto_pub -d -q 1 -h 192.168.178.47 -p 1883 -t {topic} -u \"{device_token}\" -m '{message}'"

@@ -1,5 +1,5 @@
 import threading
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 import time  # Stelle sicher, dass time importiert ist
 
 class SensorReader:

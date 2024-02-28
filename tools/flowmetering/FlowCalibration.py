@@ -22,7 +22,7 @@ Description: Calibration program for water level sensor and flow rate
 -----------------------------------------------------------------------------
 """)
 
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 import time
 import json
 import atexit

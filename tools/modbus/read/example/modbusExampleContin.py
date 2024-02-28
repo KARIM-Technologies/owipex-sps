@@ -13,7 +13,7 @@
 # Two sensors are connected to the same port, and their temperature values, as well as another value, are read.
 
 import time
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 
 def continuous_read(interval):
     while True:

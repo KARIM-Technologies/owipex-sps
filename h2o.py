@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./libs')
+sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 
@@ -7,7 +7,7 @@ import signal
 import logging.handlers
 import time
 import os
-import gpsDataLib
+import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
@@ -15,9 +15,9 @@ import threading
 from periphery import GPIO
 from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
-from modbus_lib import DeviceManager
+from libs.modbus_lib import DeviceManager
 from time import sleep
-from FlowCalculation import FlowCalculation
+from libs.FlowCalculation import FlowCalculation
 
 from dotenv import load_dotenv
 load_dotenv()
