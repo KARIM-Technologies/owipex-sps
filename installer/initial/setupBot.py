@@ -105,11 +105,11 @@ def main():
     modify_thingsboard_gateway_config(tb_gateway_config_path, hostname)
 
     run_command("sudo systemctl disable h2o_watchdog.service")
-    installer_script_path = "/home/owipex_adm/owipex-sps/Installer/watchdog/powerWatchdogInstaller.sh"
+    installer_script_path = "/home/owipex_adm/owipex-sps/installer/powerWatchdog/powerWatchdogInstaller.sh"
     install_and_start_service(installer_script_path)
 
     # Führe das moveData.sh Skript aus, um Dateien zu verschieben und es ausführbar zu machen
-    move_data_script_path = "/home/owipex_adm/owipex-sps/moveData.sh"
+    move_data_script_path = "/home/owipex_adm/owipex-sps/installer/initial/moveData.sh"
     run_command(f"chmod +x {move_data_script_path}")
     run_command(f"sudo {move_data_script_path}")
 
