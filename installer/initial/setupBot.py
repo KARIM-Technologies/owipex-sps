@@ -80,7 +80,20 @@ def confirm_and_restart():
     else:
         print("Der Neustart wurde abgebrochen.")
 
+
+def move_data_if_desired(move_data_script_path):
+    response = input("Möchten Sie die Dateien jetzt verschieben? (ja/nein): ").lower()
+    if response == "ja":
+        print("Dateien werden verschoben...")
+        run_command(f"chmod +x {move_data_script_path}")
+        run_command(f"sudo {move_data_script_path}")
+    else:
+        print("Das Verschieben der Dateien wurde übersprungen.")
+
 def main():
+    # Frage, ob die Dateien verschoben werden sollen
+    move_data_script_path = "/home/owipex_adm/owipex-sps/installer/initial/moveData.sh"
+    move_data_if_desired(move_data_script_path)
     hostname = get_input("Bitte geben Sie den gewünschten Hostnamen ein (924XXXX): ")
     os.system(f"sudo hostnamectl set-hostname {hostname}")
 
@@ -96,10 +109,15 @@ def main():
 
     adjust_tb_edge_conf(tb_edge_conf_path, cloud_rpc_host, cloud_rpc_port, cloud_routing_key, cloud_routing_secret, postgres_password)
 
-    # .env Datei für owipex-sps anpassen
-    env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
-    with open("/etc/owipex/.env", "w") as file:
-        file.write(env_content)
+    # Überprüfe, ob die .env Datei im Zielverzeichnis existiert, und erstelle sie, falls nicht
+    env_file_path = "/etc/owipex/.env"
+    if not os.path.exists(env_file_path):
+        env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
+        with open(env_file_path, "w") as file:
+            file.write(env_content)
+        print(".env Datei wurde erstellt.")
+    else:
+        print(".env Datei existiert bereits.")
 
     tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
     modify_thingsboard_gateway_config(tb_gateway_config_path, hostname)
@@ -108,10 +126,7 @@ def main():
     installer_script_path = "/home/owipex_adm/owipex-sps/installer/powerWatchdog/powerWatchdogInstaller.sh"
     install_and_start_service(installer_script_path)
 
-    # Führe das moveData.sh Skript aus, um Dateien zu verschieben und es ausführbar zu machen
-    move_data_script_path = "/home/owipex_adm/owipex-sps/installer/initial/moveData.sh"
-    run_command(f"chmod +x {move_data_script_path}")
-    run_command(f"sudo {move_data_script_path}")
+
 
     print("Anpassungen abgeschlossen.")
 

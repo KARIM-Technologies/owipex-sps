@@ -127,10 +127,15 @@ def main():
 
     adjust_tb_edge_conf(tb_edge_conf_path, cloud_rpc_host, cloud_rpc_port, cloud_routing_key, cloud_routing_secret, postgres_password)
 
-    # .env Datei für owipex-sps anpassen
-    env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
-    with open("/home/owipex_adm/owipex-sps/.env", "w") as file:
-        file.write(env_content)
+    # Überprüfen, ob die .env Datei existiert
+    if not os.path.exists(env_path):
+        # .env Datei mit dem gewünschten Inhalt erstellen, falls sie nicht existiert
+        env_content = f'THINGSBOARD_ACCESS_TOKEN=WbXsPs2{hostname}'
+        with open(env_path, "w") as file:
+            file.write(env_content)
+        print(f".env Datei wurde im Verzeichnis {env_path} erstellt.")
+    else:
+        print(f".env Datei existiert bereits im Verzeichnis {env_path}.")
 
     tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
     modify_thingsboard_gateway_config(tb_gateway_config_path, hostname)
@@ -160,7 +165,7 @@ def main():
     
 
     tb_edge_conf_path = "/etc/tb-edge/conf/tb-edge.conf"
-    env_path = "/home/owipex_adm/owipex-sps/.env"
+    env_path = "/etc/owipex/.env"
     tb_gateway_config_path = "/etc/thingsboard-gateway/config/tb_gateway.json"
 
     # Überprüfung durchführen
