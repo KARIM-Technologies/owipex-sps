@@ -21,6 +21,10 @@ fi
 
 # Ändere den Eigentümer des Verzeichnisses zu owipex_adm
 sudo chown owipex_adm:owipex_adm /etc/owipex
+sudo usermod -aG owipex_adm thingsboard_gateway
+# Gruppe erlauben, den Ordner zu lesen und auszuführen
+sudo chmod g+rx /home/owipex_adm
+
 
 # Verschiebe die definierten Dateien
 for file in $FILES_TO_MOVE; do
