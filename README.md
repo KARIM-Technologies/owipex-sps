@@ -240,3 +240,63 @@ Im Bios unter BOOT
 
 
 git clone -b feature/externalFiles https://github.com/KARIM-Technologies/owipex-sps.git
+
+
+Last login: Mon Mar  4 13:06:09 2024 from 192.168.100.195
+owipex_adm@9240012:~$ git clone -b feature/externalFiles https://github.com/KARIM-Technologies/owipex-sps.git
+Cloning into 'owipex-sps'...
+remote: Enumerating objects: 721, done.
+remote: Counting objects: 100% (351/351), done.
+remote: Compressing objects: 100% (210/210), done.
+remote: Total 721 (delta 173), reused 281 (delta 135), pack-reused 370
+Receiving objects: 100% (721/721), 183.59 KiB | 240.00 KiB/s, done.
+Resolving deltas: 100% (338/338), done.
+owipex_adm@9240012:~$ dir
+owipex-sps  total_flow.json
+owipex_adm@9240012:~$ cd owipex-sps/
+owipex_adm@9240012:~/owipex-sps$ cd installer/initial/
+owipex_adm@9240012:~/owipex-sps/installer/initial$ sudo python3 setupBot.py 
+[sudo] password for owipex_adm: 
+Möchten Sie die Dateien jetzt verschieben? (ja/nein): ja
+Dateien werden verschoben...
+Verzeichnis /etc/owipex erstellt.
+calibration_data.json wurde nach /etc/owipex verschoben.
+run_time.txt wurde nach /etc/owipex verschoben.
+total_flow.json wurde nach /etc/owipex verschoben.
+Setup abgeschlossen.
+Bitte geben Sie den gewünschten Hostnamen ein (924XXXX): 9240012
+
+** (generate:1303): WARNING **: 13:13:03.640: `gateway4` has been deprecated, use default routes instead.
+See the 'Default routes' section of the documentation for more details.
+
+** (process:1301): WARNING **: 13:13:04.236: `gateway4` has been deprecated, use default routes instead.
+See the 'Default routes' section of the documentation for more details.
+
+** (process:1301): WARNING **: 13:13:04.254: `gateway4` has been deprecated, use default routes instead.
+See the 'Default routes' section of the documentation for more details.
+
+** (process:1301): WARNING **: 13:13:04.479: `gateway4` has been deprecated, use default routes instead.
+See the 'Default routes' section of the documentation for more details.
+
+** (process:1301): WARNING **: 13:13:04.480: `gateway4` has been deprecated, use default routes instead.
+See the 'Default routes' section of the documentation for more details.
+Bitte CLOUD_ROUTING_KEY eingeben: 4d2f1e6e-70da-3eb3-ced4-762bd116edb3
+Bitte CLOUD_ROUTING_KEY eingeben:  wiederholen: 4d2f1e6e-70da-3eb3-ced4-762bd116edb3
+Bitte CLOUD_ROUTING_SECRET eingeben: dr4wtt291eqqgxb4v0m0
+Bitte CLOUD_ROUTING_SECRET eingeben:  wiederholen: dr4wtt291eqqgxb4v0m0
+Bitte SPRING_DATASOURCE_PASSWORD eingeben: OW!p3x?
+Bitte SPRING_DATASOURCE_PASSWORD eingeben:  wiederholen: OW!p3x?
+.env Datei wurde erstellt.
+Failed to disable unit: Unit file h2o_watchdog.service does not exist.
+Fehler bei der Ausführung von sudo systemctl disable h2o_watchdog.service: Command 'sudo systemctl disable h2o_watchdog.service' returned non-zero exit status 1.
+Erstelle Systemd-Service-Datei für powerWatchdog...
+Lade Systemd-Konfiguration neu...
+Aktiviere powerWatchdog Service...
+Starte powerWatchdog Service...
+powerWatchdog Service erfolgreich eingerichtet und gestartet.
+Anpassungen abgeschlossen.
+Möchten Sie den Rechner jetzt neu starten? (ja/nein): ja
+Der Rechner wird neu gestartet...
+Connection to 192.168.100.100 closed by remote host.
+Connection to 192.168.100.100 closed.
+sayedamirkarim@MacBook-Pro-von-Sayed ~ % 
