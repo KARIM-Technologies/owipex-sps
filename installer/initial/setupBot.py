@@ -75,7 +75,7 @@ def modify_thingsboard_gateway_config(config_path, hostname):
             
         print("ThingsBoard Gateway-Konfigurationsdatei erfolgreich aktualisiert.")
         
-    except IOError as e:How the he
+    except IOError as e:
         print(f"Fehler beim Lesen/Schreiben der Thingsboard Gateway-Konfigurationsdatei: {e}")
     except json.JSONDecodeError as e:
         print(f"Fehler beim Parsen der Thingsboard Gateway-Konfigurationsdatei: {e}")
