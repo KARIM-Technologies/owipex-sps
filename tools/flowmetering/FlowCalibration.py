@@ -164,8 +164,11 @@ class Calibration:
             print(f'{height:<12} {flow_rate:<20} {zero_point:<15}')
 
     def save_calibration_data(self):
-        with open('calibration_data.json', 'w') as f:
-            json.dump(self.calibration_data, f)
+        calibration_file_path = '/etc/owipex/calibration_data.json'
+        with open(calibration_file_path, 'w') as f:
+            json.dump(self.calibration_data, f, indent=4)
+        print(f"Kalibrierungsdaten wurden unter {calibration_file_path} gespeichert.")
+
 
 if __name__ == "__main__":
     dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
