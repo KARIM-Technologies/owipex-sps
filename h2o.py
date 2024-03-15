@@ -292,6 +292,7 @@ class FlowRateHandler:
 class TotalFlowManager:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
+        self.last_update_time = None  # Initialisierung des Zeitstempels der letzten Aktualisierung
         self.total_flow = 0
         self.load_total_flow()
 
@@ -315,8 +316,15 @@ class TotalFlowManager:
 
     def update_flow_rate(self, flow_rate_l_min):
         current_time = time.time()
-        elapsed_time_in_minutes = (current_time - self.last_update_time) / 60  # Verstrichene Zeit in Minuten
-        self.last_update_time = current_time  # Aktualisiere den Zeitstempel der letzten Aktualisierung
+        
+        # Wenn last_update_time noch nicht gesetzt wurde, initialisieren Sie es mit dem aktuellen Zeitpunkt
+        # und nehmen an, dass keine Zeit verstrichen ist.
+        if self.last_update_time is None:
+            elapsed_time_in_minutes = 0
+            self.last_update_time = current_time
+        else:
+            elapsed_time_in_minutes = (current_time - self.last_update_time) / 60  # Verstrichene Zeit in Minuten
+            self.last_update_time = current_time  # Aktualisiere den Zeitstempel der letzten Aktualisierung
 
         # Berechne die zusätzliche Menge basierend auf der verstrichenen Zeit
         additional_flow = flow_rate_l_min * elapsed_time_in_minutes
@@ -324,6 +332,7 @@ class TotalFlowManager:
 
         print(f"Aktualisierte Gesamtdurchflussmenge: {self.total_flow} L")
         self.save_total_flow()
+
 
     def start_periodic_save(self):
         def save_periodically():

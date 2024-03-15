@@ -32,7 +32,7 @@ class FlowCalculation:
 
         # Extract data from the dictionaries
         x_data = [entry['water_height'] for entry in calibration_data]
-        y_data = [entry['flowRate'] for entry in calibration_data]
+        y_data = [entry['flow_rate'] for entry in calibration_data]
 
         self.calibration_function = interp1d(x_data, y_data, fill_value="extrapolate")
     
