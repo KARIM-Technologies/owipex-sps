@@ -269,7 +269,7 @@ class FlowRateHandler:
         
         if measured_air_distance is not None:
             water_level = self.zero_reference - measured_air_distance
-
+            print(f"Hoehe: {water_level}")
             # Berechne den Durchfluss für eine bestimmte Wasserhöhe
             flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
             print(f"Flow Rate (m3/h): {flow_rate}")
