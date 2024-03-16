@@ -18,9 +18,14 @@ gpsd.connect()
 def get_gps_data(timeout=10):
     start_time = time.time()
     while time.time() - start_time <= timeout:
-        packet = gpsd.get_current()
-        if packet.mode >= 2:  # Mode 2 bedeutet 2D-Fix, was mindestens Längen- und Breitengrad bedeutet.
-            return packet
+        try:
+            packet = gpsd.get_current()
+            # Mode 2 bedeutet 2D-Fix, was mindestens Längen- und Breitengrad bedeutet.
+            if packet.mode >= 2:
+                return packet
+        except Exception as e:
+            print(f"Fehler beim Abrufen der GPS-Daten: {e}")
+            time.sleep(1)  # Kurze Pause, um eine Endlosschleife bei sofortigem Fehler zu vermeiden
     return None
 
 def process_gps_data(packet):

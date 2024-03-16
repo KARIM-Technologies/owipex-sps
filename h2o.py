@@ -141,20 +141,20 @@ class RuntimeTracker:
 
 class GPSHandler:
     def __init__(self, update_interval=60):
-        self.update_interval = update_interval  # Zeitintervall für GPS-Updates in Sekunden
+        self.update_interval = update_interval
         self.callGpsSwitch = False
         self.latest_gps_data = (None, None, None, None)
-        
-        # Initialisierungscode...
+        self.thread = threading.Thread(target=self.fetch_and_display_data)
+        self.thread.daemon = True
 
     def start_gps_updates(self):
         self.callGpsSwitch = True
-        thread = threading.Thread(target=self.fetch_and_display_data)
-        thread.daemon = True  # Damit der Thread mit dem Hauptprogramm beendet wird
-        thread.start()
+        if not self.thread.is_alive():
+            self.thread.start()
 
     def stop_gps_updates(self):
         self.callGpsSwitch = False
+        self.thread.join()  # Warte, bis der Thread beendet wird
 
     def fetch_and_display_data(self):
         while self.callGpsSwitch:
