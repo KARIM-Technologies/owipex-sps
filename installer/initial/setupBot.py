@@ -65,6 +65,11 @@ def modify_thingsboard_gateway_config(config_path, hostname):
         with open(config_path, 'r') as file:
             config = json.load(file)
         
+        # Stelle sicher, dass der "thingsboard"-Schlüssel existiert, bevor du versuchst, ihn zu aktualisieren
+        if 'thingsboard' not in config:
+            print("Der Schlüssel 'thingsboard' existiert nicht in der Konfiguration.")
+            return
+        
         # Aktualisiere die Werte für 'host' und 'accessToken' innerhalb des 'thingsboard'-Objekts
         config['thingsboard']['host'] = "146.190.179.185"
         config['thingsboard']['security']['accessToken'] = f"WbXgAAte2{hostname}"
