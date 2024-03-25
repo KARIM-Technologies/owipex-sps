@@ -40,10 +40,10 @@ def continuous_read(interval):
         time.sleep(interval)  # Pause zwischen den Lesevorgängen
 
 # DeviceManager-Erstellung und Konfiguration
-dev_manager = DeviceManager(port='/dev/ttymS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
 
 # Starte das kontinuierliche Auslesen der Sensoren mit einem Intervall von z.B. 10 Sekunden
-continuous_read(10)
+continuous_read(3)

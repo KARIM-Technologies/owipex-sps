@@ -1,1 +1,46 @@
-[{"zero_point": 281},{"water_height": 0, "flow_rate": 0.000000000001}, {"water_height": 15, "flow_rate": 0.2486325211337643}, {"water_height": 16, "flow_rate": 0.2766251728907331}, {"water_height": 19, "flow_rate": 0.4100041000410004}, {"water_height": 24, "flow_rate": 0.5694760820045558}, {"water_height": 31, "flow_rate": 1.016260162601626}, {"water_height": 43, "flow_rate": 1.6528925619834711}, {"water_height": 53, "flow_rate": 1.9762845849802373}, {"water_height": 67, "flow_rate": 3.802281368821293}, {"water_height": 97, "flow_rate": 10.0}]
+[
+    {
+      "zero_point": 250.0
+    },
+    {
+      "water_height_mm": 0,
+      "flow_rate_l_s": 0.0
+    },
+    {
+      "water_height_mm": 11,
+      "flow_rate_l_s": 0.02
+    },
+    {
+      "water_height_mm": 22,
+      "flow_rate_l_s": 0.1
+    },
+    {
+      "water_height_mm": 33,
+      "flow_rate_l_s": 0.28
+    },
+    {
+      "water_height_mm": 44,
+      "flow_rate_l_s": 0.57
+    },
+    {
+      "water_height_mm": 56,
+      "flow_rate_l_s": 1.04
+    },
+    {
+      "water_height_mm": 67,
+      "flow_rate_l_s": 1.63
+    },
+    {
+      "water_height_mm": 78,
+      "flow_rate_l_s": 2.38
+    },
+    {
+      "water_height_mm": 89,
+      "flow_rate_l_s": 3.31
+    },
+    {
+      "water_height_mm": 100,
+      "flow_rate_l_s": 4.43
+    }
+  ]
+  
