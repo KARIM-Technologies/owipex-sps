@@ -259,18 +259,18 @@ def fetch_and_calculate(self):
         print(f"Hoehe: {water_level} mm")
         
         # Berechne den Durchfluss für eine bestimmte Wasserhöhe in L/s
-        flow_rate_l_s = self.flow_calculator.calculate_flow_rate(water_level)
-        print(f"Flow Rate (L/s): {flow_rate_l_s}")
+        flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
+        print(f"Flow Rate (L/s): {flow_rate}")
 
         # Konvertiere den Durchfluss in verschiedene Einheiten
-        flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate_l_s)
-        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate_l_s)
-        flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate_l_s)
-        flow_rate_m3_h = self.flow_calculator.convert_to_cubic_meters_per_hour(flow_rate_l_s)  # Zusätzlich hinzugefügt
+        flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
+        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
+        flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
+        flow_rate_m3_h = self.flow_calculator.convert_to_cubic_meters_per_hour(flow_rate)  # Zusätzlich hinzugefügt
 
         return {
             "water_level_mm": water_level,  # Zur Klarheit, Einheit hinzugefügt
-            "flow_rate_l_s": flow_rate_l_s,
+            "flow_rate": flow_rate,
             "flow_rate_l_min": flow_rate_l_min,
             "flow_rate_l_h": flow_rate_l_h,
             "flow_rate_m3_min": flow_rate_m3_min,
