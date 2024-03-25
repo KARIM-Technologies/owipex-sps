@@ -22,8 +22,8 @@ class FlowCalculation:
         self.calibration_function = interp1d(x_data, y_data, fill_value="extrapolate")
     
     def calculate_flow_rate(self, water_level):
-        water_level /= 1000  # convert mm to m for interpolation
         return self.calibration_function(water_level)  # flow rate in L/s
+
 
     def get_zero_reference(self):
         return self.zero_reference
