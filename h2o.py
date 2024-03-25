@@ -251,43 +251,33 @@ class PHHandler:
                 self.intercept = calibration_data.get('ph_intercept', 0)
         print("Kalibrierungswerte geladen.")
 
-class FlowRateHandler:
-    def __init__(self, radar_sensor):
-        self.radar_sensor = radar_sensor
+def fetch_and_calculate(self):
+    measured_air_distance = self.radar_sensor.read_radar_sensor(register_address=0x0001)
+    
+    if measured_air_distance is not None:
+        water_level = self.zero_reference - measured_air_distance
+        print(f"Hoehe: {water_level} mm")
         
-        # Pfad zur Kalibrierungsdatei aktualisieren
-        calibration_file_path = os.path.join(CONFIG_PATH, "calibration_data.json")
-        
-        self.flow_calculator = FlowCalculation(calibration_file_path)
-        
-        # Hole den 0-Referenzwert
-        self.zero_reference = self.flow_calculator.get_zero_reference()
-        print(f"Zero Reference: {self.zero_reference}")
+        # Berechne den Durchfluss für eine bestimmte Wasserhöhe in L/s
+        flow_rate_l_s = self.flow_calculator.calculate_flow_rate(water_level)
+        print(f"Flow Rate (L/s): {flow_rate_l_s}")
 
-    def fetch_and_calculate(self):
-        measured_air_distance = self.radar_sensor.read_radar_sensor(register_address=0x0001)
-        
-        if measured_air_distance is not None:
-            water_level = self.zero_reference - measured_air_distance
-            print(f"Hoehe: {water_level}")
-            # Berechne den Durchfluss für eine bestimmte Wasserhöhe
-            flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
-            print(f"Flow Rate (m3/h): {flow_rate}")
+        # Konvertiere den Durchfluss in verschiedene Einheiten
+        flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate_l_s)
+        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate_l_s)
+        flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate_l_s)
+        flow_rate_m3_h = self.flow_calculator.convert_to_cubic_meters_per_hour(flow_rate_l_s)  # Zusätzlich hinzugefügt
 
-            # Konvertiere den Durchfluss in verschiedene Einheiten
-            flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
-            flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
-            flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
-
-            return {
-                "water_level": water_level,
-                "flow_rate": flow_rate,
-                "flow_rate_l_min": flow_rate_l_min,
-                "flow_rate_l_h": flow_rate_l_h,
-                "flow_rate_m3_min": flow_rate_m3_min
-            }
-        else:
-            return None
+        return {
+            "water_level_mm": water_level,  # Zur Klarheit, Einheit hinzugefügt
+            "flow_rate_l_s": flow_rate_l_s,
+            "flow_rate_l_min": flow_rate_l_min,
+            "flow_rate_l_h": flow_rate_l_h,
+            "flow_rate_m3_min": flow_rate_m3_min,
+            "flow_rate_m3_h": flow_rate_m3_h  # Zusätzlich hinzugefügt
+        }
+    else:
+        return None
 
 class TotalFlowManager:
     def __init__(self, update_interval=60):
