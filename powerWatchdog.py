@@ -21,83 +21,60 @@ is_main_script_running = False  # Statusvariable für den Hauptskript-Zustand
 manually_stopped = False  # Gibt an, ob das Skript manuell gestoppt wurde
 
 def set_led_color(color):
-    # Alle LEDs ausschalten
     for led in leds.values():
-        led.write(True)
-    # Gewünschte LED einschalten (False bedeutet "an")
+        led.write(True)  # Alle LEDs ausschalten
     if color in leds:
-        leds[color].write(False)
+        leds[color].write(False)  # Gewünschte LED einschalten
 
-def check_server_availability(url):
+def check_server_availability():
     try:
-        response = requests.get(url)
-        print(f"Serverantwort: {response.status_code}")
+        response = requests.get(SERVER_URL)
         return response.status_code == 200
-    except requests.exceptions.RequestException as e:
-        print(f"Fehler beim Anpingen des Servers: {e}")
+    except requests.exceptions.RequestException:
         return False
 
 def start_main_script():
-    global main_process, is_main_script_running, manually_stopped
-    if not is_main_script_running:
-        print("Versuche, Hauptskript zu starten...")
+    global main_process, is_main_script_running
+    if not is_main_script_running and check_server_availability():
         main_process = subprocess.Popen(['python3', MAIN_SCRIPT_PATH])
-        time.sleep(1)
         if main_process.poll() is None:
-            print("Hauptskript erfolgreich gestartet.")
             is_main_script_running = True
-            manually_stopped = False  # Zurücksetzen beim Start
+            manually_stopped = False
             set_led_color('G')
 
 def stop_main_script():
     global main_process, is_main_script_running, manually_stopped
     if is_main_script_running:
-        print("Send SIGINT to Hauptskript...")
         main_process.send_signal(signal.SIGINT)
         main_process.wait()
         main_process = None
         is_main_script_running = False
-        manually_stopped = True  # Setzen, da manuell gestoppt
-        print("Hauptskript gestoppt.")
+        manually_stopped = True
         set_led_color('B')
 
 def button_press_handler():
     global manually_stopped
     press_time = None
     while True:
-        button_pressed = button_gpio.read() == False
-        if button_pressed:
-            if press_time is None:
-                press_time = time.time()
+        if button_gpio.read() == False:
+            press_time = time.time() if press_time is None else press_time
         else:
             if press_time is not None:
                 elapsed_time = time.time() - press_time
                 if 2 < elapsed_time <= 5:
-                    print("Mittlerer Druck erkannt, starte Hauptskript.")
-                    start_main_script()
+                    start_main_script() if not is_main_script_running else None
                 elif elapsed_time > 5:
-                    print("Langer Druck erkannt, stoppe Hauptskript.")
-                    stop_main_script()
+                    stop_main_script() if is_main_script_running else None
                 press_time = None
         time.sleep(0.1)
 
 def monitor_system():
     global manually_stopped
     while True:
-        server_available = check_server_availability(SERVER_URL)
-        if main_process is not None and main_process.poll() is None:
-            set_led_color('G')
-            print("Hauptskript läuft, LED Grün.")
-        elif main_process is not None and main_process.poll() is not None and not manually_stopped:
-            # Hauptskript wurde unerwartet beendet, nicht durch manuelles Stoppen
-            print("Hauptskript unerwartet gestoppt, versuche neu zu starten.")
-            start_main_script()
-        elif not server_available:
-            set_led_color('R')
-            print("Server nicht erreichbar, LED Rot.")
+        if check_server_availability():
+            start_main_script() if not is_main_script_running and not manually_stopped else set_led_color('G')
         else:
-            set_led_color('B')
-            print("Server erreichbar, Hauptskript nicht gestartet oder bereits gestoppt, LED Blau.")
+            set_led_color('R')
         time.sleep(CHECK_INTERVAL)
 
 # Aufräumen
@@ -108,11 +85,7 @@ def cleanup():
     button_gpio.close()
 
 try:
-    # Startet einen Thread, um das System zu überwachen
-    monitor_thread = threading.Thread(target=monitor_system)
-    monitor_thread.start()
-
-    # Handhabt Button-Press-Ereignisse im Hauptthread
+    threading.Thread(target=monitor_system).start()
     button_press_handler()
 finally:
     cleanup()
