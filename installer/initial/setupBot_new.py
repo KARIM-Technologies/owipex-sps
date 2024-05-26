@@ -76,6 +76,7 @@ def main():
     hostname = get_input("Bitte geben Sie den gewünschten Hostnamen ein (924XXXX): ")
     os.system(f"sudo hostnamectl set-hostname {hostname}")
 
+    tb_edge_conf_path = "/etc/tb-edge/conf/tb-edge.conf"
     cloud_rpc_host = 'export CLOUD_RPC_HOST="146.190.179.185"'
     cloud_rpc_port = 'export CLOUD_RPC_PORT="7070"'
     cloud_routing_key = f'export CLOUD_ROUTING_KEY="{get_input("Bitte CLOUD_ROUTING_KEY eingeben: ", True)}"'
