@@ -45,14 +45,23 @@ shared_attributes_keys
 
 
 def save_state(state_dict):
-    with open(os.path.join(CONFIG_PATH, 'state.json'), 'w') as file:
-        json.dump(state_dict, file)
+    state_file_path = os.path.join(CONFIG_path, 'state.json')
+    try:
+        with open(state_file_path, 'w') as file:
+            json.dump(state_dict, file)
+    except IOError as e:
+        print(f"Fehler beim Speichern des Zustands: {e}")
 
 def load_state():
-    state_file_path = os.path.join(CONFIG_PATH, 'state.json')
-    if os.path.exists(state_file_path):
-        with open(state_file_path, 'r') as file:
-            return json.load(file)
+    state_file_path = os.path.join(CONFIG_path, 'state.json')
+    try:
+        if os.path.exists(state_file_path):
+            with open(state_file_path, 'r') as file:
+                return json.load(file)
+        else:
+            print("Zustandsdatei nicht gefunden. Ein leerer Zustand wird verwendet.")
+    except json.JSONDecodeError as e:
+        print(f"Fehler beim Lesen des Zustands: {e}. Ein leerer Zustand wird verwendet.")
     return {}
 
  #that will be called when the value of our Shared Attribute changes
@@ -198,58 +207,57 @@ class TurbidityHandler:
 
 class PHHandler:
     def __init__(self, sensor):
-        self.sensor = sensor  # Hier übergeben Sie die PH_Sensor-Instanz
+        self.sensor = sensor  # Übergeben Sie die PH_Sensor-Instanz
         self.slope = 1  # Anfangswert, wird durch Kalibrierung aktualisiert
         self.intercept = 0  # Anfangswert, wird durch Kalibrierung aktualisiert
+        self.load_calibration()  # Laden der Kalibrierungsdaten beim Start
 
     def fetch_and_display_data(self):
-        raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
+        try:
+            raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
+            if raw_ph_value is None:
+                raise ValueError("Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
+        except Exception as e:
+            print(f"Fehler bei der Sensorablesung: {e}")
+            return None, None
+
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
-        
         temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         print(f'PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
         return measuredPHValue_telem, temperaturPHSens_telem
 
     def correct_ph_value(self, raw_value):
-        if raw_value is None:
-            print("Fehler: raw_value ist None. Überprüfen Sie die Sensorverbindung.")
-            return 7  # Oder einen anderen Standardwert oder Fehlerbehandlungsmechanismus verwenden
         return self.slope * raw_value + self.intercept
 
     def calibrate(self, high_ph_value, low_ph_value, measured_high, measured_low):
-        """
-        Kalibriert den pH-Sensor mit gegebenen Hoch- und Tiefwerten.
-
-        :param high_ph_value: Bekannter pH-Wert der High-Kalibrierlösung (z.B. 10)
-        :param low_ph_value: Bekannter pH-Wert der Low-Kalibrierlösung (z.B. 7)
-        :param measured_high: Gemessener Wert des Sensors in der High-Kalibrierlösung
-        :param measured_low: Gemessener Wert des Sensors in der Low-Kalibrierlösung
-        """
-        # Berechnung der Steigung und des y-Achsenabschnitts
         self.slope = (high_ph_value - low_ph_value) / (measured_high - measured_low)
         self.intercept = high_ph_value - self.slope * measured_high
+        self.save_calibration()
 
     def save_calibration(self):
-        # Pfad zur Kalibrierungsdatei
         calibration_file_path = os.path.join(CONFIG_PATH, 'ph_calibration.json')
-        
-        # Kalibrierungsdaten speichern
         calibration_data = {'ph_slope': self.slope, 'ph_intercept': self.intercept}
-        with open(calibration_file_path, 'w') as file:
-            json.dump(calibration_data, file)
-        print("Kalibrierungswerte gespeichert.")
-    
+        try:
+            with open(calibration_file_path, 'w') as file:
+                json.dump(calibration_data, file)
+            print("Kalibrierungswerte gespeichert.")
+        except IOError as e:
+            print(f"Fehler beim Speichern der Kalibrierungsdaten: {e}")
+
     def load_calibration(self):
-        # Pfad zur Kalibrierungsdatei
         calibration_file_path = os.path.join(CONFIG_PATH, 'ph_calibration.json')
-        
-        if os.path.exists(calibration_file_path):
+        try:
             with open(calibration_file_path, 'r') as file:
                 calibration_data = json.load(file)
-                self.slope = calibration_data.get('ph_slope', 1)
-                self.intercept = calibration_data.get('ph_intercept', 0)
-        print("Kalibrierungswerte geladen.")
+            self.slope = calibration_data.get('ph_slope', 1)
+            self.intercept = calibration_data.get('ph_intercept', 0)
+        except (IOError, json.JSONDecodeError) as e:
+            print(f"Fehler beim Laden der Kalibrierungsdaten: {e}. Verwende Standardwerte.")
+            self.slope = 1
+            self.intercept = 0
+        finally:
+            print("Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.")
 
 class FlowRateHandler:
     def __init__(self, radar_sensor):
@@ -258,36 +266,53 @@ class FlowRateHandler:
         # Pfad zur Kalibrierungsdatei aktualisieren
         calibration_file_path = os.path.join(CONFIG_PATH, "calibration_data.json")
         
+        # Prüfung und Reparatur der Kalibrierungsdatei
+        self.calibration_data = self.load_or_repair_calibration(calibration_file_path)
+        
         self.flow_calculator = FlowCalculation(calibration_file_path)
         
         # Hole den 0-Referenzwert
         self.zero_reference = self.flow_calculator.get_zero_reference()
         print(f"Zero Reference: {self.zero_reference}")
 
+    def load_or_repair_calibration(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+            print("Kalibrierungsdaten erfolgreich geladen.")
+            return data
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"Fehler beim Laden der Kalibrierungsdatei: {e}. Erzeuge Standarddaten.")
+            default_data = {"zero_reference": 250}  # Ersetze dies durch realistische Standardwerte
+            with open(file_path, 'w') as file:
+                json.dump(default_data, file)
+            return default_data
+
     def fetch_and_calculate(self):
-        measured_air_distance = self.radar_sensor.read_radar_sensor(register_address=0x0001)
-        
-        if measured_air_distance is not None:
-            water_level = self.zero_reference - measured_air_distance
-            print(f"Hoehe: {water_level} mm")
-            # Berechne den Durchfluss für eine bestimmte Wasserhöhe in L/s
-            flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
-            print(f"Flow Rate (L/s): {flow_rate}")
-
-            # Konvertiere den Durchfluss in verschiedene Einheiten, ausgehend von L/s
-            flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
-            flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
-            flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
-
-            return {
-                "water_level_mm": water_level,
-                "flow_rate_l_s": flow_rate,
-                "flow_rate_l_min": flow_rate_l_min,
-                "flow_rate_l_h": flow_rate_l_h,
-                "flow_rate_m3_min": flow_rate_m3_min
-            }
-        else:
+        try:
+            measured_air_distance = self.radar_sensor.read_radar_sensor(register_address=0x0001)
+            if measured_air_distance is None:
+                raise ValueError("Keine Messung vom Radar-Sensor erhalten.")
+        except Exception as e:
+            print(f"Fehler beim Lesen des Radar-Sensors: {e}")
             return None
+
+        water_level = self.zero_reference - measured_air_distance
+        print(f"Hoehe: {water_level} mm")
+        flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
+        print(f"Flow Rate (L/s): {flow_rate}")
+
+        flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
+        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_an_rate)
+        flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
+
+        return {
+            "water_level_mm": water_level,
+            "flow_rate_l_s": flow_rate,
+            "flow_rate_l_min": flow_rate_l_min,
+            "flow_rate_l_h": flow_rate_l_h,
+            "flow_rate_m3_min": flow_rate_m3_min
+        }
 
 
 class TotalFlowManager:
@@ -303,12 +328,14 @@ class TotalFlowManager:
             with open(total_flow_file_path, 'r') as file:
                 data = json.load(file)
                 self.total_flow = data['total_flow']
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
+            print("Fehler: Datei nicht gefunden oder Daten sind beschädigt. Setze total_flow auf 0.")
             self.total_flow = 0
+            self.save_total_flow()  # Speichere initialen Zustand, um Datei konsistent zu halten
 
     def save_total_flow(self):
         total_flow_file_path = os.path.join(CONFIG_PATH, 'total_flow.json')
-        with open(total_flow_file_path, 'w') as file:
+        with open(total_id_flow_file_path, 'w') as file:
             json.dump({'total_flow': self.total_flow}, file)
 
     def reset_total_flow(self):
@@ -318,8 +345,6 @@ class TotalFlowManager:
     def update_flow_rate(self, flow_rate_l_min):
         current_time = time.time()
         
-        # Wenn last_update_time noch nicht gesetzt wurde, initialisieren Sie es mit dem aktuellen Zeitpunkt
-        # und nehmen an, dass keine Zeit verstrichen ist.
         if self.last_update_time is None:
             elapsed_time_in_minutes = 0
             self.last_update_time = current_time
@@ -327,13 +352,11 @@ class TotalFlowManager:
             elapsed_time_in_minutes = (current_time - self.last_update_time) / 60  # Verstrichene Zeit in Minuten
             self.last_update_time = current_time  # Aktualisiere den Zeitstempel der letzten Aktualisierung
 
-        # Berechne die zusätzliche Menge basierend auf der verstrichenen Zeit
         additional_flow = flow_rate_l_min * elapsed_time_in_minutes
         self.total_flow += additional_flow
 
         print(f"Aktualisierte Gesamtdurchflussmenge: {self.total_flow} L")
         self.save_total_flow()
-
 
     def start_periodic_save(self):
         def save_periodically():
