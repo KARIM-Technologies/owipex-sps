@@ -45,7 +45,7 @@ shared_attributes_keys
 
 
 def save_state(state_dict):
-    state_file_path = os.path.join(CONFIG_path, 'state.json')
+    state_file_path = os.path.join(CONFIG_PATH, 'state.json')
     try:
         with open(state_file_path, 'w') as file:
             json.dump(state_dict, file)
@@ -53,7 +53,7 @@ def save_state(state_dict):
         print(f"Fehler beim Speichern des Zustands: {e}")
 
 def load_state():
-    state_file_path = os.path.join(CONFIG_path, 'state.json')
+    state_file_path = os.path.join(CONFIG_PATH, 'state.json')
     try:
         if os.path.exists(state_file_path):
             with open(state_file_path, 'r') as file:
@@ -89,7 +89,7 @@ def get_data():
     mac_address = os.popen('''cat /sys/class/net/*/address''').readline().replace('', '').replace(',', '.')
     processes_count = os.popen('''ps -Al | grep -c bash''').readline().replace('', '').replace(',', '.')[:-1]
     swap_memory_usage = os.popen("free -m | grep Swap | awk '{print ($3/$2)*100}'").readline().replace('', '').replace(',', '.')[:-1]
-    ram_usage = float(os.popen("free -m | grep Mem | awk '{print ($3/$2) * 100}'").readline().replace('', '').replace(',', '.')[:-1])
+    ram_usage = float(os.popen("free -m | grep -E 'Mem|Speicher' | awk '{print ($3/$2) * 100}'").readline().strip())
     st = os.statvfs('/')
     used = (st.f_blocks - st.f_bfree) * st.f_frsize
     boot_time = os.popen('uptime -p').read()[:-1]
@@ -335,7 +335,7 @@ class TotalFlowManager:
 
     def save_total_flow(self):
         total_flow_file_path = os.path.join(CONFIG_PATH, 'total_flow.json')
-        with open(total_id_flow_file_path, 'w') as file:
+        with open(total_flow_file_path, 'w') as file:
             json.dump({'total_flow': self.total_flow}, file)
 
     def reset_total_flow(self):
@@ -537,4 +537,3 @@ if __name__ == '__main__':
         main()
     else:
         print("Please change the ACCESS_TOKEN variable to match your device access token and run the")
-
