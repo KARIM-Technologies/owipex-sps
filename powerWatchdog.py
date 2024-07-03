@@ -9,10 +9,10 @@ from tb_gateway_mqtt import TBDeviceMqttClient
 
 # Configuration
 import os
-from dotenv import load_dotenv
-dotenv_path = '/etc/owipex/.env'
-load_dotenv(dotenv_path=dotenv_path)
-ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
+# from dotenv import load_dotenv
+# dotenv_path = '/etc/owipex/.env'
+# load_dotenv(dotenv_path=dotenv_path)
+# ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
 
 # Konfiguration
 SERVER_URL = 'http://localhost:8080'
@@ -22,7 +22,7 @@ LED_PINS = {'R': 5, 'G': 6, 'B': 26}  # Angenommene Pins für die LEDs
 CHECK_INTERVAL = 10
 THINGSBOARD_SERVER = 'localhost'
 THINGSBOARD_PORT = 1883  # Ensure the port is an integer
-# ACCESS_TOKEN = '7gRqksFeFF3i7LjuRHqk'
+ACCESS_TOKEN = '7gRqksFeFF3i7LjuRHqk'
 
 # Initialisierung
 button_gpio = GPIO(BUTTON_PIN, "in")
