@@ -82,39 +82,12 @@ def rpc_callback(id, request_body):
     else:
         print('Unknown method: ' + method)
 
-def read_cpu_temperature():
-    try:
-        path = '/sys/class/thermal/thermal_zone0/temp'
-        with open(path, 'r') as file:
-            temp = int(file.read().strip()) / 1000.0
-            return temp
-    except FileNotFoundError:
-        return None  # Keine Temperatur gefunden
-    
+
 def get_data():
-    cpu_usage = round(float(os.popen('''grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage }' ''').readline().replace('', '').replace(',', '.')), 2)
-    ip_address = os.popen('''hostname -I''').readline().replace('', '').replace(',', '.')[:-1]
-    mac_address = os.popen('''cat /sys/class/net/*/address''').readline().replace('', '').replace(',', '.')
-    processes_count = os.popen('''ps -Al | grep -c bash''').readline().replace('', '').replace(',', '.')[:-1]
-    swap_memory_usage = os.popen("free -m | grep Swap | awk '{print ($3/$2)*100}'").readline().replace('', '').replace(',', '.')[:-1]
-    ram_usage = float(os.popen("free -m | grep -E 'Mem|Speicher' | awk '{print ($3/$2) * 100}'").readline().strip())
-    st = os.statvfs('/')
-    used = (st.f_blocks - st.f_bfree) * st.f_frsize
-    boot_time = os.popen('uptime -p').read()[:-1]
-    avg_load = (cpu_usage + ram_usage) / 2
-    cpu_temperature = read_cpu_temperature()  # CPU Temperatur auslesen
+
 
     attributes = {
-        'ip_address': ip_address,
-        'macaddress': mac_address,
-        'cpu_usage': cpu_usage,
-        'processes_count': processes_count,
-        'disk_usage': used,
-        'RAM_usage': ram_usage,
-        'swap_memory_usage': swap_memory_usage,
-        'boot_time': boot_time,
-        'avg_load': avg_load,
-        'cpu_temperature': cpu_temperature  # Hinzufügen der CPU-Temperatur
+
     }
     telemetry = {key: globals()[key] for key in telemetry_keys if key in globals()}
 
