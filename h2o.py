@@ -87,7 +87,8 @@ def get_data():
 
 
     attributes = {
-
+        'SW-Version': "2.0.0",
+        'HW-Version': "2.0.0"
     }
     telemetry = {key: globals()[key] for key in telemetry_keys if key in globals()}
 
