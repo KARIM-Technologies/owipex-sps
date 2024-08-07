@@ -468,37 +468,39 @@ def main():
         if powerButton:
             runtime_tracker.start()
             if autoSwitch:
-                if measuredPHValue_telem > maximumPHVal:
-                    co2RelaisSw = True
-                    co2HeatingRelaySw = True
-                    pumpRelaySw = False
-                    if ph_high_delay_start_time is None:
-                        ph_high_delay_start_time = time.time()
-                    elif time.time() - ph_high_delay_start_time >= ph_high_delay_duration:
-                        autoSwitch = False
-                        powerButton = False
-                        
-                    countdownPHHigh = ph_high_delay_duration - (time.time() - ph_high_delay_start_time)
-                else:
-                    ph_high_delay_start_time = None
-                if measuredPHValue_telem < minimumPHVal:
-                    if measuredPHValue_telem < minimumPHValStop:
-                        autoSwitch = False
-                        powerButton = False
-                    if ph_low_delay_start_time is None:
-                        ph_low_delay_start_time = time.time()
-                    elif time.time() - ph_low_delay_start_time >= ph_low_delay_duration:
-                        autoSwitch = False
-                        powerButton = False
-                    countdownPHLow = ph_low_delay_duration - (time.time() - ph_low_delay_start_time)
-                else:
-                    ph_low_delay_start_time = None
+                if measuredPHValue_telem is not None:
+                    if measuredPHValue_telem > maximumPHVal:
+                        co2RelaisSw = True
+                        co2HeatingRelaySw = True
+                        pumpRelaySw = False
+                        if ph_high_delay_start_time is None:
+                            ph_high_delay_start_time = time.time()
+                        elif time.time() - ph_high_delay_start_time >= ph_high_delay_duration:
+                            autoSwitch = False
+                            powerButton = False
 
-                # Wenn der pH-Wert innerhalb des erlaubten Fensters liegt:
-                if minimumPHVal <= measuredPHValue_telem <= maximumPHVal:
-                    pumpRelaySw = True
-                    co2RelaisSw = False
-                    co2HeatingRelaySw = False
+                        countdownPHHigh = ph_high_delay_duration - (time.time() - ph_high_delay_start_time)
+                    else:
+                        ph_high_delay_start_time = None
+
+                    if measuredPHValue_telem < minimumPHVal:
+                        if measuredPHValue_telem < minimumPHValStop:
+                            autoSwitch = False
+                            powerButton = False
+                        if ph_low_delay_start_time is None:
+                            ph_low_delay_start_time = time.time()
+                        elif time.time() - ph_low_delay_start_time >= ph_low_delay_duration:
+                            autoSwitch = False
+                            powerButton = False
+                        countdownPHLow = ph_low_delay_duration - (time.time() - ph_low_delay_start_time)
+                    else:
+                        ph_low_delay_start_time = None
+
+                    # Wenn der pH-Wert innerhalb des erlaubten Fensters liegt:
+                    if minimumPHVal <= measuredPHValue_telem <= maximumPHVal:
+                        pumpRelaySw = True
+                        co2RelaisSw = False
+                        co2HeatingRelaySw = False
 
             else:
                 print("automode OFF", autoSwitch)
