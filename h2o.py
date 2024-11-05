@@ -295,7 +295,7 @@ class FlowRateHandler:
         print(f"Flow Rate (L/s): {flow_rate}")
 
         flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
-        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_an_rate)
+        flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
         flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
 
         return {
