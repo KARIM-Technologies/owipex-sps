@@ -469,7 +469,7 @@ def main():
             runtime_tracker.start()
             if autoSwitch:
                 if measuredPHValue_telem is not None:
-                    if measuredPHValue_telem is not None and measuredPHValue_telem > maximumPHVal:
+                    if measuredPHValue_telem > maximumPHVal:
                         co2RelaisSw = True
                         co2HeatingRelaySw = True
                         pumpRelaySw = False
