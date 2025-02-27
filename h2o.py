@@ -398,6 +398,11 @@ def main():
     saved_state = load_state()
     globals().update(saved_state)
 
+    # Initialisiere Countdown-Werte, falls sie nicht gesetzt sind
+    if countdownPHHigh is None:
+        countdownPHHigh = ph_high_delay_duration
+    if countdownPHLow is None:
+        countdownPHLow = ph_low_delay_duration
 
     client = TBDeviceMqttClient(THINGSBOARD_SERVER, THINGSBOARD_PORT, ACCESS_TOKEN)
     client.connect()
@@ -482,6 +487,7 @@ def main():
                         countdownPHHigh = ph_high_delay_duration - (time.time() - ph_high_delay_start_time)
                     else:
                         ph_high_delay_start_time = None
+                        countdownPHHigh = ph_high_delay_duration  # Zurücksetzen des Countdowns, wenn der pH-Wert unter den Maximalwert fällt
 
                     if measuredPHValue_telem < minimumPHVal:
                         if measuredPHValue_telem < minimumPHValStop:
@@ -509,6 +515,8 @@ def main():
                 co2HeatingRelaySw = False
                 ph_low_delay_start_time = None
                 ph_high_delay_start_time = None
+                countdownPHLow = ph_low_delay_duration
+                countdownPHHigh = ph_high_delay_duration
                 
         else:
             print("Power Switch OFF.", powerButton)        
