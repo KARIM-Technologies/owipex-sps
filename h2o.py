@@ -66,7 +66,28 @@ def load_state():
 
  #that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
+    global gps_handler, gpsEnabled
+    
+    # Aktualisiere globale Variablen
     globals().update({key: result[key] for key in result if key in globals()})
+    
+    # Überprüfe, ob sich gpsEnabled geändert hat
+    if 'gpsEnabled' in result:
+        gpsEnabled = result['gpsEnabled']
+        if gpsEnabled:
+            try:
+                gps_handler.gps_enabled = True
+                gps_handler.start_gps_updates()
+                print("GPS-Funktionalität aktiviert")
+            except Exception as e:
+                print(f"Fehler beim Aktivieren der GPS-Funktionalität: {e}")
+                gpsEnabled = False
+        else:
+            gps_handler.gps_enabled = False
+            gps_handler.stop_gps_updates()
+            print("GPS-Funktionalität deaktiviert")
+    
+    # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
     save_state(state_to_save)
     print(result)
@@ -145,40 +166,69 @@ class GPSHandler:
         self.update_interval = update_interval
         self.callGpsSwitch = False
         self.latest_gps_data = (None, None, None, None)
-        self.thread = threading.Thread(target=self.fetch_and_display_data)
-        self.thread.daemon = True
+        self.thread = None
+        self.gps_enabled = True
+        self.error_count = 0
+        self.max_errors = 5  # Nach 5 Fehlern wird GPS als nicht verfügbar betrachtet
 
     def start_gps_updates(self):
+        if not self.gps_enabled:
+            print("GPS-Funktionalität ist deaktiviert.")
+            return
+            
         self.callGpsSwitch = True
-        if not self.thread.is_alive():
+        if self.thread is None or not self.thread.is_alive():
+            self.thread = threading.Thread(target=self.fetch_and_display_data)
+            self.thread.daemon = True
             self.thread.start()
 
     def stop_gps_updates(self):
         self.callGpsSwitch = False
-        self.thread.join()  # Warte, bis der Thread beendet wird
+        if self.thread and self.thread.is_alive():
+            try:
+                self.thread.join(timeout=2)  # Warte maximal 2 Sekunden
+            except Exception as e:
+                print(f"Fehler beim Beenden des GPS-Threads: {e}")
 
     def fetch_and_display_data(self):
         while self.callGpsSwitch:
-            # Versuche, GPS-Daten zu holen
-            new_timestamp, new_latitude, new_longitude, new_altitude = gpsDataLib.fetch_and_process_gps_data(timeout=10)
-            
-            # Überprüfe, ob neue Daten verfügbar sind (basierend auf dem Vorhandensein eines Timestamps)
-            if new_timestamp is not None:
-                # Aktualisiere die gespeicherten GPS-Daten nur, wenn neue Daten empfangen wurden
-                self.latest_gps_data = (new_timestamp, new_latitude, new_longitude, new_altitude)
+            try:
+                # Versuche, GPS-Daten zu holen
+                new_timestamp, new_latitude, new_longitude, new_altitude = gpsDataLib.fetch_and_process_gps_data(timeout=5)
                 
-                # Ausgabe der neuen GPS-Daten für Debugging-Zwecke
-                print(f"Zeitstempel: {new_timestamp}")
-                print(f"Breitengrad: {new_latitude}")
-                print(f"Längengrad: {new_longitude}")
-                print(f"Höhe: {new_altitude if new_altitude is not None else 'nicht verfügbar'}")
-            else:
-                # Wenn keine neuen Daten verfügbar sind, behalte den letzten gültigen Eintrag
-                # und gebe eine Meldung aus, dass keine neuen Daten verfügbar sind
-                print("Keine neuen GPS-Daten verfügbar. Letzte gültige Daten werden beibehalten.")
+                # Überprüfe, ob neue Daten verfügbar sind (basierend auf dem Vorhandensein eines Timestamps)
+                if new_timestamp is not None:
+                    # Aktualisiere die gespeicherten GPS-Daten nur, wenn neue Daten empfangen wurden
+                    self.latest_gps_data = (new_timestamp, new_latitude, new_longitude, new_altitude)
+                    self.error_count = 0  # Zurücksetzen des Fehlerzählers bei erfolgreicher Abfrage
+                    
+                    # Ausgabe der neuen GPS-Daten für Debugging-Zwecke
+                    print(f"Zeitstempel: {new_timestamp}")
+                    print(f"Breitengrad: {new_latitude}")
+                    print(f"Längengrad: {new_longitude}")
+                    print(f"Höhe: {new_altitude if new_altitude is not None else 'nicht verfügbar'}")
+                else:
+                    # Wenn keine neuen Daten verfügbar sind, behalte den letzten gültigen Eintrag
+                    # und gebe eine Meldung aus, dass keine neuen Daten verfügbar sind
+                    self.error_count += 1
+                    print(f"Keine neuen GPS-Daten verfügbar. Fehler #{self.error_count}")
+                    
+                    # Wenn zu viele Fehler auftreten, deaktiviere GPS
+                    if self.error_count >= self.max_errors:
+                        print("GPS scheint nicht verfügbar zu sein. GPS-Funktionalität wird deaktiviert.")
+                        self.gps_enabled = False
+                        self.callGpsSwitch = False
+                        return
+            except Exception as e:
+                print(f"Fehler bei GPS-Datenverarbeitung: {e}")
+                self.error_count += 1
+                if self.error_count >= self.max_errors:
+                    print("Zu viele GPS-Fehler. GPS-Funktionalität wird deaktiviert.")
+                    self.gps_enabled = False
+                    self.callGpsSwitch = False
+                    return
 
             time.sleep(self.update_interval)  # Warten bis zum nächsten Update
-
 
     def get_latest_gps_data(self):
         return self.latest_gps_data
@@ -380,6 +430,7 @@ pumpRelaySw = False
 co2RelaisSw = False
 co2HeatingRelaySw = False
 minimumPHValStop = 5
+gpsEnabled = False  # Globale Initialisierung der GPS-Aktivierung
 
 runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
@@ -393,8 +444,11 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 def main():
     #def Global Variables for Main Funktion
-    global last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler
+    global last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled
 
+    # Initialisiere gpsEnabled mit Standardwert
+    gpsEnabled = False
+    
     saved_state = load_state()
     globals().update(saved_state)
 
@@ -406,7 +460,7 @@ def main():
 
     client = TBDeviceMqttClient(THINGSBOARD_SERVER, THINGSBOARD_PORT, ACCESS_TOKEN)
     client.connect()
-    client.request_attributes(shared_keys=['powerButton', 'callGpsSwitch'], callback=sync_state)
+    client.request_attributes(shared_keys=['powerButton', 'callGpsSwitch', 'gpsEnabled'], callback=sync_state)
 
     # Request shared attributes
     client.request_attributes(shared_keys=shared_attributes_keys, callback=attribute_callback)
@@ -423,7 +477,18 @@ def main():
 
     # Initialisierung des GPSHandlers
     gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
-    gps_handler.start_gps_updates()
+    
+    # Nur GPS starten, wenn es aktiviert ist
+    if gpsEnabled:
+        try:
+            gps_handler.start_gps_updates()
+            print("GPS-Updates gestartet")
+        except Exception as e:
+            print(f"Fehler beim Starten der GPS-Updates: {e}")
+            gpsEnabled = False
+    else:
+        print("GPS ist deaktiviert. Keine GPS-Updates werden gestartet.")
+        gps_handler.gps_enabled = False  # Stelle sicher, dass auch der Handler weiß, dass GPS deaktiviert ist
 
     #Laden der alten werte
     saved_state = load_state()
@@ -442,7 +507,18 @@ def main():
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
-        gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data() 
+        
+        # Sichere Abfrage der GPS-Daten
+        try:
+            if gpsEnabled and gps_handler.gps_enabled:
+                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data()
+            else:
+                # Wenn GPS deaktiviert ist, setze Standardwerte
+                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
+        except Exception as e:
+            print(f"Fehler beim Abrufen der GPS-Daten: {e}")
+            gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
+            
         client.send_attributes(attributes)
 
         current_time = time.time()
