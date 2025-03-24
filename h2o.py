@@ -442,9 +442,11 @@ ph_handler.load_calibration()
 DATA_SEND_INTERVAL = 15  # Daten alle 60 Sekunden senden
 last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim ersten Durchlauf Daten gesendet werden
         
+isVersionSent = False
+
 def main():
     #def Global Variables for Main Funktion
-    global last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled
+    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
@@ -496,6 +498,15 @@ def main():
 
     last_send_time = time.time()
 
+    # Send HW and SW Version only once
+    if not isVersionSent:
+        version_attributes = {
+            'SW-Version': "2.0.0",
+            'HW-Version': "2.0.0"
+        }
+        client.send_attributes(version_attributes)
+        isVersionSent = True  # Set flag to True after sending
+
     while not client.stopped:
         attributes, telemetry = get_data()
         #PH Initial
@@ -519,7 +530,7 @@ def main():
             print(f"Fehler beim Abrufen der GPS-Daten: {e}")
             gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
             
-        client.send_attributes(attributes)
+        # client.send_attributes(attributes)
 
         current_time = time.time()
         if current_time - last_send_time >= DATA_SEND_INTERVAL:
