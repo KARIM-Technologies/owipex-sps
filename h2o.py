@@ -27,10 +27,12 @@ THINGSBOARD_SERVER = 'localhost'  # Replace with your Thingsboard server address
 THINGSBOARD_PORT = 1883
 
 # TAOSONICFLOWUNIT Konstanten
-TAOSONICFLOWUNIT_M3 = 0       # Kubikmeter (m3)
+TAOSONICFLOWUNIT_M3 = 0       # Cubic meter (m3)
 TAOSONICFLOWUNIT_LITER = 1    # Liter (L)
-TAOSONICFLOWUNIT_GAL = 2      # Amerikanische Gallone (GAL)
-TAOSONICFLOWUNIT_FEET3 = 3    # Kubikfuß (CF)
+TAOSONICFLOWUNIT_GAL = 2      # American gallon (GAL)
+TAOSONICFLOWUNIT_FEET3 = 3    # Cubic feet (CF)
+
+print("Stop 06")
 
 #RS485 Comunication and Devices
 # Create DeviceManager
@@ -38,12 +40,12 @@ dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbi
 dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
-dev_manager.add_device(device_id=0x04)  # Neuer US Flow Sensor
+dev_manager.add_device(device_id=0x28)  # Neuer US Flow Sensor
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x01)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 PH_Sensor = dev_manager.get_device(device_id=0x03)
-US_Flow_Sensor = dev_manager.get_device(device_id=0x04)  # Neuer US Flow Sensor
+US_Flow_Sensor = dev_manager.get_device(device_id=0x28)  # Neuer US Flow Sensor
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
@@ -74,10 +76,20 @@ def load_state():
 
  #that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
-    global gps_handler, gpsEnabled
+    global gps_handler, gpsEnabled, usFlowSensorActive
+    
+    print(f"DEBUG ATTRIBUTE CALLBACK START: result={result}")
+    print(f"DEBUG ATTRIBUTE CALLBACK: usFlowSensorActive before update = {usFlowSensorActive}")
     
     # Aktualisiere globale Variablen
     globals().update({key: result[key] for key in result if key in globals()})
+    
+    print(f"DEBUG ATTRIBUTE CALLBACK: usFlowSensorActive after update = {usFlowSensorActive}")
+    
+    # Spezifische Behandlung für usFlowSensorActive
+    if 'usFlowSensorActive' in result:
+        usFlowSensorActive = result['usFlowSensorActive']
+        print(f"DEBUG ATTRIBUTE CALLBACK: usFlowSensorActive directly set = {usFlowSensorActive}")
     
     # Überprüfe, ob sich gpsEnabled geändert hat
     if 'gpsEnabled' in result:
@@ -97,6 +109,7 @@ def attribute_callback(result, _):
     
     # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
+    print(f"DEBUG ATTRIBUTE CALLBACK: Saving state: {state_to_save}")
     save_state(state_to_save)
     print(result)
 
@@ -422,10 +435,14 @@ class UsFlowHandler:
 
     def fetchViaDeviceManager_Helper(self, address, registerCount, dataformat, infoText):
         # get current flow
-        value = self.sensor.read_register(address, registerCount, dataformat)
-        if value is None:
-            raise ValueError(f"Us-Flow Sensorlesung {infoText} fehlgeschlagen. Überprüfen Sie die Verbindung.")
-        return value
+        try:
+            value = self.sensor.read_register(address, registerCount, dataformat)
+            if value is None:
+                raise ValueError(f"US-Flow sensor reading {infoText} failed. Check the connection.")
+            return value
+        except Exception as e:
+            print(f"DEBUG: Error reading register: {e}")
+            raise
 
     def calculateSumFlowValueForTaosonic(self, totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction):
         # The internal accumulator is been presented by a LONG number for the integer part together
@@ -470,7 +487,7 @@ class UsFlowHandler:
         if (unitNumber == TAOSONICFLOWUNIT_FEET3):
             return flowValueInUnit * 0.0283168
         
-        # Falls keine der bekannten Einheiten übereinstimmt
+        # If none of the known units match
         raise Exception(f"invalid total flow unit number for Taosonic Flow Meter (see reg 1438): {unitNumber}")
 
     def fetchViaDeviceManager(self):
@@ -546,6 +563,7 @@ def main():
     
     saved_state = load_state()
     globals().update(saved_state)
+    print(f"DEBUG AFTER LOADING STATE: usFlowSensorActive = {usFlowSensorActive}")
 
     # Initialisiere Countdown-Werte, falls sie nicht gesetzt sind
     if countdownPHHigh is None:
@@ -563,8 +581,8 @@ def main():
     for attribute in shared_attributes_keys:
         client.subscribe_to_attribute(attribute, attribute_callback)
     client.set_server_side_rpc_request_handler(rpc_callback)
-
     
+    print(f"DEBUG AFTER THINGSBOARD INITIALIZATION: usFlowSensorActive = {usFlowSensorActive}")
 
     total_flow_manager = TotalFlowManager()
     total_flow_manager.start_periodic_save()
@@ -585,9 +603,9 @@ def main():
         print("GPS ist deaktiviert. Keine GPS-Updates werden gestartet.")
         gps_handler.gps_enabled = False  # Stelle sicher, dass auch der Handler weiß, dass GPS deaktiviert ist
 
-    #Laden der alten werte
-    saved_state = load_state()
-    globals().update(saved_state)
+    # Die folgende Zeile wurde entfernt, um zu verhindern, dass ThingsBoard-Werte überschrieben werden
+    # saved_state = load_state()
+    # globals().update(saved_state)
 
     last_send_time = time.time()
 
@@ -601,6 +619,7 @@ def main():
         isVersionSent = True  # Set flag to True after sending
 
     while not client.stopped:
+        print(f"DEBUG MAIN LOOP START: usFlowSensorActive = {usFlowSensorActive}")
         attributes, telemetry = get_data()
         #PH Initial
 
@@ -643,12 +662,18 @@ def main():
 
         # US Flow Sensor Auslesen wenn aktiv
         if (usFlowSensorActive):
+            print(f"DEBUG: US Flow Sensor is active. Trying to read data...")
             try:
+                print(f"DEBUG: Initializing UsFlowHandler with Sensor ID: {US_Flow_Sensor.device_id}")
                 us_flow_handler = UsFlowHandler(US_Flow_Sensor)
                 usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
-                print(f"US Flow Sensor: Aktueller Durchfluss = {usFlowRate}, Gesamtdurchfluss = {usFlowTotal} m³")
+                print(f"US Flow Sensor: Current flow rate = {usFlowRate}, Total flow = {usFlowTotal} m³")
             except Exception as e:
-                print(f"Fehler beim Lesen des US Flow Sensors: {e}")
+                print(f"Error reading US Flow Sensor: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("DEBUG: US Flow Sensor is disabled (usFlowSensorActive = False)")
 
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)

@@ -63,7 +63,7 @@ flow_rate_m3_min = 20.0
 total_flow = 0.0
 
 # US Flow Sensor Configuration
-usFlowSensorActive = False
+usFlowSensorActive = True
 usFlowRate = 0.0
 usFlowTotal = 0.0
 
