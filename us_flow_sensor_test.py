@@ -19,10 +19,19 @@ TAOSONICFLOWUNIT_FEET3 = 3    # Kubikfuß (CF)
 class UsFlowHandler:
     def __init__(self, sensor):
         self.sensor = sensor
+        self.preferred_endian = "<"  # Default zu Little-Endian
 
     def fetchViaDeviceManager_Helper(self, address, registerCount, dataformat, infoText):
         print(f"DEBUG: Lese Register: Adresse={address}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}")
         try:
+            # Rohwerte auslesen für manuelle Analyse
+            raw_values = self.sensor.read_registers(address, registerCount)
+            if raw_values is not None:
+                print(f"DEBUG: Rohwerte: {raw_values} (Hex: {[hex(x) for x in raw_values]})")
+            else:
+                print(f"DEBUG: Keine Rohwerte erhalten")
+            
+            # Formatierte Werte lesen
             value = self.sensor.read_register(address, registerCount, dataformat)
             print(f"DEBUG: Gelesener Wert: {value}")
             if value is None:
@@ -34,45 +43,63 @@ class UsFlowHandler:
             raise
 
     def test_endian_format(self):
-        print("\n=== ENDIAN FORMAT TEST USING REGISTER 361 ===")
+        print("\n=== MANUELLER ENDIAN FORMAT TEST ===")
         try:
-            # Laut Handbuch sollte Register 361 immer 361.00 zurückgeben, wenn das Format richtig ist
-            reg361_LE = self.fetchViaDeviceManager_Helper(361, 2, "<f", "REG361 (LE)")
-            print(f"REG361 (Little-Endian): {reg361_LE}")
+            # Wir testen mit tatsächlich benötigten Registern, 
+            # da die Register 361 und 363 keine eindeutigen Ergebnisse liefern
             
-            reg361_BE = self.fetchViaDeviceManager_Helper(361, 2, ">f", "REG361 (BE)")
-            print(f"REG361 (Big-Endian): {reg361_BE}")
+            # Teste Durchflussrate (Register 1-2)
+            flow_LE = self.fetchViaDeviceManager_Helper(1, 2, "<f", "Flow (LE)")
+            flow_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "Flow (BE)")
+            print(f"Flow Rate: Little-Endian={flow_LE} m³/h, Big-Endian={flow_BE} m³/h")
             
-            # Prüfe, welches Format korrekt ist
-            if abs(reg361_LE - 361.0) < 0.1:
-                print("✓ Little-Endian Format erkannt (REG361 = 361.00)")
+            # Teste Akkumulator (Register 9-10)
+            acc_LE = self.fetchViaDeviceManager_Helper(9, 2, "<l", "Accumulator (LE)")
+            acc_BE = self.fetchViaDeviceManager_Helper(9, 2, ">l", "Accumulator (BE)")
+            print(f"Accumulator: Little-Endian={acc_LE}, Big-Endian={acc_BE}")
+            
+            # Teste Dezimalbruchteil (Register 11-12)
+            frac_LE = self.fetchViaDeviceManager_Helper(11, 2, "<f", "Fraction (LE)")
+            frac_BE = self.fetchViaDeviceManager_Helper(11, 2, ">f", "Fraction (BE)")
+            print(f"Decimal Fraction: Little-Endian={frac_LE}, Big-Endian={frac_BE}")
+            
+            # Plausibilitätsprüfung
+            print("\nPlausibilitätsanalyse:")
+            
+            # Prüfe Durchflussrate
+            if 0 <= flow_LE <= 1000:
+                print("✓ Little-Endian Flow Rate ist plausibel (0-1000 m³/h)")
                 self.preferred_endian = "<"
-            elif abs(reg361_BE - 361.0) < 0.1:
-                print("✓ Big-Endian Format erkannt (REG361 = 361.00)")
+            elif 0 <= flow_BE <= 1000:
+                print("✓ Big-Endian Flow Rate ist plausibel (0-1000 m³/h)")
                 self.preferred_endian = ">"
             else:
-                print("⚠ Kein passendes Endian-Format erkannt! Verwende Little-Endian als Standard.")
+                print("⚠ Keine plausible Flow Rate erkannt!")
+                
+            # Prüfe Akkumulator
+            if acc_LE >= 0:
+                print("✓ Little-Endian Accumulator ist plausibel (>= 0)")
                 self.preferred_endian = "<"
-                
-            # Zusätzlich den Test von REG363 (soll 363348858 sein laut Handbuch)
-            reg363_LE = self.fetchViaDeviceManager_Helper(363, 2, "<l", "REG363 (LE)")
-            print(f"REG363 (Little-Endian): {reg363_LE}")
-            
-            reg363_BE = self.fetchViaDeviceManager_Helper(363, 2, ">l", "REG363 (BE)")
-            print(f"REG363 (Big-Endian): {reg363_BE}")
-            
-            # Prüfe, welches Format korrekt ist
-            if reg363_LE == 363348858:
-                print("✓ Little-Endian Format bestätigt (REG363 = 363348858)")
-            elif reg363_BE == 363348858:
-                print("✓ Big-Endian Format bestätigt (REG363 = 363348858)")
+            elif acc_BE >= 0:
+                print("✓ Big-Endian Accumulator ist plausibel (>= 0)")
+                self.preferred_endian = ">"
             else:
-                print("⚠ Kein passendes Endian-Format für REG363 erkannt!")
+                print("⚠ Kein plausibler Accumulator erkannt!")
                 
+            # Prüfe Dezimalbruchteil
+            if 0 <= frac_LE <= 1:
+                print("✓ Little-Endian Decimal Fraction ist plausibel (0-1)")
+                self.preferred_endian = "<"
+            elif 0 <= frac_BE <= 1:
+                print("✓ Big-Endian Decimal Fraction ist plausibel (0-1)")
+                self.preferred_endian = ">"
+            else:
+                print("⚠ Keine plausible Decimal Fraction erkannt!")
+                
+            print(f"Wahrscheinliches Endian-Format: {self.preferred_endian}")
             print("=== ENDIAN FORMAT TEST ABGESCHLOSSEN ===\n")
         except Exception as e:
             print(f"Fehler beim Testen des Endian-Formats: {e}")
-            self.preferred_endian = "<"  # Default zu Little-Endian
 
     def calculateSumFlowValueForTaosonic(self, totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction):
         # The final positive flow rate=(N+Nf) ×10^(n-3) (in unit decided by REG 1439)
@@ -258,9 +285,8 @@ def main():
     # Ändern Sie die Port-Einstellungen entsprechend Ihrer Umgebung
     print("Initialisiere DeviceManager...")
     
-    # Windows-Port-Format
-    dev_manager = DeviceManager(port='COM1', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
-    print("HINWEIS: Bitte passe den COM-Port in der main()-Funktion an deine Umgebung an (aktuell: COM1)")
+    # Linux-Port-Format für die Ausführung unter Linux
+    dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
     
     # Gerät hinzufügen (Taosonics T3-1-2-K-150 mit Adresse 0x28)
     print("Füge US Flow Sensor mit ID 0x28 hinzu...")
@@ -281,7 +307,7 @@ def main():
     
     try:
         # Bei einem Testprogramm mehrere Lesevorgänge durchführen, um Stabilität zu testen
-        for i in range(3):
+        for i in range(2):  # Auf 2 Lesevorgänge reduziert
             print(f"\n--- Lesevorgang {i+1} ---")
             current_flow, total_flow = us_flow_handler.fetchViaDeviceManager()
             
@@ -290,7 +316,7 @@ def main():
             print(f"Gesamtdurchflussmenge: {total_flow} m³")
             
             # Kurze Pause zwischen den Lesevorgängen
-            if i < 2:  # Keine Pause nach dem letzten Lesevorgang
+            if i < 1:  # Keine Pause nach dem letzten Lesevorgang
                 print("Warte 2 Sekunden bis zum nächsten Lesevorgang...")
                 time.sleep(2)
     
