@@ -525,169 +525,107 @@ class UsFlowHandler:
         raise Exception(f"invalid total flow unit number for Taosonic Flow Meter (see reg 1438): {unitNumber}")
 
     def fetchViaDeviceManager(self):
-        # Try different interpretations for current flow
+        # Gemäß Taosonics T3-1-2-K-150 Handbuch, exakte Registernummern verwenden
         try:
-            # Original Big-Endian float
-            currentFlowValue_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "1")
-            print(f"DEBUG: currentFlowValue (Big-Endian float): {currentFlowValue_BE}")
+            # Aktuelle Durchflussrate von Register 1-2, gemäß Handbuch IEEE754 Format
+            # Little-Endian war für viele Taosonics-Geräte die richtige Wahl
+            currentFlowValue = self.fetchViaDeviceManager_Helper(1, 2, "<f", "currentFlowValue")
+            print(f"DEBUG: currentFlowValue = {currentFlowValue} m³/h")
             
-            # Little-Endian float
-            currentFlowValue_LE = self.fetchViaDeviceManager_Helper(1, 2, "<f", "1")
-            print(f"DEBUG: currentFlowValue (Little-Endian float): {currentFlowValue_LE}")
-            
-            # Try with adjusted register address
-            currentFlowValue_AdjReg = self.fetchViaDeviceManager_Helper(0, 2, ">f", "1")
-            print(f"DEBUG: currentFlowValue (Adjusted Register 0): {currentFlowValue_AdjReg}")
-            
-            # For Taosonics, sometimes Register 3 is instantaneous flow
-            currentFlowValue_Reg3 = self.fetchViaDeviceManager_Helper(3, 2, ">f", "1")
-            print(f"DEBUG: currentFlowValue (Register 3): {currentFlowValue_Reg3}")
-            
-            # Use the most likely correct value
-            # For now, we'll try the Little-Endian float
-            currentFlowValue = currentFlowValue_LE
-            
-            # Check if the value seems reasonable
+            # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
             if currentFlowValue < 0 or currentFlowValue > 1000:
-                # Try other values or use a default
+                currentFlowValue_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "currentFlowValue (BE)")
+                print(f"DEBUG: currentFlowValue (Big-Endian) = {currentFlowValue_BE} m³/h")
                 if 0 <= currentFlowValue_BE <= 1000:
                     currentFlowValue = currentFlowValue_BE
-                elif 0 <= currentFlowValue_Reg3 <= 1000:
-                    currentFlowValue = currentFlowValue_Reg3
-                else:
-                    print(f"WARNING: No reasonable flow value found, using current value: {currentFlowValue}")
+                    print(f"DEBUG: Using Big-Endian currentFlowValue = {currentFlowValue}")
                 
         except Exception as e:
-            print(f"ERROR interpreting currentFlowValue: {e}")
-            currentFlowValue = 0.0  # Default safe value
+            print(f"ERROR bei Lesen der aktuellen Durchflussrate: {e}")
+            currentFlowValue = 0.0  # Sicherer Standardwert
             
-        print("fetchViaDeviceManager, Stop 19, currentFlowValue: " + str(currentFlowValue))
+        print(f"DEBUG: Finale aktuelle Durchflussrate = {currentFlowValue} m³/h")
 
-        # Try different interpretations for unit number and multiplier
+        # Einheit und Multiplikator aus den korrekten Registern lesen
         try:
-            # Original register addresses (1438, 1439)
-            totalFlowUnitNumber_Orig = self.fetchViaDeviceManager_Helper(1438, 1, ">h", "a")
-            print(f"DEBUG: totalFlowUnitNumber (Original): {totalFlowUnitNumber_Orig}")
+            # Register 1438 für Einheit, Register 1439 für Multiplikator
+            totalFlowUnitNumber = self.fetchViaDeviceManager_Helper(1438, 1, ">h", "unitNumber")
+            print(f"DEBUG: totalFlowUnitNumber = {totalFlowUnitNumber}")
             
-            totalFlowMultiplier_Orig = self.fetchViaDeviceManager_Helper(1439, 1, ">h", "b")
-            print(f"DEBUG: totalFlowMultiplier (Original): {totalFlowMultiplier_Orig}")
+            totalFlowMultiplier = self.fetchViaDeviceManager_Helper(1439, 1, ">h", "multiplier")
+            print(f"DEBUG: totalFlowMultiplier = {totalFlowMultiplier}")
             
-            # Try alternative register addresses that might be used in Taosonics devices
-            # Common alternative addresses for configuration
-            totalFlowUnitNumber_Alt1 = self.fetchViaDeviceManager_Helper(8, 1, ">h", "a")
-            print(f"DEBUG: totalFlowUnitNumber (Reg 8): {totalFlowUnitNumber_Alt1}")
-            
-            totalFlowMultiplier_Alt1 = self.fetchViaDeviceManager_Helper(9, 1, ">h", "b")
-            print(f"DEBUG: totalFlowMultiplier (Reg 9): {totalFlowMultiplier_Alt1}")
-            
-            # Use original values for now
-            totalFlowUnitNumber = totalFlowUnitNumber_Orig
-            totalFlowMultiplier = totalFlowMultiplier_Orig
-            
-            # Validate the unit number
+            # Validierung der Einheit
             if totalFlowUnitNumber not in [TAOSONICFLOWUNIT_M3, TAOSONICFLOWUNIT_LITER, TAOSONICFLOWUNIT_GAL, TAOSONICFLOWUNIT_FEET3]:
-                print(f"WARNING: Invalid unit number {totalFlowUnitNumber}, defaulting to M3")
+                print(f"WARNING: Ungültige Einheit {totalFlowUnitNumber}, verwende M3")
                 totalFlowUnitNumber = TAOSONICFLOWUNIT_M3
                 
-            # Validate the multiplier
+            # Validierung des Multiplikators
             if totalFlowMultiplier < -4 or totalFlowMultiplier > 4:
-                print(f"WARNING: Invalid multiplier {totalFlowMultiplier}, defaulting to 0")
+                print(f"WARNING: Ungültiger Multiplikator {totalFlowMultiplier}, verwende 0")
                 totalFlowMultiplier = 0
                 
         except Exception as e:
-            print(f"ERROR interpreting unit/multiplier: {e}")
-            totalFlowUnitNumber = TAOSONICFLOWUNIT_M3  # Default to cubic meters
-            totalFlowMultiplier = 0  # Default multiplier
+            print(f"ERROR beim Lesen der Einheit/Multiplikator: {e}")
+            totalFlowUnitNumber = TAOSONICFLOWUNIT_M3  # Standard: Kubikmeter
+            totalFlowMultiplier = 0  # Standard-Multiplikator
         
-        print("fetchViaDeviceManager, Stop 29a, totalFlowUnitNumber: " + str(totalFlowUnitNumber))
-        print("fetchViaDeviceManager, Stop 29b, totalFlowMultiplier: " + str(totalFlowMultiplier))
+        print(f"DEBUG: Finale Einheit = {totalFlowUnitNumber}, Multiplikator = {totalFlowMultiplier}")
 
-        # Try different interpretations for flow accumulator
+        # Akkumulator-Werte aus den korrekten Registern lesen
         try:
-            # Original Big-Endian long
-            flowValueAccumulator_BE = self.fetchViaDeviceManager_Helper(25, 2, ">l", "c")
-            print(f"DEBUG: flowValueAccumulator (Big-Endian long): {flowValueAccumulator_BE}")
+            # Register 9-10 für Ganzzahlwert, LONG-Format
+            flowValueAccumulator = self.fetchViaDeviceManager_Helper(9, 2, "<l", "flowAccumulator")
+            print(f"DEBUG: flowValueAccumulator = {flowValueAccumulator}")
             
-            # Little-Endian long
-            flowValueAccumulator_LE = self.fetchViaDeviceManager_Helper(25, 2, "<l", "c")
-            print(f"DEBUG: flowValueAccumulator (Little-Endian long): {flowValueAccumulator_LE}")
-            
-            # Try as float instead of long
-            flowValueAccumulator_BEFloat = self.fetchViaDeviceManager_Helper(25, 2, ">f", "c")
-            print(f"DEBUG: flowValueAccumulator (Big-Endian float): {flowValueAccumulator_BEFloat}")
-            
-            # Try alternative register address 
-            flowValueAccumulator_Alt = self.fetchViaDeviceManager_Helper(23, 2, ">l", "c")
-            print(f"DEBUG: flowValueAccumulator (Register 23): {flowValueAccumulator_Alt}")
-            
-            # For Taosonics, sometimes register 9-10 contains the total flow
-            flowValueAccumulator_Reg9 = self.fetchViaDeviceManager_Helper(9, 2, ">l", "c")
-            print(f"DEBUG: flowValueAccumulator (Register 9): {flowValueAccumulator_Reg9}")
-            
-            # Use the most likely correct value
-            flowValueAccumulator = flowValueAccumulator_LE  # Try Little-Endian format
-            
-            # Check if value looks reasonable
+            # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
             if flowValueAccumulator < 0:
-                # Try other interpretations
+                flowValueAccumulator_BE = self.fetchViaDeviceManager_Helper(9, 2, ">l", "flowAccumulator (BE)")
+                print(f"DEBUG: flowValueAccumulator (Big-Endian) = {flowValueAccumulator_BE}")
                 if flowValueAccumulator_BE >= 0:
                     flowValueAccumulator = flowValueAccumulator_BE
-                elif flowValueAccumulator_Reg9 >= 0:
-                    flowValueAccumulator = flowValueAccumulator_Reg9
+                    print(f"DEBUG: Using Big-Endian flowValueAccumulator = {flowValueAccumulator}")
                 else:
-                    print(f"WARNING: No positive accumulator value found, using 0")
+                    print(f"WARNING: Negative Werte für beide Endian-Formate, verwende 0")
                     flowValueAccumulator = 0
             
         except Exception as e:
-            print(f"ERROR interpreting flowValueAccumulator: {e}")
-            flowValueAccumulator = 0  # Default safe value
+            print(f"ERROR beim Lesen des Akkumulators: {e}")
+            flowValueAccumulator = 0  # Sicherer Standardwert
             
-        print("fetchViaDeviceManager, Stop 29c, flowValueAccumulator: " + str(flowValueAccumulator))
+        print(f"DEBUG: Finaler Akkumulator = {flowValueAccumulator}")
 
-        # Try different interpretations for flowDecimalFraction
+        # Bruch-Wert des Akkumulators aus den korrekten Registern lesen
         try:
-            # Original Big-Endian float
-            flowDecimalFraction_BE = self.fetchViaDeviceManager_Helper(27, 2, ">f", "d")
-            print(f"DEBUG: flowDecimalFraction (Big-Endian float): {flowDecimalFraction_BE}")
+            # Register 11-12 für Dezimalbruchteil, IEEE754 Float-Format
+            flowDecimalFraction = self.fetchViaDeviceManager_Helper(11, 2, "<f", "flowDecimalFraction")
+            print(f"DEBUG: flowDecimalFraction = {flowDecimalFraction}")
             
-            # Little-Endian float
-            flowDecimalFraction_LE = self.fetchViaDeviceManager_Helper(27, 2, "<f", "d")
-            print(f"DEBUG: flowDecimalFraction (Little-Endian float): {flowDecimalFraction_LE}")
-            
-            # Big-Endian integer
-            flowDecimalFraction_BEInt = self.fetchViaDeviceManager_Helper(27, 2, ">l", "d")
-            print(f"DEBUG: flowDecimalFraction (Big-Endian int): {flowDecimalFraction_BEInt}")
-            
-            # Little-Endian integer
-            flowDecimalFraction_LEInt = self.fetchViaDeviceManager_Helper(27, 2, "<l", "d")
-            print(f"DEBUG: flowDecimalFraction (Little-Endian int): {flowDecimalFraction_LEInt}")
-            
-            # Try with adjusted register address (sometimes registers are 0-based)
-            flowDecimalFraction_AdjReg = self.fetchViaDeviceManager_Helper(26, 2, ">f", "d")
-            print(f"DEBUG: flowDecimalFraction (Adjusted Register 26): {flowDecimalFraction_AdjReg}")
-            
-            # Use the most likely correct value based on what's expected
-            # For now, we'll try the Little-Endian float as it's a common case
-            flowDecimalFraction = flowDecimalFraction_LE
-            
-            # If the value still looks wrong, try a reasonable default
+            # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
             if flowDecimalFraction < 0 or flowDecimalFraction > 1:
-                print(f"WARNING: flowDecimalFraction value {flowDecimalFraction} seems incorrect, using default 0.0")
-                flowDecimalFraction = 0.0
+                flowDecimalFraction_BE = self.fetchViaDeviceManager_Helper(11, 2, ">f", "flowDecimalFraction (BE)")
+                print(f"DEBUG: flowDecimalFraction (Big-Endian) = {flowDecimalFraction_BE}")
+                if 0 <= flowDecimalFraction_BE <= 1:
+                    flowDecimalFraction = flowDecimalFraction_BE
+                    print(f"DEBUG: Using Big-Endian flowDecimalFraction = {flowDecimalFraction}")
+                else:
+                    print(f"WARNING: Ungültiger Dezimalbruchteil für beide Endian-Formate, verwende 0.0")
+                    flowDecimalFraction = 0.0
                 
         except Exception as e:
-            print(f"ERROR interpreting flowDecimalFraction: {e}")
-            flowDecimalFraction = 0.0  # Default safe value
+            print(f"ERROR beim Lesen des Dezimalbruchteils: {e}")
+            flowDecimalFraction = 0.0  # Sicherer Standardwert
 
-        print("fetchViaDeviceManager, Stop 29d, flowDecimalFraction: " + str(flowDecimalFraction))
+        print(f"DEBUG: Finaler Dezimalbruchteil = {flowDecimalFraction}")
 
-        # calculate overall flow sum
+        # Gesamtdurchfluss berechnen
         sumFlowValueInUnit = self.calculateSumFlowValueForTaosonic(totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction)
-        print("fetchViaDeviceManager, Stop 31, sumFlowValueInUnit: " + str(sumFlowValueInUnit))
+        print(f"DEBUG: Gesamtdurchfluss in Originaleinheit = {sumFlowValueInUnit}")
+        
         sumFlowValueInM3 = self.convertFlowValueFromUnitToM3ForTaosonic(sumFlowValueInUnit, totalFlowUnitNumber)
-        print("fetchViaDeviceManager, Stop 39, sumFlowValueInM3: " + str(sumFlowValueInM3))
+        print(f"DEBUG: Gesamtdurchfluss in m³ = {sumFlowValueInM3}")
 
-        print(f"fetchViaDeviceManager, Stop 99, currentFlowValue={currentFlowValue}, sumFlowValue={sumFlowValueInM3}")
+        print(f"DEBUG: Rückgabewerte: aktuelle Rate = {currentFlowValue} m³/h, Gesamtsumme = {sumFlowValueInM3} m³")
         return currentFlowValue, sumFlowValueInM3
 
 
