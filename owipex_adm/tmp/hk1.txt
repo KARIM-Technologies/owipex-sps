@@ -1,0 +1,9 @@
+[    0.249446] printk: console [tty0] enabled
+[    0.672852] 00:01: ttyS0 at I/O 0x3f8 (irq = 7, base_baud = 115200) is a 16550A
+[    0.695391] 00:02: ttyS1 at I/O 0x2f8 (irq = 3, base_baud = 115200) is a 16550A
+[    4.876663] dw-apb-uart.2: ttyS4 at MMIO 0x91624000 (irq = 4, base_baud = 115200) is a 16550A
+[    4.918138] dw-apb-uart.3: ttyS5 at MMIO 0x91622000 (irq = 5, base_baud = 115200) is a 16550A
+[    5.112471] usb 1-6: GSM modem (1-port) converter now attached to ttyUSB0
+[    5.141301] usb 1-6: GSM modem (1-port) converter now attached to ttyUSB1
+[    5.144883] usb 1-6: GSM modem (1-port) converter now attached to ttyUSB2
+[    5.153458] usb 1-6: GSM modem (1-port) converter now attached to ttyUSB3

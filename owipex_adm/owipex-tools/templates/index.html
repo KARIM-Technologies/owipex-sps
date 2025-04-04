@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerätekonfiguration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://www.owipex.ch/wp-content/uploads/2021/05/owipex-logo-header-def-2048x728.png" alt="OWIPEX Logo" class="logo">
+        <h1>Gerätekonfiguration</h1>
+        <form action="/update_settings" method="post">
+            <div class="section">
+                <h2>Gerät</h2>
+                <label for="ssid">SSID:</label>
+                <input type="text" id="ssid" name="ssid" value="{{ ssid }}">
+                <label for="password">Passwort:</label>
+                <input type="password" id="password" name="password" value="{{ password }}">
+                <label for="hostname">Hostname:</label>
+                <input type="text" id="hostname" name="hostname" value="{{ hostname }}">
+            </div>
+            <div class="section">
+                <h2>EDGE</h2>
+                <label for="edge_key">EDGE Key:</label>
+                <input type="text" id="edge_key" name="edge_key" value="{{ edge_key }}">
+                <label for="edge_secret">EDGE Secret:</label>
+                <input type="text" id="edge_secret" name="edge_secret" value="{{ edge_secret }}">
+                <label for="edge_db_password">EDGE Datenbank Passwort:</label>
+                <input type="password" id="edge_db_password" name="edge_db_password" value="{{ edge_db_password }}">
+                <label for="cloud_rpc_host">CLOUD RPC Host:</label>
+                <input type="text" id="cloud_rpc_host" name="cloud_rpc_host" value="{{ cloud_rpc_host }}">
+                <label for="spring_datasource_url">SPRING DATASOURCE URL:</label>
+                <input type="text" id="spring_datasource_url" name="spring_datasource_url" value="{{ spring_datasource_url }}">
+            </div>
+            <div class="section">
+                <h2>SPS</h2>
+                <label for="access_token">Access Token:</label>
+                <input type="text" id="access_token" name="access_token" value="{{ access_token }}">
+            </div>
+            <input type="submit" value="Speichern">
+        </form>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</body>
+</html>

@@ -21,18 +21,14 @@ class UsFlowHandler:
         self.sensor = sensor
         self.preferred_endian = "<"  # Default zu Little-Endian
 
-    def fetchViaDeviceManager_Helper(self, address, registerCount, dataformat, infoText):
+    def fetchViaDeviceManager_ForTaoSonicOnly_Helper(self, address, registerCount, dataformat, infoText):
         print(f"DEBUG: Lese Register: Adresse={address}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}")
         try:
-            # Rohwerte auslesen für manuelle Analyse
-            raw_values = self.sensor.read_registers(address, registerCount)
-            if raw_values is not None:
-                print(f"DEBUG: Rohwerte: {raw_values} (Hex: {[hex(x) for x in raw_values]})")
-            else:
-                print(f"DEBUG: Keine Rohwerte erhalten")
+            # Rohwerte können nicht direkt ausgelesen werden, da die Methode read_registers nicht existiert
+            # Wir verwenden stattdessen die vorhandene read_register Methode
             
             # Formatierte Werte lesen
-            value = self.sensor.read_register(address, registerCount, dataformat)
+            value = self.sensor.read_register_FOR_TAOSONIC_ONLY(address, registerCount, dataformat)
             print(f"DEBUG: Gelesener Wert: {value}")
             if value is None:
                 print(f"DEBUG: Wert ist None!")
@@ -42,6 +38,123 @@ class UsFlowHandler:
             print(f"DEBUG: Fehler beim Lesen des Registers: {e}")
             raise
 
+    def scan_all_registers(self, start_reg=0, end_reg=1000, step=1):
+        """Scannt alle Register im angegebenen Bereich und sucht nach möglichen Testwerten."""
+        print(f"\n=== SCANNING ALL REGISTERS FROM {start_reg} TO {end_reg} ===")
+        print("Suche nach möglichen Testwerten...")
+        
+        interesting_values = []
+        # Liste für Register, deren Wert der Register-Nummer entspricht
+        self_matching_registers = []
+        
+        for reg in range(start_reg, end_reg+1, step):
+            try:
+                # Float-Wert (Little-Endian)
+                float_le = self.sensor.read_register_FOR_TAOSONIC_ONLY(reg, 2, "<f")
+                print(f"✓ RAW Register {reg}: Float (LE) = {float_le}")
+                # Float-Wert (Big-Endian)
+                float_be = self.sensor.read_register_FOR_TAOSONIC_ONLY(reg, 2, ">f")
+                print(f"✓ RAW Register {reg}: Float (BE) = {float_be}")
+
+                # Integer-Wert (16-bit)
+                int16 = self.sensor.read_register_FOR_TAOSONIC_ONLY(reg, 1, ">h")
+                
+                # Wenn möglich, auch 32-bit Integer lesen
+                if reg < end_reg:
+                    # Long-Wert (Little-Endian)
+                    long_le = self.sensor.read_register_FOR_TAOSONIC_ONLY(reg, 2, "<l")
+                    # Long-Wert (Big-Endian)
+                    long_be = self.sensor.read_register_FOR_TAOSONIC_ONLY(reg, 2, ">l")
+                else:
+                    long_le = None
+                    long_be = None
+                
+                # Prüfe, ob der Wert gleich der Register-Nummer ist
+                # Float-Werte mit einer kleinen Toleranz prüfen
+                if float_le is not None and abs(float_le - reg) < 0.1:
+                    self_matching_registers.append((reg, "Float LE", float_le))
+                    print(f"✓ Register {reg}: Float (LE) = {float_le} (ENTSPRICHT REGISTER-NUMMER!)")
+                    
+                if float_be is not None and abs(float_be - reg) < 0.1:
+                    self_matching_registers.append((reg, "Float BE", float_be))
+                    print(f"✓ Register {reg}: Float (BE) = {float_be} (ENTSPRICHT REGISTER-NUMMER!)")
+                
+                # Integer-Werte exakt prüfen
+                if int16 is not None and int16 == reg:
+                    self_matching_registers.append((reg, "Int16", int16))
+                    print(f"✓ Register {reg}: Int16 = {int16} (ENTSPRICHT REGISTER-NUMMER!)")
+                
+                # Long-Werte exakt prüfen
+                if long_le is not None and long_le == reg:
+                    self_matching_registers.append((reg, "Long LE", long_le))
+                    print(f"✓ Register {reg}: Long (LE) = {long_le} (ENTSPRICHT REGISTER-NUMMER!)")
+                    
+                if long_be is not None and long_be == reg:
+                    self_matching_registers.append((reg, "Long BE", long_be))
+                    print(f"✓ Register {reg}: Long (BE) = {long_be} (ENTSPRICHT REGISTER-NUMMER!)")
+                
+                # Prüfe, ob einer der Werte interessant ist
+                # 1. Float-Werte, die nahe an einer runden Zahl liegen
+                if float_le is not None and abs(float_le - round(float_le)) < 0.01 and abs(float_le) > 0.1:
+                    interesting_values.append((reg, "Float LE", float_le))
+                    print(f"Register {reg}: Float (LE) = {float_le}")
+                    
+                if float_be is not None and abs(float_be - round(float_be)) < 0.01 and abs(float_be) > 0.1:
+                    interesting_values.append((reg, "Float BE", float_be))
+                    print(f"Register {reg}: Float (BE) = {float_be}")
+                
+                # 2. Integer-Werte, die Testwerte sein könnten
+                if int16 is not None and int16 > 100:
+                    interesting_values.append((reg, "Int16", int16))
+                    print(f"Register {reg}: Int16 = {int16}")
+                
+                # 3. Long-Werte, die Testwerte sein könnten
+                if long_le is not None and long_le > 10000:
+                    interesting_values.append((reg, "Long LE", long_le))
+                    print(f"Register {reg}: Long (LE) = {long_le}")
+                    
+                if long_be is not None and long_be > 10000:
+                    interesting_values.append((reg, "Long BE", long_be))
+                    print(f"Register {reg}: Long (BE) = {long_be}")
+                    
+            except Exception as e:
+                print(f"Fehler beim Scannen von Register {reg}: {e}")
+                continue  # Weitermachen mit dem nächsten Register
+                
+            # Fortschritt anzeigen
+            if reg % 100 == 0:
+                print(f"Fortschritt: Register {reg}/{end_reg} durchsucht...")
+        
+        # Zusammenfassung der gefundenen interessanten Werte
+        print("\n=== ZUSAMMENFASSUNG INTERESSANTER WERTE ===")
+        if interesting_values:
+            for reg, format, value in interesting_values:
+                print(f"Register {reg}: {format} = {value}")
+        else:
+            print("Keine interessanten Werte gefunden.")
+        
+        # Zusammenfassung der Register, deren Wert der Register-Nummer entspricht
+        print("\n=== REGISTER MIT WERT = REGISTER-NUMMER ===")
+        if self_matching_registers:
+            for reg, format, value in self_matching_registers:
+                print(f"✓ Register {reg}: {format} = {value}")
+            
+            # Empfehlung für Endian-Format basierend auf selbst-matchenden Registern
+            le_count = sum(1 for r in self_matching_registers if r[1].endswith("LE"))
+            be_count = sum(1 for r in self_matching_registers if r[1].endswith("BE"))
+            
+            if le_count > 0 and le_count >= be_count:
+                print(f"\nEmpfehlung: Little-Endian Format (LE) basierend auf {le_count} selbst-matchenden Registern.")
+                self.preferred_endian = "<"
+            elif be_count > 0:
+                print(f"\nEmpfehlung: Big-Endian Format (BE) basierend auf {be_count} selbst-matchenden Registern.")
+                self.preferred_endian = ">"
+        else:
+            print("Keine Register gefunden, deren Wert der Register-Nummer entspricht.")
+        
+        print("=== SCAN ABGESCHLOSSEN ===\n")
+        return interesting_values, self_matching_registers
+
     def test_endian_format(self):
         print("\n=== MANUELLER ENDIAN FORMAT TEST ===")
         try:
@@ -49,18 +162,18 @@ class UsFlowHandler:
             # da die Register 361 und 363 keine eindeutigen Ergebnisse liefern
             
             # Teste Durchflussrate (Register 1-2)
-            flow_LE = self.fetchViaDeviceManager_Helper(1, 2, "<f", "Flow (LE)")
-            flow_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "Flow (BE)")
+            flow_LE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, "<f", "Flow (LE)")
+            flow_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, ">f", "Flow (BE)")
             print(f"Flow Rate: Little-Endian={flow_LE} m³/h, Big-Endian={flow_BE} m³/h")
             
             # Teste Akkumulator (Register 9-10)
-            acc_LE = self.fetchViaDeviceManager_Helper(9, 2, "<l", "Accumulator (LE)")
-            acc_BE = self.fetchViaDeviceManager_Helper(9, 2, ">l", "Accumulator (BE)")
+            acc_LE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, "<l", "Accumulator (LE)")
+            acc_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, ">l", "Accumulator (BE)")
             print(f"Accumulator: Little-Endian={acc_LE}, Big-Endian={acc_BE}")
             
             # Teste Dezimalbruchteil (Register 11-12)
-            frac_LE = self.fetchViaDeviceManager_Helper(11, 2, "<f", "Fraction (LE)")
-            frac_BE = self.fetchViaDeviceManager_Helper(11, 2, ">f", "Fraction (BE)")
+            frac_LE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "Fraction (LE)")
+            frac_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, ">f", "Fraction (BE)")
             print(f"Decimal Fraction: Little-Endian={frac_LE}, Big-Endian={frac_BE}")
             
             # Plausibilitätsprüfung
@@ -172,11 +285,11 @@ class UsFlowHandler:
         try:
             # Aktuelle Durchflussrate von Register 1-2, gemäß Handbuch IEEE754 Format
             # Little-Endian war für viele Taosonics-Geräte die richtige Wahl
-            currentFlowValue = self.fetchViaDeviceManager_Helper(1, 2, "<f", "currentFlowValue")
+            currentFlowValue = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, "<f", "currentFlowValue")
             print(f"DEBUG: currentFlowValue (Little-Endian) = {currentFlowValue} m³/h")
             
             # Zeige auch die Big-Endian-Version an
-            currentFlowValue_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "currentFlowValue (BE)")
+            currentFlowValue_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, ">f", "currentFlowValue (BE)")
             print(f"DEBUG: currentFlowValue (Big-Endian) = {currentFlowValue_BE} m³/h")
             
             # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
@@ -194,10 +307,10 @@ class UsFlowHandler:
         # Einheit und Multiplikator aus den korrekten Registern lesen
         try:
             # Register 1438 für Einheit, Register 1439 für Multiplikator
-            totalFlowUnitNumber = self.fetchViaDeviceManager_Helper(1438, 1, ">h", "unitNumber")
+            totalFlowUnitNumber = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1438, 1, ">h", "unitNumber")
             print(f"DEBUG: totalFlowUnitNumber = {totalFlowUnitNumber}")
             
-            totalFlowMultiplier = self.fetchViaDeviceManager_Helper(1439, 1, ">h", "multiplier")
+            totalFlowMultiplier = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1439, 1, ">h", "multiplier")
             print(f"DEBUG: totalFlowMultiplier = {totalFlowMultiplier}")
             
             # Validierung der Einheit
@@ -221,10 +334,10 @@ class UsFlowHandler:
         try:
             # Register 9-10 für Ganzzahlwert, LONG-Format
             # Zeige explizit beide Endian-Formate für Register 9-10 an
-            flowValueAccumulator_LE = self.fetchViaDeviceManager_Helper(9, 2, "<l", "flowAccumulator (LE)")
+            flowValueAccumulator_LE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, "<l", "flowAccumulator (LE)")
             print(f"DEBUG: flowValueAccumulator (Little-Endian) = {flowValueAccumulator_LE}")
             
-            flowValueAccumulator_BE = self.fetchViaDeviceManager_Helper(9, 2, ">l", "flowAccumulator (BE)")
+            flowValueAccumulator_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, ">l", "flowAccumulator (BE)")
             print(f"DEBUG: flowValueAccumulator (Big-Endian) = {flowValueAccumulator_BE}")
             
             # Verwende Little-Endian als Ausgangswert
@@ -248,11 +361,11 @@ class UsFlowHandler:
         # Bruch-Wert des Akkumulators aus den korrekten Registern lesen
         try:
             # Register 11-12 für Dezimalbruchteil, IEEE754 Float-Format
-            flowDecimalFraction = self.fetchViaDeviceManager_Helper(11, 2, "<f", "flowDecimalFraction")
+            flowDecimalFraction = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "flowDecimalFraction")
             print(f"DEBUG: flowDecimalFraction (Little-Endian) = {flowDecimalFraction}")
             
             # Zeige auch Big-Endian
-            flowDecimalFraction_BE = self.fetchViaDeviceManager_Helper(11, 2, ">f", "flowDecimalFraction (BE)")
+            flowDecimalFraction_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, ">f", "flowDecimalFraction (BE)")
             print(f"DEBUG: flowDecimalFraction (Big-Endian) = {flowDecimalFraction_BE}")
             
             # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
@@ -290,14 +403,24 @@ def main():
     
     # Gerät hinzufügen (Taosonics T3-1-2-K-150 mit Adresse 0x28)
     print("Füge US Flow Sensor mit ID 0x28 hinzu...")
-    dev_manager.add_device(device_id=0x28)
+    # TODO: hier wieder auf 40 (0x28) zurückstellen
+    # dev_manager.add_device(device_id=0x28)
+    dev_manager.add_device(device_id=1)
     
     # Gerät abrufen
-    US_Flow_Sensor = dev_manager.get_device(device_id=0x28)
+    # TODO: hier wieder auf 40 (0x28) zurückstellen
+    # US_Flow_Sensor = dev_manager.get_device(device_id=0x28)
+    US_Flow_Sensor = dev_manager.get_device(device_id=1)
     
     # UsFlowHandler initialisieren
     print("Initialisiere UsFlowHandler...")
     us_flow_handler = UsFlowHandler(US_Flow_Sensor)
+    
+    # Alle Register scannen
+    # print("Scanne alle Register bis 1000...")
+    # interesting_values, self_matching_registers = us_flow_handler.scan_all_registers(0, 1000, 1)
+    print("Scanne Register 361...")
+    interesting_values, self_matching_registers = us_flow_handler.scan_all_registers(361, 361, 1)
     
     # Endian-Format testen
     us_flow_handler.test_endian_format()
@@ -307,18 +430,13 @@ def main():
     
     try:
         # Bei einem Testprogramm mehrere Lesevorgänge durchführen, um Stabilität zu testen
-        for i in range(2):  # Auf 2 Lesevorgänge reduziert
+        for i in range(1):  # Auf 1 Lesevorgang reduziert
             print(f"\n--- Lesevorgang {i+1} ---")
             current_flow, total_flow = us_flow_handler.fetchViaDeviceManager()
             
             print(f"\nErgebnisse:")
             print(f"Aktuelle Durchflussrate: {current_flow} m³/h")
             print(f"Gesamtdurchflussmenge: {total_flow} m³")
-            
-            # Kurze Pause zwischen den Lesevorgängen
-            if i < 1:  # Keine Pause nach dem letzten Lesevorgang
-                print("Warte 2 Sekunden bis zum nächsten Lesevorgang...")
-                time.sleep(2)
     
     except Exception as e:
         print(f"Fehler beim Auslesen des US Flow Sensors: {e}")

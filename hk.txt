@@ -1,0 +1,192 @@
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+DEBUG AFTER LOADING STATE: usFlowSensorActive = True
+DEBUG AFTER THINGSBOARD INITIALIZATION: usFlowSensorActive = True
+GPS ist deaktiviert. Keine GPS-Updates werden gestartet.
+DEBUG MAIN LOOP START: usFlowSensorActive = True
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 1
+DEBUG: Lese Register: Adresse=361, Anzahl=2, Format=<f, Info=unitNumber
+DEBUG ATTRIBUTE CALLBACK START: result={'shared': {'targetPHtolerrance': 0.5, 'gemessener_high_wert': 10, 'calibratePH': True, 'powerButton': True, 'turbiditySensorActive': False, 'ph_high_delay_duration': 60000, 'gemessener_low_wert': 7, 'usFlowSensorActive': True, 'autoSwitch': True, 'radarSensorActive': False, 'targetPHValue': 6}}
+DEBUG ATTRIBUTE CALLBACK: usFlowSensorActive before update = True
+DEBUG ATTRIBUTE CALLBACK: usFlowSensorActive after update = True
+DEBUG ATTRIBUTE CALLBACK: Saving state: {'minimumPHValStop': 5, 'ph_low_delay_start_time': None, 'ph_high_delay_duration': 60000, 'PHValueOffset': 0.0, 'maximumTurbidity': 0, 'turbiditySensorActive': False, 'turbidityOffset': 0, 'radarSensorActive': False, 'autoSwitch': True, 'callGpsSwitch': True, 'powerButton': True, 'co2RelaisSwSig': False, 'calibratePH': False, 'targetPHValue': 6, 'targetPHtolerrance': 0.5, 'gemessener_high_wert': 10, 'gemessener_low_wert': 7, 'ph_slope': 1.0, 'ph_intercept': 0.0, 'maximumPHVal': 6.5, 'minimumPHVal': 5.5, 'gpsEnabled': False, 'usFlowSensorActive': True}
+{'shared': {'targetPHtolerrance': 0.5, 'gemessener_high_wert': 10, 'calibratePH': True, 'powerButton': True, 'turbiditySensorActive': False, 'ph_high_delay_duration': 60000, 'gemessener_low_wert': 7, 'usFlowSensorActive': True, 'autoSwitch': True, 'radarSensorActive': False, 'targetPHValue': 6}}
+DEBUG: Gelesener Wert: 361.0
+DEBUG: reg361 = 361.0
+DEBUG: reg361 SUCCEEDED.
+DEBUG: Lese Register: Adresse=1, Anzahl=2, Format=<f, Info=currentFlowValue
+DEBUG: Gelesener Wert: 0.0
+DEBUG: currentFlowValue = 0.0 m³/h
+DEBUG: Finale aktuelle Durchflussrate = 0.0 m³/h
+DEBUG: Lese Register: Adresse=1438, Anzahl=1, Format=<h, Info=unitNumber
+DEBUG: Gelesener Wert: 0
+DEBUG: totalFlowUnitNumber = 0
+DEBUG: Lese Register: Adresse=1439, Anzahl=1, Format=<h, Info=multiplier
+DEBUG: Gelesener Wert: 2
+DEBUG: totalFlowMultiplier = 2
+DEBUG: Finale Einheit = 0, Multiplikator = 2
+DEBUG: Lese Register: Adresse=9, Anzahl=2, Format=<l, Info=flowAccumulator
+DEBUG: Gelesener Wert: 0
+DEBUG: flowValueAccumulator = 0
+DEBUG: Finaler Akkumulator = 0
+DEBUG: Lese Register: Adresse=11, Anzahl=2, Format=<f, Info=flowDecimalFraction
+DEBUG: Gelesener Wert: 0.0
+DEBUG: flowDecimalFraction = 0.0
+DEBUG: Finaler Dezimalbruchteil = 0.0
+DEBUG: Calculation inputs: unitNumber=0, multiplier=2, accumulator=0, fraction=0.0
+DEBUG: Calculated sumFlowValue: 0.0
+DEBUG: Gesamtdurchfluss in Originaleinheit = 0.0
+DEBUG: Gesamtdurchfluss in m³ = 0.0
+DEBUG: Rückgabewerte: aktuelle Rate = 0.0 m³/h, Gesamtsumme = 0.0 m³
+US Flow Sensor: Current flow rate = 0.0, Total flow = 0.0 m³
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+DEBUG MAIN LOOP START: usFlowSensorActive = True
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 1
+DEBUG: Lese Register: Adresse=361, Anzahl=2, Format=<f, Info=unitNumber
+DEBUG: Gelesener Wert: 361.0
+DEBUG: reg361 = 361.0
+DEBUG: reg361 SUCCEEDED.
+DEBUG: Lese Register: Adresse=1, Anzahl=2, Format=<f, Info=currentFlowValue
+DEBUG: Gelesener Wert: 0.0
+DEBUG: currentFlowValue = 0.0 m³/h
+DEBUG: Finale aktuelle Durchflussrate = 0.0 m³/h
+DEBUG: Lese Register: Adresse=1438, Anzahl=1, Format=<h, Info=unitNumber
+DEBUG: Gelesener Wert: 0
+DEBUG: totalFlowUnitNumber = 0
+DEBUG: Lese Register: Adresse=1439, Anzahl=1, Format=<h, Info=multiplier
+DEBUG: Gelesener Wert: 2
+DEBUG: totalFlowMultiplier = 2
+DEBUG: Finale Einheit = 0, Multiplikator = 2
+DEBUG: Lese Register: Adresse=9, Anzahl=2, Format=<l, Info=flowAccumulator
+DEBUG: Gelesener Wert: 0
+DEBUG: flowValueAccumulator = 0
+DEBUG: Finaler Akkumulator = 0
+DEBUG: Lese Register: Adresse=11, Anzahl=2, Format=<f, Info=flowDecimalFraction
+DEBUG: Gelesener Wert: 0.0
+DEBUG: flowDecimalFraction = 0.0
+DEBUG: Finaler Dezimalbruchteil = 0.0
+DEBUG: Calculation inputs: unitNumber=0, multiplier=2, accumulator=0, fraction=0.0
+DEBUG: Calculated sumFlowValue: 0.0
+DEBUG: Gesamtdurchfluss in Originaleinheit = 0.0
+DEBUG: Gesamtdurchfluss in m³ = 0.0
+DEBUG: Rückgabewerte: aktuelle Rate = 0.0 m³/h, Gesamtsumme = 0.0 m³
+US Flow Sensor: Current flow rate = 0.0, Total flow = 0.0 m³
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+DEBUG MAIN LOOP START: usFlowSensorActive = True
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 1
+DEBUG: Lese Register: Adresse=361, Anzahl=2, Format=<f, Info=unitNumber
+DEBUG: Gelesener Wert: 361.0
+DEBUG: reg361 = 361.0
+DEBUG: reg361 SUCCEEDED.
+DEBUG: Lese Register: Adresse=1, Anzahl=2, Format=<f, Info=currentFlowValue
+DEBUG: Gelesener Wert: 0.0
+DEBUG: currentFlowValue = 0.0 m³/h
+DEBUG: Finale aktuelle Durchflussrate = 0.0 m³/h
+DEBUG: Lese Register: Adresse=1438, Anzahl=1, Format=<h, Info=unitNumber
+DEBUG: Gelesener Wert: 0
+DEBUG: totalFlowUnitNumber = 0
+DEBUG: Lese Register: Adresse=1439, Anzahl=1, Format=<h, Info=multiplier
+DEBUG: Gelesener Wert: 2
+DEBUG: totalFlowMultiplier = 2
+DEBUG: Finale Einheit = 0, Multiplikator = 2
+DEBUG: Lese Register: Adresse=9, Anzahl=2, Format=<l, Info=flowAccumulator
+DEBUG: Gelesener Wert: 0
+DEBUG: flowValueAccumulator = 0
+DEBUG: Finaler Akkumulator = 0
+DEBUG: Lese Register: Adresse=11, Anzahl=2, Format=<f, Info=flowDecimalFraction
+DEBUG: Gelesener Wert: 0.0
+DEBUG: flowDecimalFraction = 0.0
+DEBUG: Finaler Dezimalbruchteil = 0.0
+DEBUG: Calculation inputs: unitNumber=0, multiplier=2, accumulator=0, fraction=0.0
+DEBUG: Calculated sumFlowValue: 0.0
+DEBUG: Gesamtdurchfluss in Originaleinheit = 0.0
+DEBUG: Gesamtdurchfluss in m³ = 0.0
+DEBUG: Rückgabewerte: aktuelle Rate = 0.0 m³/h, Gesamtsumme = 0.0 m³
+US Flow Sensor: Current flow rate = 0.0, Total flow = 0.0 m³
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+DEBUG MAIN LOOP START: usFlowSensorActive = True
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 1
+DEBUG: Lese Register: Adresse=361, Anzahl=2, Format=<f, Info=unitNumber
+DEBUG: Gelesener Wert: 361.0
+DEBUG: reg361 = 361.0
+DEBUG: reg361 SUCCEEDED.
+DEBUG: Lese Register: Adresse=1, Anzahl=2, Format=<f, Info=currentFlowValue
+DEBUG: Gelesener Wert: 0.0
+DEBUG: currentFlowValue = 0.0 m³/h
+DEBUG: Finale aktuelle Durchflussrate = 0.0 m³/h
+DEBUG: Lese Register: Adresse=1438, Anzahl=1, Format=<h, Info=unitNumber
+DEBUG: Gelesener Wert: 0
+DEBUG: totalFlowUnitNumber = 0
+DEBUG: Lese Register: Adresse=1439, Anzahl=1, Format=<h, Info=multiplier
+DEBUG: Gelesener Wert: 2
+DEBUG: totalFlowMultiplier = 2
+DEBUG: Finale Einheit = 0, Multiplikator = 2
+DEBUG: Lese Register: Adresse=9, Anzahl=2, Format=<l, Info=flowAccumulator
+DEBUG: Gelesener Wert: 0
+DEBUG: flowValueAccumulator = 0
+DEBUG: Finaler Akkumulator = 0
+DEBUG: Lese Register: Adresse=11, Anzahl=2, Format=<f, Info=flowDecimalFraction
+DEBUG: Gelesener Wert: 0.0
+DEBUG: flowDecimalFraction = 0.0
+DEBUG: Finaler Dezimalbruchteil = 0.0
+DEBUG: Calculation inputs: unitNumber=0, multiplier=2, accumulator=0, fraction=0.0
+DEBUG: Calculated sumFlowValue: 0.0
+DEBUG: Gesamtdurchfluss in Originaleinheit = 0.0
+DEBUG: Gesamtdurchfluss in m³ = 0.0
+DEBUG: Rückgabewerte: aktuelle Rate = 0.0 m³/h, Gesamtsumme = 0.0 m³
+US Flow Sensor: Current flow rate = 0.0, Total flow = 0.0 m³
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+DEBUG MAIN LOOP START: usFlowSensorActive = True
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 1
+DEBUG: Lese Register: Adresse=361, Anzahl=2, Format=<f, Info=unitNumber
+DEBUG: Gelesener Wert: 361.0
+DEBUG: reg361 = 361.0
+DEBUG: reg361 SUCCEEDED.
+DEBUG: Lese Register: Adresse=1, Anzahl=2, Format=<f, Info=currentFlowValue
+DEBUG: Gelesener Wert: 0.0
+DEBUG: currentFlowValue = 0.0 m³/h
+DEBUG: Finale aktuelle Durchflussrate = 0.0 m³/h
+DEBUG: Lese Register: Adresse=1438, Anzahl=1, Format=<h, Info=unitNumber
+DEBUG: Gelesener Wert: 0
+DEBUG: totalFlowUnitNumber = 0
+DEBUG: Lese Register: Adresse=1439, Anzahl=1, Format=<h, Info=multiplier
+DEBUG: Gelesener Wert: 2
+DEBUG: totalFlowMultiplier = 2
+DEBUG: Finale Einheit = 0, Multiplikator = 2
+DEBUG: Lese Register: Adresse=9, Anzahl=2, Format=<l, Info=flowAccumulator
+DEBUG: Gelesener Wert: 0
+DEBUG: flowValueAccumulator = 0
+DEBUG: Finaler Akkumulator = 0
+DEBUG: Lese Register: Adresse=11, Anzahl=2, Format=<f, Info=flowDecimalFraction
+DEBUG: Gelesener Wert: 0.0
+DEBUG: flowDecimalFraction = 0.0
+DEBUG: Finaler Dezimalbruchteil = 0.0
+DEBUG: Calculation inputs: unitNumber=0, multiplier=2, accumulator=0, fraction=0.0
+DEBUG: Calculated sumFlowValue: 0.0
+DEBUG: Gesamtdurchfluss in Originaleinheit = 0.0
+DEBUG: Gesamtdurchfluss in m³ = 0.0
+DEBUG: Rückgabewerte: aktuelle Rate = 0.0 m³/h, Gesamtsumme = 0.0 m³
+US Flow Sensor: Current flow rate = 0.0, Total flow = 0.0 m³
+Shutting down gracefully...
+Gesamtlaufzeit: 0.10613893455929227 Stunden
+Speichere Daten.
+Shutting down gracefully...
+Gesamtlaufzeit: 0.10613893455929227 Stunden
+Speichere Daten.
+Shutting down gracefully...
+Gesamtlaufzeit: 0.10613893455929227 Stunden
+Speichere Daten.
+Shutting down now.

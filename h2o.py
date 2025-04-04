@@ -32,8 +32,6 @@ TAOSONICFLOWUNIT_LITER = 1    # Liter (L)
 TAOSONICFLOWUNIT_GAL = 2      # American gallon (GAL)
 TAOSONICFLOWUNIT_FEET3 = 3    # Cubic feet (CF)
 
-print("Stop 06")
-
 #RS485 Comunication and Devices
 # Create DeviceManager
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
@@ -281,7 +279,7 @@ class PHHandler:
             if raw_ph_value is None:
                 raise ValueError("Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
         except Exception as e:
-            print(f"Fehler bei der Sensorablesung: {e}")
+            print(f"Fehler bei der Sensorablesung für PHHandler: {e}")
             return None, None
 
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
@@ -377,7 +375,6 @@ class FlowRateHandler:
             "flow_rate_m3_min": flow_rate_m3_min
         }
 
-
 class TotalFlowManager:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
@@ -428,20 +425,37 @@ class TotalFlowManager:
                 time.sleep(self.update_interval)
         threading.Thread(target=save_periodically, daemon=True).start()
 
-
 class UsFlowHandler:
+
     def __init__(self, sensor):
         self.sensor = sensor  # Übergeben Sie die PH_Sensor-Instanz
 
-    def fetchViaDeviceManager_Helper(self, address, registerCount, dataformat, infoText):
-        # get current flow
+    # def fetchViaDeviceManager_Helper(self, address, registerCount, dataformat, infoText):
+    #     # get current flow
+    #     try:
+    #         value = self.sensor.read_register(address, registerCount, dataformat)
+    #         if value is None:
+    #             raise ValueError(f"US-Flow sensor reading {infoText} failed. Check the connection.")
+    #         return value
+    #     except Exception as e:
+    #         print(f"DEBUG: Error reading register: {e}")
+    #         raise
+
+    def fetchViaDeviceManager_ForTaoSonicOnly_Helper(self, address, registerCount, dataformat, infoText):
+        print(f"DEBUG: Lese Register: Adresse={address}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}")
         try:
-            value = self.sensor.read_register(address, registerCount, dataformat)
+            # Rohwerte können nicht direkt ausgelesen werden, da die Methode read_registers nicht existiert
+            # Wir verwenden stattdessen die vorhandene read_register Methode
+            
+            # Formatierte Werte lesen
+            value = self.sensor.read_register_FOR_TAOSONIC_ONLY(address, registerCount, dataformat)
+            print(f"DEBUG: Gelesener Wert: {value}")
             if value is None:
-                raise ValueError(f"US-Flow sensor reading {infoText} failed. Check the connection.")
+                print(f"DEBUG: Wert ist None!")
+                raise ValueError(f"Us-Flow Sensorlesung {infoText} fehlgeschlagen. Überprüfen Sie die Verbindung.")
             return value
         except Exception as e:
-            print(f"DEBUG: Error reading register: {e}")
+            print(f"DEBUG: Fehler beim Lesen des Registers: {e}")
             raise
 
     def calculateSumFlowValueForTaosonic(self, totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction):
@@ -525,21 +539,30 @@ class UsFlowHandler:
         raise Exception(f"invalid total flow unit number for Taosonic Flow Meter (see reg 1438): {unitNumber}")
 
     def fetchViaDeviceManager(self):
+
+        # Register 361 lesen und Wert (361.00) überprüfen
+        try:
+            reg361 = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(361, 2, "<f", "unitNumber")
+            print(f"DEBUG: reg361 = {reg361}")
+            
+            # Validierung der Einheit
+            if reg361 < 360.99 or reg361 > 361.01:
+                errorText = f"WARNING: TAOSONIC Flow Meter, Register 361 check FAILED. Read {reg361} instead of {361.00}"
+                print(errorText)
+                raise ValueError(errorText)
+
+            print(f"DEBUG: reg361 SUCCEEDED.")
+                
+        except Exception as e:
+            print(f"EXCEPTION: reg361 test FAILED: {e}")
+        
         # Gemäß Taosonics T3-1-2-K-150 Handbuch, exakte Registernummern verwenden
         try:
             # Aktuelle Durchflussrate von Register 1-2, gemäß Handbuch IEEE754 Format
             # Little-Endian war für viele Taosonics-Geräte die richtige Wahl
-            currentFlowValue = self.fetchViaDeviceManager_Helper(1, 2, "<f", "currentFlowValue")
+            currentFlowValue = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, "<f", "currentFlowValue")
             print(f"DEBUG: currentFlowValue = {currentFlowValue} m³/h")
             
-            # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
-            if currentFlowValue < 0 or currentFlowValue > 1000:
-                currentFlowValue_BE = self.fetchViaDeviceManager_Helper(1, 2, ">f", "currentFlowValue (BE)")
-                print(f"DEBUG: currentFlowValue (Big-Endian) = {currentFlowValue_BE} m³/h")
-                if 0 <= currentFlowValue_BE <= 1000:
-                    currentFlowValue = currentFlowValue_BE
-                    print(f"DEBUG: Using Big-Endian currentFlowValue = {currentFlowValue}")
-                
         except Exception as e:
             print(f"ERROR bei Lesen der aktuellen Durchflussrate: {e}")
             currentFlowValue = 0.0  # Sicherer Standardwert
@@ -549,10 +572,10 @@ class UsFlowHandler:
         # Einheit und Multiplikator aus den korrekten Registern lesen
         try:
             # Register 1438 für Einheit, Register 1439 für Multiplikator
-            totalFlowUnitNumber = self.fetchViaDeviceManager_Helper(1438, 1, ">h", "unitNumber")
+            totalFlowUnitNumber = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1438, 1, "<h", "unitNumber")
             print(f"DEBUG: totalFlowUnitNumber = {totalFlowUnitNumber}")
             
-            totalFlowMultiplier = self.fetchViaDeviceManager_Helper(1439, 1, ">h", "multiplier")
+            totalFlowMultiplier = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1439, 1, "<h", "multiplier")
             print(f"DEBUG: totalFlowMultiplier = {totalFlowMultiplier}")
             
             # Validierung der Einheit
@@ -575,19 +598,8 @@ class UsFlowHandler:
         # Akkumulator-Werte aus den korrekten Registern lesen
         try:
             # Register 9-10 für Ganzzahlwert, LONG-Format
-            flowValueAccumulator = self.fetchViaDeviceManager_Helper(9, 2, "<l", "flowAccumulator")
+            flowValueAccumulator = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, "<l", "flowAccumulator")
             print(f"DEBUG: flowValueAccumulator = {flowValueAccumulator}")
-            
-            # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
-            if flowValueAccumulator < 0:
-                flowValueAccumulator_BE = self.fetchViaDeviceManager_Helper(9, 2, ">l", "flowAccumulator (BE)")
-                print(f"DEBUG: flowValueAccumulator (Big-Endian) = {flowValueAccumulator_BE}")
-                if flowValueAccumulator_BE >= 0:
-                    flowValueAccumulator = flowValueAccumulator_BE
-                    print(f"DEBUG: Using Big-Endian flowValueAccumulator = {flowValueAccumulator}")
-                else:
-                    print(f"WARNING: Negative Werte für beide Endian-Formate, verwende 0")
-                    flowValueAccumulator = 0
             
         except Exception as e:
             print(f"ERROR beim Lesen des Akkumulators: {e}")
@@ -598,12 +610,12 @@ class UsFlowHandler:
         # Bruch-Wert des Akkumulators aus den korrekten Registern lesen
         try:
             # Register 11-12 für Dezimalbruchteil, IEEE754 Float-Format
-            flowDecimalFraction = self.fetchViaDeviceManager_Helper(11, 2, "<f", "flowDecimalFraction")
+            flowDecimalFraction = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "flowDecimalFraction")
             print(f"DEBUG: flowDecimalFraction = {flowDecimalFraction}")
             
             # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
             if flowDecimalFraction < 0 or flowDecimalFraction > 1:
-                flowDecimalFraction_BE = self.fetchViaDeviceManager_Helper(11, 2, ">f", "flowDecimalFraction (BE)")
+                flowDecimalFraction_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "flowDecimalFraction (BE)")
                 print(f"DEBUG: flowDecimalFraction (Big-Endian) = {flowDecimalFraction_BE}")
                 if 0 <= flowDecimalFraction_BE <= 1:
                     flowDecimalFraction = flowDecimalFraction_BE
