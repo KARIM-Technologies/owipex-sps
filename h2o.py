@@ -1,3 +1,4 @@
+from builtins import print
 import sys
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
@@ -17,7 +18,7 @@ from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
 from libs.modbus_lib import DeviceManager
 from time import sleep
-from libs.FlowCalculation import FlowCalculation
+from libs.RadarFlowCalculation import RadarFlowCalculation
 
 from dotenv import load_dotenv
 dotenv_path = '/etc/owipex/.env'
@@ -26,23 +27,33 @@ ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
 THINGSBOARD_SERVER = 'localhost'  # Replace with your Thingsboard server address
 THINGSBOARD_PORT = 1883
 
+# TAOSONICFLOWUNIT Konstanten
+TAOSONICFLOWUNIT_M3 = 0       # Cubic meter (m3)
+TAOSONICFLOWUNIT_LITER = 1    # Liter (L)
+TAOSONICFLOWUNIT_GAL = 2      # American gallon (GAL)
+TAOSONICFLOWUNIT_FEET3 = 3    # Cubic feet (CF)
+
+iTest = 0
+isTestFinished = False
+
 #RS485 Comunication and Devices
 # Create DeviceManager
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
+dev_manager.add_device(device_id=0x28)  # Neuer US Flow Sensor
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x01)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
-PH_Sensor = dev_manager.get_device(device_id=0x03)
+Ph_Sensor = dev_manager.get_device(device_id=0x03)
+Us_Sensor = dev_manager.get_device(device_id=0x28)  # Neuer US Flow Sensor
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
 #Import Global vars
 from config import *
 shared_attributes_keys
-
 
 def save_state(state_dict):
     state_file_path = os.path.join(CONFIG_PATH, 'state.json')
@@ -74,6 +85,7 @@ def attribute_callback(result, _):
     # Überprüfe, ob sich gpsEnabled geändert hat
     if 'gpsEnabled' in result:
         gpsEnabled = result['gpsEnabled']
+        gpsEnabled = False # TODO: remove
         if gpsEnabled:
             try:
                 gps_handler.gps_enabled = True
@@ -103,10 +115,7 @@ def rpc_callback(id, request_body):
     else:
         print('Unknown method: ' + method)
 
-
 def get_data():
-
-
     attributes = {
         'SW-Version': "2.0.0",
         'HW-Version': "2.0.0"
@@ -140,11 +149,15 @@ class RuntimeTracker:
         self.start_time = None
         self.total_runtime = 0
         self.filename = os.path.join(CONFIG_PATH, filename)  # Diese Zeile behalten
+        print(f"content of {CONFIG_PATH}: \"{CONFIG_PATH}\"")  # TODO: remove
         
         # Lade die gespeicherte Laufzeit, wenn die Datei existiert
         if os.path.exists(self.filename):
             with open(self.filename, 'r') as file:
-                self.total_runtime = float(file.read())
+                content = file.read() # TODO: remove
+                print(f"content of {filename}: \"{content}\"")  # TODO: remove
+                self.total_runtime = float(content)
+                # self.total_runtime = float(file.read()) # TODO: wierer einhängen
 
     def start(self):
         self.start_time = time.time()
@@ -161,7 +174,7 @@ class RuntimeTracker:
     def get_total_runtime(self):
         return self.total_runtime / 3600  # Rückgabe in Stunden
 
-class GPSHandler:
+class GpsHandler:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
         self.callGpsSwitch = False
@@ -247,9 +260,9 @@ class TurbidityHandler:
             print("TruebOFF", turbiditySensorActive)
             return None, None      
 
-class PHHandler:
+class PhHandler:
     def __init__(self, sensor):
-        self.sensor = sensor  # Übergeben Sie die PH_Sensor-Instanz
+        self.sensor = sensor  # Übergeben Sie die Ph_Sensor-Instanz
         self.slope = 1  # Anfangswert, wird durch Kalibrierung aktualisiert
         self.intercept = 0  # Anfangswert, wird durch Kalibrierung aktualisiert
         self.load_calibration()  # Laden der Kalibrierungsdaten beim Start
@@ -301,7 +314,7 @@ class PHHandler:
         finally:
             print("Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.")
 
-class FlowRateHandler:
+class RadarHandler:
     def __init__(self, radar_sensor):
         self.radar_sensor = radar_sensor
         
@@ -311,7 +324,7 @@ class FlowRateHandler:
         # Prüfung und Reparatur der Kalibrierungsdatei
         self.calibration_data = self.load_or_repair_calibration(calibration_file_path)
         
-        self.flow_calculator = FlowCalculation(calibration_file_path)
+        self.flow_calculator = RadarFlowCalculation(calibration_file_path)
         
         # Hole den 0-Referenzwert
         self.zero_reference = self.flow_calculator.get_zero_reference()
@@ -356,8 +369,7 @@ class FlowRateHandler:
             "flow_rate_m3_min": flow_rate_m3_min
         }
 
-
-class TotalFlowManager:
+class RadarTotalFlowManager:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
         self.last_update_time = None  # Initialisierung des Zeitstempels der letzten Aktualisierung
@@ -407,6 +419,309 @@ class TotalFlowManager:
                 time.sleep(self.update_interval)
         threading.Thread(target=save_periodically, daemon=True).start()
 
+class UsHandler:
+    def __init__(self, sensor):
+        self.sensor = sensor  # Übergeben Sie die PH_Sensor-Instanz
+
+    def fetchViaDeviceManager_Helper_Test(self, address, offset, registerCount, dataformat, infoText, swap_bytes_in_registers):
+        addressToUse = address + offset
+        print(f"---")
+        print(f"DEBUG: Lese Register: Adresse={address}+({offset})={addressToUse}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}")
+        try:
+            value = self.sensor.read_register_FOR_TAOSONIC_ONLY(addressToUse, registerCount, dataformat, swap_bytes_in_registers)
+            print(f"DEBUG: Gelesener Wert: {value} ({infoText}, {address}+({offset})={addressToUse})")
+            if value is None:
+                print(f"DEBUG: Wert ist None!")
+                raise ValueError(f"Us-Flow Sensorlesung {infoText} fehlgeschlagen. Überprüfen Sie die Verbindung.")
+            print(f"===")
+            return value
+        except Exception as e:
+            print(f"DEBUG: FEHLER beim Lesen des Register: Adresse={address}+({offset})={addressToUse}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}, Ex={e}")
+            print(f"===")
+            return None 
+            # raise # TODO: RD: WIEDER EINBAUEN, ist nur zum Test raus
+
+    def readValues(self, offset, dataformat, info, swap_bytes_in_registers):
+        currentFlowValue = self.fetchViaDeviceManager_Helper_Test(1, offset, 2, dataformat, "flow-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 19-{info}, currentFlowValue: " + str(currentFlowValue))
+        tempIn = self.fetchViaDeviceManager_Helper_Test(33, offset, 2, dataformat, "tempIn-"+info, swap_bytes_in_registers)
+        tempOut = self.fetchViaDeviceManager_Helper_Test(35, offset, 2, dataformat, "tempOut-"+info, swap_bytes_in_registers)
+        tempDiff = self.fetchViaDeviceManager_Helper_Test(181, offset, 2, dataformat, "tempDiff-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 20-{info}, tempIn={tempIn}, tempOut={tempOut}, tempDiff={tempDiff}")
+        netAccu = self.fetchViaDeviceManager_Helper_Test(113, offset, 2, dataformat, "netAccu-"+info, swap_bytes_in_registers)
+        posAccu = self.fetchViaDeviceManager_Helper_Test(115, offset, 2, dataformat, "posAccu-"+info, swap_bytes_in_registers)
+        negAccu = self.fetchViaDeviceManager_Helper_Test(117, offset, 2, dataformat, "negAccu-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 21-{info}, netAccu={netAccu}, posAccu={posAccu}, negAccu={negAccu}")
+        flowToday = self.fetchViaDeviceManager_Helper_Test(125, offset, 2, dataformat, "flowToday-"+info, swap_bytes_in_registers)
+        flowMonth = self.fetchViaDeviceManager_Helper_Test(127, offset, 2, dataformat, "flowMonth-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 22-{info}, flowToday={flowToday}, flowMonth={flowMonth}")
+        pipeDiam = self.fetchViaDeviceManager_Helper_Test(221, offset, 2, dataformat, "pipeDiam-"+info, swap_bytes_in_registers)
+        clockCoeff = self.fetchViaDeviceManager_Helper_Test(185, offset, 2, dataformat, "clockCoeff-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 23-{info}, pipeDiam={pipeDiam}, clockCoeff={clockCoeff}")
+        f361 = self.fetchViaDeviceManager_Helper_Test(361, offset, 2, dataformat, "f361-"+info, swap_bytes_in_registers)
+        print(f"readValues {dataformat}, Stop 24-{info}, f361={f361}")
+        # unitCodeFlowRate = self.fetchViaDeviceManager_Helper_Test(1437, offset, 2, dataformat, "unitCodeFlowRate-"+info, swap_bytes_in_registers)
+        # print(f"readValues {dataformat}, Stop 25-{info}, unitCodeFlowRate={unitCodeFlowRate}")
+
+    def fetchViaDeviceManagerTest(self):
+        # get current flow
+        # currentFlowValue = self.fetchViaDeviceManager_Helper(1, 2, ">f", "flow")
+        # print("fetchViaDeviceManagerTest, Stop 19, currentFlowValue: " + str(currentFlowValue))
+
+        global iTest
+        global isTestFinished
+
+        if isTestFinished:
+            return
+
+        print(f"-------- {iTest}")
+        self.readValues(-1, ">f", ">Mf", False)
+        self.readValues(-1, ">f", ">Mt", True)
+        self.readValues(0, ">f", ">Of", False)
+        self.readValues(0, ">f", ">Ot", True)
+        self.readValues(1, ">f", ">Pf", False)
+        self.readValues(1, ">f", ">Pt", True)
+        # print("--------")
+        self.readValues(-1, "<f", "<Mf", False)
+        self.readValues(-1, "<f", "<Mt", True)
+        self.readValues(0, "<f", "<Of", False)
+        self.readValues(0, "<f", "<Ot", True)
+        self.readValues(1, "<f", "<Pf", False)
+        self.readValues(1, "<f", "<Pt", True)
+        print(f"======== {iTest}")
+
+        iTest = iTest + 1
+        if iTest >= 1:
+            isTestFinished = True
+
+    def fetchViaDeviceManager(self):
+        return 42, 43 # TODO: cleanup
+
+        # get current flow
+        # currentFlowValue = self.fetchViaDeviceManager_Helper(1, 2, ">f", "flow")
+        currentFlowValue = self.fetchViaDeviceManager_Helper_Test(1, 0, 2, ">f", "currentFlowValue", False)
+
+        # # get registers for overall flow sum
+        # totalFlowUnitNumber = self.fetchViaDeviceManager_Helper(1438, 1, ">h", "a")
+        # print("fetchViaDeviceManagerTest, Stop 29a, totalFlowUnitNumber: " + str(totalFlowUnitNumber))
+
+        # totalFlowMultiplier = self.fetchViaDeviceManager_Helper(1439, 1, ">h", "b")
+        # print("fetchViaDeviceManagerTest, Stop 29b, totalFlowMultiplier: " + str(totalFlowMultiplier))
+
+        # flowValueAccumulator = self.fetchViaDeviceManager_Helper(25, 2, ">l", "c")
+        # print("fetchViaDeviceManagerTest, Stop 29c, flowValueAccumulator: " + str(flowValueAccumulator))
+
+        # flowDecimalFraction = self.fetchViaDeviceManager_Helper(27, 2, ">f", "d")
+        # print("fetchViaDeviceManagerTest, Stop 29d, flowDecimalFraction: " + str(flowDecimalFraction))
+
+        # # calculate overall flow sum
+        # sumFlowValueInUnit = self.calculateSumFlowValueForTaosonic(totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction)
+        # print("fetchViaDeviceManagerTest, Stop 31, sumFlowValueInUnit: " + str(sumFlowValueInUnit))
+        # sumFlowValueInM3 = self.convertFlowValueFromUnitToM3ForTaosonic(sumFlowValueInUnit, totalFlowUnitNumber)
+        # print("fetchViaDeviceManagerTest, Stop 39, sumFlowValueInM3: " + str(sumFlowValueInM3))
+
+        sumFlowValueInM3 = self.fetchViaDeviceManager_Helper_Test(113, 0, 2, ">f", "sumFlowValueInM3", False)
+
+        return currentFlowValue, sumFlowValueInM3
+
+    # def fetchViaDeviceManager_ForTaoSonicOnly_Helper(self, address, registerCount, dataformat, infoText):
+    #     print(f"DEBUG: Lese Register: Adresse={address}, Anzahl={registerCount}, Format={dataformat}, Info={infoText}")
+    #     try:
+    #         # Rohwerte können nicht direkt ausgelesen werden, da die Methode read_registers nicht existiert
+    #         # Wir verwenden stattdessen die vorhandene read_register Methode
+            
+    #         # Formatierte Werte lesen
+    #         value = self.sensor.read_register_FOR_TAOSONIC_ONLY(address, registerCount, dataformat)
+    #         print(f"DEBUG: Gelesener Wert: {value}")
+    #         if value is None:
+    #             print(f"DEBUG: Wert ist None!")
+    #             raise ValueError(f"Us-Flow Sensorlesung {infoText} fehlgeschlagen. Überprüfen Sie die Verbindung.")
+    #         return value
+    #     except Exception as e:
+    #         print(f"DEBUG: Fehler beim Lesen des Registers: {e}")
+    #         raise
+
+    # def calculateSumFlowValueForTaosonic(self, totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction):
+    #     # The internal accumulator is been presented by a LONG number for the integer part together
+    #     # with a REAL number for the decimal fraction. In general uses, only the integer part needs to be read. Reading
+    #     # the fraction can be omitted. The final accumulator result has a relation with unit and multiplier. Assume N
+    #     # stands for the integer part (for the positive accumulator, the integer part is the content of REG 0009, 0010, a
+    #     # 32-bits signed LONG integer,), Nf stands for the decimal fraction part (for the positive accumulator, the
+    #     # fraction part is the content of REG 0011, 0012, a 32-bits REAL float number,), n stands for the flow decimal
+    #     # point (REG 1439).
+    #     # then
+    #     # The final positive flow rate=(N+Nf ) ×10n-3 (in unit decided by REG 1439)
+    #     # The meaning of REG 1438 which has a range of 0~3 is as following:
+    #     #     0 cubic meter (m3)
+    #     #     1 liter (L)
+    #     #     2 American gallon (GAL)
+    #     #     3 Cubic feet (CF)
+    #     # For example, if REG0009=123456789, REG0010=0.123, and REG1439=-1, REG1438=0
+    #     # Then the positive flow is 12345.6789123 m3
+
+    #     print(f"DEBUG: Calculation inputs: unitNumber={totalFlowUnitNumber}, multiplier={totalFlowMultiplier}, accumulator={flowValueAccumulator}, fraction={flowDecimalFraction}")
+
+    #     # Validate input types
+    #     if not isinstance(totalFlowMultiplier, int):
+    #         print(f"WARNING: Invalid type for multiplier: {type(totalFlowMultiplier)}, converting to int")
+    #         try:
+    #             totalFlowMultiplier = int(totalFlowMultiplier)
+    #         except:
+    #             totalFlowMultiplier = 0
+    #             print(f"ERROR: Could not convert multiplier to int, using 0")
+
+    #     # Validate multiplier range
+    #     if totalFlowMultiplier < -4 or totalFlowMultiplier > 4:
+    #         print(f"WARNING: Multiplier {totalFlowMultiplier} out of range, clamping to valid range")
+    #         totalFlowMultiplier = max(-4, min(4, totalFlowMultiplier))
+
+    #     # Validate unit number
+    #     if totalFlowUnitNumber not in [TAOSONICFLOWUNIT_M3, TAOSONICFLOWUNIT_LITER, TAOSONICFLOWUNIT_GAL, TAOSONICFLOWUNIT_FEET3]:
+    #         print(f"WARNING: Invalid unit number {totalFlowUnitNumber}, defaulting to M3")
+    #         totalFlowUnitNumber = TAOSONICFLOWUNIT_M3
+
+    #     # Convert accumulator to float
+    #     try:
+    #         flowValueAccumulatorAsFloat = float(flowValueAccumulator)
+    #     except:
+    #         flowValueAccumulatorAsFloat = 0.0
+    #         print(f"ERROR: Failed to convert accumulator to float, using 0.0")
+
+    #     # Ensure decimal fraction is between 0 and 1
+    #     if flowDecimalFraction < 0 or flowDecimalFraction > 1:
+    #         print(f"WARNING: Decimal fraction {flowDecimalFraction} out of range (0-1), using 0.0")
+    #         flowDecimalFraction = 0.0
+
+    #     # Calculate with safe values
+    #     flowValueAccumulatorWithFractionAsFloat = flowValueAccumulatorAsFloat + flowDecimalFraction
+
+    #     # For Taosonics, the formula should be:
+    #     # The final positive flow rate = (N+Nf) × 10^(n-3)
+    #     # where n is the value from REG 1439 (totalFlowMultiplier)
+    #     sumFlowValue = flowValueAccumulatorWithFractionAsFloat * (10 ** (totalFlowMultiplier - 3))
+        
+    #     # Sanity check on result
+    #     if sumFlowValue < 0:
+    #         print(f"WARNING: Negative flow value {sumFlowValue} calculated, something is wrong. Using absolute value.")
+    #         sumFlowValue = abs(sumFlowValue)
+
+    #     print(f"DEBUG: Calculated sumFlowValue: {sumFlowValue}")
+    #     return sumFlowValue
+
+    # def convertFlowValueFromUnitToM3ForTaosonic(self, flowValueInUnit, unitNumber):
+    #     if (unitNumber == TAOSONICFLOWUNIT_M3):
+    #         return flowValueInUnit
+    #     if (unitNumber == TAOSONICFLOWUNIT_LITER):
+    #         return flowValueInUnit * 0.001
+    #     if (unitNumber == TAOSONICFLOWUNIT_GAL):
+    #         return flowValueInUnit * 0.00378541
+    #     if (unitNumber == TAOSONICFLOWUNIT_FEET3):
+    #         return flowValueInUnit * 0.0283168
+        
+    #     # If none of the known units match
+    #     raise Exception(f"invalid total flow unit number for Taosonic Flow Meter (see reg 1438): {unitNumber}")
+
+    # def fetchViaDeviceManagerTest(self):
+
+    #     # Register 361 lesen und Wert (361.00) überprüfen
+    #     try:
+    #         reg361 = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(361, 2, "<f", "unitNumber")
+    #         print(f"DEBUG: reg361 = {reg361}")
+            
+    #         # Validierung der Einheit
+    #         if reg361 < 360.99 or reg361 > 361.01:
+    #             errorText = f"WARNING: TAOSONIC Flow Meter, Register 361 check FAILED. Read {reg361} instead of {361.00}"
+    #             print(errorText)
+    #             raise ValueError(errorText)
+
+    #         print(f"DEBUG: reg361 SUCCEEDED.")
+                
+    #     except Exception as e:
+    #         print(f"EXCEPTION: reg361 test FAILED: {e}")
+        
+    #     # Gemäß Taosonics T3-1-2-K-150 Handbuch, exakte Registernummern verwenden
+    #     try:
+    #         # Aktuelle Durchflussrate von Register 1-2, gemäß Handbuch IEEE754 Format
+    #         # Little-Endian war für viele Taosonics-Geräte die richtige Wahl
+    #         currentFlowValue = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1, 2, "<f", "currentFlowValue")
+    #         print(f"DEBUG: currentFlowValue = {currentFlowValue} m³/h")
+            
+    #     except Exception as e:
+    #         print(f"ERROR bei Lesen der aktuellen Durchflussrate: {e}")
+    #         currentFlowValue = 0.0  # Sicherer Standardwert
+            
+    #     print(f"DEBUG: Finale aktuelle Durchflussrate = {currentFlowValue} m³/h")
+
+    #     # Einheit und Multiplikator aus den korrekten Registern lesen
+    #     try:
+    #         # Register 1438 für Einheit, Register 1439 für Multiplikator
+    #         totalFlowUnitNumber = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1438, 1, "<h", "unitNumber")
+    #         print(f"DEBUG: totalFlowUnitNumber = {totalFlowUnitNumber}")
+            
+    #         totalFlowMultiplier = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(1439, 1, "<h", "multiplier")
+    #         print(f"DEBUG: totalFlowMultiplier = {totalFlowMultiplier}")
+            
+    #         # Validierung der Einheit
+    #         if totalFlowUnitNumber not in [TAOSONICFLOWUNIT_M3, TAOSONICFLOWUNIT_LITER, TAOSONICFLOWUNIT_GAL, TAOSONICFLOWUNIT_FEET3]:
+    #             print(f"WARNING: Ungültige Einheit {totalFlowUnitNumber}, verwende M3")
+    #             totalFlowUnitNumber = TAOSONICFLOWUNIT_M3
+                
+    #         # Validierung des Multiplikators
+    #         if totalFlowMultiplier < -4 or totalFlowMultiplier > 4:
+    #             print(f"WARNING: Ungültiger Multiplikator {totalFlowMultiplier}, verwende 0")
+    #             totalFlowMultiplier = 0
+                
+    #     except Exception as e:
+    #         print(f"ERROR beim Lesen der Einheit/Multiplikator: {e}")
+    #         totalFlowUnitNumber = TAOSONICFLOWUNIT_M3  # Standard: Kubikmeter
+    #         totalFlowMultiplier = 0  # Standard-Multiplikator
+        
+    #     print(f"DEBUG: Finale Einheit = {totalFlowUnitNumber}, Multiplikator = {totalFlowMultiplier}")
+
+    #     # Akkumulator-Werte aus den korrekten Registern lesen
+    #     try:
+    #         # Register 9-10 für Ganzzahlwert, LONG-Format
+    #         flowValueAccumulator = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(9, 2, "<l", "flowAccumulator")
+    #         print(f"DEBUG: flowValueAccumulator = {flowValueAccumulator}")
+            
+    #     except Exception as e:
+    #         print(f"ERROR beim Lesen des Akkumulators: {e}")
+    #         flowValueAccumulator = 0  # Sicherer Standardwert
+            
+    #     print(f"DEBUG: Finaler Akkumulator = {flowValueAccumulator}")
+
+    #     # Bruch-Wert des Akkumulators aus den korrekten Registern lesen
+    #     try:
+    #         # Register 11-12 für Dezimalbruchteil, IEEE754 Float-Format
+    #         flowDecimalFraction = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "flowDecimalFraction")
+    #         print(f"DEBUG: flowDecimalFraction = {flowDecimalFraction}")
+            
+    #         # Wenn der Wert unplausibel erscheint, versuchen wir Big-Endian
+    #         if flowDecimalFraction < 0 or flowDecimalFraction > 1:
+    #             flowDecimalFraction_BE = self.fetchViaDeviceManager_ForTaoSonicOnly_Helper(11, 2, "<f", "flowDecimalFraction (BE)")
+    #             print(f"DEBUG: flowDecimalFraction (Big-Endian) = {flowDecimalFraction_BE}")
+    #             if 0 <= flowDecimalFraction_BE <= 1:
+    #                 flowDecimalFraction = flowDecimalFraction_BE
+    #                 print(f"DEBUG: Using Big-Endian flowDecimalFraction = {flowDecimalFraction}")
+    #             else:
+    #                 print(f"WARNING: Ungültiger Dezimalbruchteil für beide Endian-Formate, verwende 0.0")
+    #                 flowDecimalFraction = 0.0
+                
+    #     except Exception as e:
+    #         print(f"ERROR beim Lesen des Dezimalbruchteils: {e}")
+    #         flowDecimalFraction = 0.0  # Sicherer Standardwert
+
+    #     print(f"DEBUG: Finaler Dezimalbruchteil = {flowDecimalFraction}")
+
+    #     # Gesamtdurchfluss berechnen
+    #     sumFlowValueInUnit = self.calculateSumFlowValueForTaosonic(totalFlowUnitNumber, totalFlowMultiplier, flowValueAccumulator, flowDecimalFraction)
+    #     print(f"DEBUG: Gesamtdurchfluss in Originaleinheit = {sumFlowValueInUnit}")
+        
+    #     sumFlowValueInM3 = self.convertFlowValueFromUnitToM3ForTaosonic(sumFlowValueInUnit, totalFlowUnitNumber)
+    #     print(f"DEBUG: Gesamtdurchfluss in m³ = {sumFlowValueInM3}")
+
+    #     print(f"DEBUG: Rückgabewerte: aktuelle Rate = {currentFlowValue} m³/h, Gesamtsumme = {sumFlowValueInM3} m³")
+    #     return currentFlowValue, sumFlowValueInM3
 
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
@@ -424,8 +739,6 @@ def signal_handler(sig, frame):
     print('Shutting down now.')  # Diese Zeile wird nach 2 Sekunden ausgeführt
     exit(0)
 
-
-      
 pumpRelaySw = False
 co2RelaisSw = False
 co2HeatingRelaySw = False
@@ -433,9 +746,9 @@ minimumPHValStop = 5
 gpsEnabled = False  # Globale Initialisierung der GPS-Aktivierung
 
 runtime_tracker = RuntimeTracker()
-ph_handler = PHHandler(PH_Sensor)
+ph_handler = PhHandler(Ph_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
-gps_handler = GPSHandler()
+gps_handler = GpsHandler()
 ph_handler.load_calibration()
 
 # Vor der main-Funktion:
@@ -446,7 +759,7 @@ isVersionSent = False
 
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled
+    global isVersionSent, last_send_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
@@ -471,14 +784,11 @@ def main():
         client.subscribe_to_attribute(attribute, attribute_callback)
     client.set_server_side_rpc_request_handler(rpc_callback)
 
-    
+    radarTotalFlowManager = RadarTotalFlowManager()
+    radarTotalFlowManager.start_periodic_save()
 
-    total_flow_manager = TotalFlowManager()
-    total_flow_manager.start_periodic_save()
-
-
-    # Initialisierung des GPSHandlers
-    gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
+    # Initialisierung des GpsHandlers
+    gps_handler = GpsHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
     
     # Nur GPS starten, wenn es aktiviert ist
     if gpsEnabled:
@@ -510,7 +820,6 @@ def main():
     while not client.stopped:
         attributes, telemetry = get_data()
         #PH Initial
-
         
         runtime_tracker_var = runtime_tracker.get_total_runtime()   
         maximumPHVal = targetPHValue + targetPHtolerrance
@@ -539,15 +848,30 @@ def main():
             client.send_telemetry(telemetry)
 
         if (radarSensorActive):
-            flow_rate_handler = FlowRateHandler(Radar_Sensor)
-            flow_data = flow_rate_handler.fetch_and_calculate()
+            radar_rate_Handler = RadarHandler(Radar_Sensor)
+            radar_flow_data = radar_rate_Handler.fetch_and_calculate()
 
-            if flow_data:
+            if radar_flow_data:
                 # Update the total flow using the calculated flow rate
-                total_flow_manager.update_flow_rate(flow_data['flow_rate_l_min'])
-                total_flow = total_flow_manager.total_flow
-                flow_rate_l_min = flow_data['flow_rate_m3_min']
+                radarTotalFlowManager.update_flow_rate(radar_flow_data['flow_rate_l_min'])
+                radar_total_flow = radarTotalFlowManager.total_flow
+                radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
 
+        if (usSensorActive):
+            print(f"DEBUG: US Flow Sensor is active. Trying to read data...")
+            try:
+                print(f"DEBUG: Initializing UsFlowHandler with Sensor ID: {Us_Sensor.device_id}")
+                us_flow_handler = UsHandler(Us_Sensor)
+                us_flow_handler.fetchViaDeviceManagerTest() # TODO: raus
+                usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
+                print(f"US Flow Sensor: Current flow rate = {usFlowRate}, Total flow = {usFlowTotal} m³")
+            except Exception as e:
+                print(f"Error reading US Flow Sensor: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("DEBUG: US Flow Sensor is disabled (usFlowSensorActive = False)")
+ 
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
             ph_handler.save_calibration()
@@ -616,8 +940,6 @@ def main():
             runtime_tracker.stop() 
             time.sleep(2)
 
-    
-    
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 

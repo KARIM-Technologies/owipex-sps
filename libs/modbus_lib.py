@@ -19,11 +19,16 @@ from time import sleep
 class ModbusClient:
     def __init__(self, device_manager, device_id):
         self.device_manager = device_manager
-        self.device_id = device_id
+        self.device_id = device_id 
         self.auto_read_enabled = False
 
     def read_register(self, start_address, register_count, data_format='>f'):
         return self.device_manager.read_register(self.device_id, start_address, register_count, data_format)
+    
+    def read_register_FOR_TAOSONIC_ONLY(self, start_address, register_count, data_format, swap_bytes_in_registers):
+        # # ACHTUNG: der Taosonic Flow Sensor hat eine abweichende Registernummerierung, deswegen ziehen wir hier 1 ab
+        # return self.device_manager.read_register_FOR_TAOSONIC_ONLY(self.device_id, start_address-1, register_count, data_format)
+        return self.device_manager.read_register_FOR_TAOSONIC_ONLY(self.device_id, start_address, register_count, data_format, swap_bytes_in_registers)
 
     def read_radar_sensor(self, register_address):
         return self.device_manager.read_radar_sensor(self.device_id, register_address)
@@ -103,7 +108,74 @@ class DeviceManager:
 
         return floating_point
 
+    def print_bytes_info(self, info, b):
+        print(f"print_bytes_info: {info}")
+        for byte in b:
+            print(f"Hex: {byte:02x}, Dec: {byte}")
+        print(f"================")
+        pass
+    
+    def read_register_FOR_TAOSONIC_ONLY(self, device_id, start_address, register_count, data_format, swap_bytes_in_registers): 
+        function_code = 0x03
 
+        message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
+
+        crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
+        message += struct.pack('<H', crc16)
+
+        self.ser.write(message)
+
+        response = self.ser.read(100)
+        
+        # Check if the response is at least 2 bytes long
+        if len(response) < 2:
+            print('Received response is shorter than expected')
+            return self.last_read_values.get((device_id, start_address), None)
+
+        received_crc = struct.unpack('<H', response[-2:])[0]
+        calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
+        if received_crc != calculated_crc:
+            print('CRC error in response')
+            return self.last_read_values.get((device_id, start_address), None)
+
+        data = response[3:-2]
+        # self.print_bytes_info("data", data)
+        # ACHTUNG, hier für TAOSONIC werden die Register nicht, aber die Bytes in den Registern getauscht
+        # Optionales Swapping der Bytes in den Registern
+        if swap_bytes_in_registers:
+            swapped_data = data[1:2] + data[0:1] + data[3:4] + data[2:3]
+        else:
+            swapped_data = data
+        try:
+            floating_point = struct.unpack(data_format, swapped_data)[0]
+        except struct.error:
+            print(f'Error decoding data from device {device_id}')
+            return self.last_read_values.get((device_id, start_address), None)
+
+        if floating_point is None:
+            print(f'Error reading register from device {device_id}')
+            return self.last_read_values.get((device_id, start_address), None)
+
+        # Store the read value in the last_read_values dictionary
+        self.last_read_values[(device_id, start_address)] = floating_point
+
+        return floating_point
+
+    # Wandelt eine Ganzzahl (0-99) in ein BCD-codiertes Byte um.
+    # param n: Die zu konvertierende Zahl (0-99).
+    # return: Die BCD-codierte Darstellung als Byte (int).
+    # 
+    # Beispiel:
+    # n = 45
+    # bcd = int_to_bcd(n)
+    # print(f"BCD-Darstellung von {n}: {bcd:#04x}")
+    def int_to_bcd(self, n: int) -> int:
+        if not (0 <= n <= 99):
+            raise ValueError("Zahl muss zwischen 0 und 99 liegen")
+        
+        zehner = (n // 10) << 4
+        einer = n % 10
+        return zehner | einer
 
     def read_radar_sensor(self, device_id, register_address):
         return self.read_register(device_id, register_address, 1, data_format='>H')

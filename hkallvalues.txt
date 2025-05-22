@@ -1,0 +1,1144 @@
+content of /etc/owipex/: "/etc/owipex/"
+content of run_time.txt: "448.738587141037"
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+GPS ist deaktiviert. Keine GPS-Updates werden gestartet.
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+--------
+---
+DEBUG: Lese Register: Adresse=1+(0)=1, Anzahl=2, Format=>f, Info=flow->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (flow->Of, 1+(0)=1)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=1+(0)=1, Anzahl=2, Format=>f, Info=flow->Of, Ex=Us-Flow Sensorlesung flow->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+fetchViaDeviceManager >f, Stop 19->Of, currentFlowValue: None
+---
+DEBUG: Lese Register: Adresse=33+(0)=33, Anzahl=2, Format=>f, Info=tempIn->Of
+DEBUG: Gelesener Wert: 150.0 (tempIn->Of, 33+(0)=33)
+===
+---
+DEBUG: Lese Register: Adresse=35+(0)=35, Anzahl=2, Format=>f, Info=tempOut->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (tempOut->Of, 35+(0)=35)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=35+(0)=35, Anzahl=2, Format=>f, Info=tempOut->Of, Ex=Us-Flow Sensorlesung tempOut->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+---
+DEBUG: Lese Register: Adresse=181+(0)=181, Anzahl=2, Format=>f, Info=tempDiff->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (tempDiff->Of, 181+(0)=181)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=181+(0)=181, Anzahl=2, Format=>f, Info=tempDiff->Of, Ex=Us-Flow Sensorlesung tempDiff->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+fetchViaDeviceManager >f, Stop 20->Of, tempIn=150.0, tempOut=None, tempDiff=None
+---
+DEBUG: Lese Register: Adresse=113+(0)=113, Anzahl=2, Format=>f, Info=netAccu->Of
+DEBUG: Gelesener Wert: 0.03771386295557022 (netAccu->Of, 113+(0)=113)
+===
+---
+DEBUG: Lese Register: Adresse=115+(0)=115, Anzahl=2, Format=>f, Info=posAccu->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (posAccu->Of, 115+(0)=115)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=115+(0)=115, Anzahl=2, Format=>f, Info=posAccu->Of, Ex=Us-Flow Sensorlesung posAccu->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+---
+DEBUG: Lese Register: Adresse=117+(0)=117, Anzahl=2, Format=>f, Info=negAccu->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (negAccu->Of, 117+(0)=117)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=117+(0)=117, Anzahl=2, Format=>f, Info=negAccu->Of, Ex=Us-Flow Sensorlesung negAccu->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+fetchViaDeviceManager >f, Stop 21->Of, netAccu=0.03771386295557022, posAccu=None, negAccu=None
+---
+DEBUG: Lese Register: Adresse=125+(0)=125, Anzahl=2, Format=>f, Info=flowToday->Of
+DEBUG: Gelesener Wert: 0.0 (flowToday->Of, 125+(0)=125)
+===
+---
+DEBUG: Lese Register: Adresse=127+(0)=127, Anzahl=2, Format=>f, Info=flowMonth->Of
+DEBUG: Gelesener Wert: 0.0 (flowMonth->Of, 127+(0)=127)
+===
+fetchViaDeviceManager >f, Stop 22->Of, flowToday=0.0, flowMonth=0.0
+---
+DEBUG: Lese Register: Adresse=221+(0)=221, Anzahl=2, Format=>f, Info=pipeDiam->Of
+DEBUG: Gelesener Wert: 100.0 (pipeDiam->Of, 221+(0)=221)
+===
+---
+DEBUG: Lese Register: Adresse=185+(0)=185, Anzahl=2, Format=>f, Info=clockCoeff->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (clockCoeff->Of, 185+(0)=185)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=185+(0)=185, Anzahl=2, Format=>f, Info=clockCoeff->Of, Ex=Us-Flow Sensorlesung clockCoeff->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+fetchViaDeviceManager >f, Stop 23->Of, pipeDiam=100.0, clockCoeff=None
+---
+DEBUG: Lese Register: Adresse=361+(0)=361, Anzahl=2, Format=>f, Info=f361->Of
+CRC error in response
+DEBUG: Gelesener Wert: None (f361->Of, 361+(0)=361)
+DEBUG: Wert ist None!
+===
+DEBUG: FEHLER beim Lesen des Register: Adresse=361+(0)=361, Anzahl=2, Format=>f, Info=f361->Of, Ex=Us-Flow Sensorlesung f361->Of fehlgeschlagen. Überprüfen Sie die Verbindung.
+===
+fetchViaDeviceManager >f, Stop 24->Of, f361=None
+========
+fetchViaDeviceManager, Stop 99, currentFlowValue=0, sumFlowValue=0
+US Flow Sensor: Current flow rate = 0, Total flow = 0 m³
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected
+Fehler bei der Sensorablesung: Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+automode OFF False
+DEBUG: US Flow Sensor is active. Trying to read data...
+DEBUG: Initializing UsFlowHandler with Sensor ID: 40
+Error reading US Flow Sensor: cannot unpack non-iterable NoneType object
+Received response is shorter than expected

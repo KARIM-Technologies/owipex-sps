@@ -2,7 +2,7 @@ import math
 import json
 from scipy.interpolate import interp1d
 
-class FlowCalculation:
+class RadarFlowCalculation:
     def __init__(self, calibration_file):
         self.load_calibration_data(calibration_file)
 
