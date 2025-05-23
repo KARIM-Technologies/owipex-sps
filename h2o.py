@@ -475,6 +475,10 @@ class UsHandler:
             total_flow, unit = self.sensor.read_totalizer_m3()
             print(f"DTI-1 Test - Gesamtmenge: {total_flow} {unit}")
             
+            # Lese Pipe Diameter
+            pipeDiameter = self.sensor.read_pipediameter_mm()
+            print(f"DTI-1 Test - Pipe Diameter: {pipeDiameter}")
+            
             # Erfolgreicher Test
             return True
         except Exception as e:
