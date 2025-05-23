@@ -5,8 +5,8 @@
 #
 # License: All Rights Reserved
 #
-# Module: Modbus Lib V1.0
-# Description: Erweiterte Modbus-Kommunikation für alle Sensoren (Radar, PH, Trübe, DTI-1 Flow)
+# Module: Modbus Lib V0.5
+# Description: Modbus Communication Module
 # -----------------------------------------------------------------------------
 
 import struct
@@ -14,6 +14,7 @@ import serial
 import crcmod.predefined
 from threading import Thread
 from time import sleep
+
 
 class ModbusClient:
     def __init__(self, device_manager, device_id):
@@ -25,6 +26,8 @@ class ModbusClient:
         return self.device_manager.read_register(self.device_id, start_address, register_count, data_format)
     
     def read_register_FOR_TAOSONIC_ONLY(self, start_address, register_count, data_format, swap_bytes_in_registers):
+        # # ACHTUNG: der Taosonic Flow Sensor hat eine abweichende Registernummerierung, deswegen ziehen wir hier 1 ab
+        # return self.device_manager.read_register_FOR_TAOSONIC_ONLY(self.device_id, start_address-1, register_count, data_format)
         return self.device_manager.read_register_FOR_TAOSONIC_ONLY(self.device_id, start_address, register_count, data_format, swap_bytes_in_registers)
 
     def read_radar_sensor(self, register_address):
@@ -43,12 +46,6 @@ class ModbusClient:
     def stop_auto_read(self):
         self.auto_read_enabled = False
 
-    # DTI-1 spezifische Methoden
-    def read_flow_rate_m3ph(self):
-        return self.device_manager.read_flow_rate_m3ph(self.device_id)
-
-    def read_totalizer_m3(self):
-        return self.device_manager.read_totalizer_m3(self.device_id)
 
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
@@ -63,12 +60,14 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
 
+
     def add_device(self, device_id):
         self.devices[device_id] = ModbusClient(self, device_id)
 
     def get_device(self, device_id):
         return self.devices.get(device_id)
 
+    
     def read_register(self, device_id, start_address, register_count, data_format):
         function_code = 0x03
 
@@ -140,6 +139,8 @@ class DeviceManager:
             return self.last_read_values.get((device_id, start_address), None)
 
         data = response[3:-2]
+        # self.print_bytes_info("data", data)
+        # ACHTUNG, hier für TAOSONIC werden die Register nicht, aber die Bytes in den Registern getauscht
         # Optionales Swapping der Bytes in den Registern
         if swap_bytes_in_registers:
             swapped_data = data[1:2] + data[0:1] + data[3:4] + data[2:3]
@@ -161,6 +162,13 @@ class DeviceManager:
         return floating_point
 
     # Wandelt eine Ganzzahl (0-99) in ein BCD-codiertes Byte um.
+    # param n: Die zu konvertierende Zahl (0-99).
+    # return: Die BCD-codierte Darstellung als Byte (int).
+    # 
+    # Beispiel:
+    # n = 45
+    # bcd = int_to_bcd(n)
+    # print(f"BCD-Darstellung von {n}: {bcd:#04x}")
     def int_to_bcd(self, n: int) -> int:
         if not (0 <= n <= 99):
             raise ValueError("Zahl muss zwischen 0 und 99 liegen")
@@ -172,85 +180,3 @@ class DeviceManager:
     def read_radar_sensor(self, device_id, register_address):
         return self.read_register(device_id, register_address, 1, data_format='>H')
 
-    # DTI-1 Spezifische Methoden
-    def read_holding_raw(self, device_id, start_address, register_count):
-        """
-        Liest Rohwerte aus Modbus-Holdings-Registern ohne Interpretation/Konvertierung.
-        Gibt die Rohdaten zurück.
-        """
-        function_code = 0x03
-        message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
-        crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
-        message += struct.pack('<H', crc16)
-        self.ser.write(message)
-        response = self.ser.read(5 + 2 * register_count)
-        if len(response) < (5 + 2 * register_count):
-            raise Exception("Antwort zu kurz")
-        received_crc = struct.unpack('<H', response[-2:])[0]
-        calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
-        if received_crc != calculated_crc:
-            raise Exception("CRC-Fehler!")
-        data = response[3:-2]
-        return data
-
-    def read_flow_rate_m3ph(self, device_id):
-        """
-        Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
-        """
-        try:
-            data = self.read_holding_raw(device_id, 0, 2)
-            value = struct.unpack('<f', data)[0]
-            return value  # m³/h
-        except Exception as e:
-            print(f"Fehler beim Lesen des Durchflusswerts: {e}")
-            return None
-
-    def read_totalizer_m3(self, device_id):
-        """
-        Liest die gesamterfasste Menge in m³ unter Berücksichtigung von Integer- und Dezimalteil, Multiplier und Einheit.
-        """
-        try:
-            # Integer-Teil: Register 9+10 (Adresse 8), LONG Little Endian
-            int_data = self.read_holding_raw(device_id, 8, 2)
-            N = struct.unpack('<l', int_data)[0]
-
-            # Dezimalteil: Register 11+12 (Adresse 10), FLOAT Little Endian
-            frac_data = self.read_holding_raw(device_id, 10, 2)
-            Nf = struct.unpack('<f', frac_data)[0]
-
-            # Einheit: Register 1438 (Adresse 1437), INT16 (i.d.R. Big Endian)
-            unit_data = self.read_holding_raw(device_id, 1437, 1)
-            unit_code = struct.unpack('>h', unit_data)[0]
-
-            # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
-            multi_data = self.read_holding_raw(device_id, 1438, 1)
-            n = struct.unpack('>h', multi_data)[0]
-
-            # Protokollformel: Gesamtmenge = (N + Nf) * 10^(n-3)
-            total = (N + Nf) * (10 ** (n - 3))
-
-            # Optional: Einheit als Text (siehe Protokoll-Tabelle)
-            einheiten = {
-                0: 'm³', 1: 'Liter', 2: 'US-Gallone', 3: 'UK-Gallone',
-                4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
-            }
-            einheit = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
-
-            return total, einheit
-
-        except Exception as e:
-            print(f"Fehler beim Lesen des Totalizers: {e}")
-            return None, None
-
-# Beispiel-Nutzung:
-if __name__ == "__main__":
-    # Passe ggf. Port und Device-ID an!
-    dev = DeviceManager(port="/dev/ttyS0", baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
-    device_id = 0x28  # Beispiel
-
-    sensor = dev.get_device(device_id)
-    flow = sensor.read_flow_rate_m3ph()
-    print(f"Aktueller Durchfluss: {flow:.3f} m³/h")
-
-    total, einheit = sensor.read_totalizer_m3()
-    print(f"Gesamterfasste Menge: {total:.3f} {einheit}")
