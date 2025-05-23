@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-# TODO: remove this comment (test2)
+# TODO: remove this comment (test3)
 from periphery import GPIO
 from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
