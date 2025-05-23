@@ -10,11 +10,21 @@
 # -----------------------------------------------------------------------------
 
 import sys
-sys.path.append('/home/owipex_adm/owipex-sps/libs')
+import os
+
+# Dynamisch den Pfad zum Hauptverzeichnis ermitteln
+# Der Import funktioniert unabhängig davon, von wo das Skript aufgerufen wird
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.append(project_root)
+
 import time
 import struct
 import serial
 import crcmod.predefined
+
+print(f"Projektpfad: {project_root}")
+print(f"Systempfade: {sys.path}")
 
 # Direkte Modbus-RTU Kommunikation für detaillierte Fehleranalyse
 class DTI1Debugger:

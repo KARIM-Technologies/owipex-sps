@@ -13,9 +13,19 @@
 # erweiterten Modbus-Bibliothek von KARIM Technologies.
 
 import sys
-sys.path.append('/home/owipex_adm/owipex-sps/libs')
+import os
+
+# Dynamisch den Pfad zum Hauptverzeichnis ermitteln
+# Der Import funktioniert unabhängig davon, von wo das Skript aufgerufen wird
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.append(project_root)
+
 import time
 from libs.modbus_lib import DeviceManager
+
+print(f"Projektpfad: {project_root}")
+print(f"Systempfade: {sys.path}")
 
 # Create DeviceManager
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
