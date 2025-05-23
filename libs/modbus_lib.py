@@ -326,6 +326,43 @@ class DeviceManager:
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
+            print("stop 1")
+            try:
+                data = self.read_holding_raw(device_id, 1440, 1)
+                value = struct.unpack('<h', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value < 0 or value > 1000000:  # Unrealistisch
+                    print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
+                    return 0
+                return value  # ID
+            except Exception as e:
+                print(f"Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+            print("stop 2")
+            try:
+                data = self.read_holding_raw(device_id, 1440, 1)
+                value = struct.unpack('>h', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value < 0 or value > 1000000:  # Unrealistisch
+                    print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
+                    return 0
+                return value  # ID
+            except Exception as e:
+                print(f"Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+            print("stop 3")
+            try:
+                data = self.read_holding_raw(device_id, 1441, 1)
+                value = struct.unpack('<h', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value < 0 or value > 1000000:  # Unrealistisch
+                    print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
+                    return 0
+                return value  # ID
+            except Exception as e:
+                print(f"Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+            print("stop 4")
             try:
                 data = self.read_holding_raw(device_id, 1441, 1)
                 value = struct.unpack('>h', data)[0]
@@ -337,7 +374,8 @@ class DeviceManager:
             except Exception as e:
                 print(f"Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
-                
+            print("stop 99")
+
         return None  # Nach allen Versuchen gescheitert
 
 # Beispiel-Nutzung:
