@@ -14,6 +14,7 @@ import serial
 import crcmod.predefined
 from threading import Thread
 from time import sleep
+import time
 
 class ModbusClient:
     def __init__(self, device_manager, device_id):
@@ -178,69 +179,120 @@ class DeviceManager:
         Liest Rohwerte aus Modbus-Holdings-Registern ohne Interpretation/Konvertierung.
         Gibt die Rohdaten zurück.
         """
+        # Puffer leeren vor der Anfrage
+        self.ser.reset_input_buffer()
+        time.sleep(0.05)  # Kurze Pause für Stabilität
+        
         function_code = 0x03
         message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
+        
         self.ser.write(message)
-        response = self.ser.read(5 + 2 * register_count)
-        if len(response) < (5 + 2 * register_count):
+        time.sleep(0.1)  # Warten auf vollständige Antwort
+        
+        # Mehr Bytes lesen als minimal notwendig, falls zusätzliche Bytes kommen
+        response = self.ser.read(100)
+        
+        # Prüfen, ob die Antwort minimal sinnvoll ist
+        if len(response) < 5:
             raise Exception("Antwort zu kurz")
+            
+        # Korrektur für zusätzliche Bytes am Anfang der Antwort
+        offset = 0
+        while offset < len(response) and response[offset] != device_id:
+            offset += 1
+            
+        if offset > 0:
+            print(f"Warnung: {offset} zusätzliche Bytes am Anfang der Antwort, werden ignoriert")
+            response = response[offset:]
+            
+        if len(response) < 5:
+            raise Exception("Antwort nach Offset-Korrektur zu kurz")
+        
+        # CRC prüfen
         received_crc = struct.unpack('<H', response[-2:])[0]
         calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
+        
         if received_crc != calculated_crc:
             raise Exception("CRC-Fehler!")
-        data = response[3:-2]
+            
+        data = response[3:-2]  # Slave-ID (1) + Func (1) + Byte count (1) + ... + CRC (2)
         return data
 
     def read_flow_rate_m3ph(self, device_id):
         """
         Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
         """
-        try:
-            data = self.read_holding_raw(device_id, 0, 2)
-            value = struct.unpack('<f', data)[0]
-            return value  # m³/h
-        except Exception as e:
-            print(f"Fehler beim Lesen des Durchflusswerts: {e}")
-            return None
+        # Bis zu 3 Versuche bei Fehlern
+        for attempt in range(3):
+            try:
+                data = self.read_holding_raw(device_id, 0, 2)
+                value = struct.unpack('<f', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value > 1000000:  # Unrealistisch hoher Durchfluss
+                    print(f"Warnung: Unplausibel hoher Durchflusswert: {value}, setze auf 0")
+                    return 0.0
+                return value  # m³/h
+            except Exception as e:
+                print(f"Fehler beim Lesen des Durchflusswerts (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+                
+        return None  # Nach allen Versuchen gescheitert
 
     def read_totalizer_m3(self, device_id):
         """
         Liest die gesamterfasste Menge in m³ unter Berücksichtigung von Integer- und Dezimalteil, Multiplier und Einheit.
         """
-        try:
-            # Integer-Teil: Register 9+10 (Adresse 8), LONG Little Endian
-            int_data = self.read_holding_raw(device_id, 8, 2)
-            N = struct.unpack('<l', int_data)[0]
+        # Bis zu 3 Versuche bei Fehlern
+        for attempt in range(3):
+            try:
+                # Integer-Teil: Register 9+10 (Adresse 8), LONG Little Endian
+                int_data = self.read_holding_raw(device_id, 8, 2)
+                N = struct.unpack('<l', int_data)[0]
 
-            # Dezimalteil: Register 11+12 (Adresse 10), FLOAT Little Endian
-            frac_data = self.read_holding_raw(device_id, 10, 2)
-            Nf = struct.unpack('<f', frac_data)[0]
+                # Dezimalteil: Register 11+12 (Adresse 10), FLOAT Little Endian
+                frac_data = self.read_holding_raw(device_id, 10, 2)
+                Nf = struct.unpack('<f', frac_data)[0]
+                
+                # Einheit und Multiplikator mit Standardwerten im Fehlerfall
+                unit_code = 0  # Standard: m³
+                n = 0          # Standard: Multiplikator = 10^-3
+                
+                try:
+                    # Einheit: Register 1438 (Adresse 1437), INT16 (i.d.R. Big Endian)
+                    unit_data = self.read_holding_raw(device_id, 1437, 1)
+                    unit_code = struct.unpack('>h', unit_data)[0]
+                except Exception as e:
+                    print(f"Warnung: Fehler beim Lesen der Einheit: {e}, verwende m³")
+                
+                try:
+                    # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
+                    multi_data = self.read_holding_raw(device_id, 1438, 1)
+                    n = struct.unpack('>h', multi_data)[0]
+                except Exception as e:
+                    print(f"Warnung: Fehler beim Lesen des Multiplikators: {e}, verwende Standard")
+                
+                # Protokollformel: Gesamtmenge = (N + Nf) * 10^(n-3)
+                total = (N + Nf) * (10 ** (n - 3))
+                
+                # Verwende immer den Absolutwert, um negative Werte zu vermeiden
+                total = abs(total)
 
-            # Einheit: Register 1438 (Adresse 1437), INT16 (i.d.R. Big Endian)
-            unit_data = self.read_holding_raw(device_id, 1437, 1)
-            unit_code = struct.unpack('>h', unit_data)[0]
+                # Optional: Einheit als Text (siehe Protokoll-Tabelle)
+                einheiten = {
+                    0: 'm³', 1: 'Liter', 2: 'US-Gallone', 3: 'UK-Gallone',
+                    4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
+                }
+                einheit = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
 
-            # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
-            multi_data = self.read_holding_raw(device_id, 1438, 1)
-            n = struct.unpack('>h', multi_data)[0]
+                return total, einheit
 
-            # Protokollformel: Gesamtmenge = (N + Nf) * 10^(n-3)
-            total = (N + Nf) * (10 ** (n - 3))
-
-            # Optional: Einheit als Text (siehe Protokoll-Tabelle)
-            einheiten = {
-                0: 'm³', 1: 'Liter', 2: 'US-Gallone', 3: 'UK-Gallone',
-                4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
-            }
-            einheit = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
-
-            return total, einheit
-
-        except Exception as e:
-            print(f"Fehler beim Lesen des Totalizers: {e}")
-            return None, None
+            except Exception as e:
+                print(f"Fehler beim Lesen des Totalizers (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+                
+        return None, None  # Nach allen Versuchen gescheitert
 
 # Beispiel-Nutzung:
 if __name__ == "__main__":

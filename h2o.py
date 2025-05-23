@@ -416,24 +416,51 @@ class RadarTotalFlowManager:
 class UsHandler:
     def __init__(self, sensor):
         self.sensor = sensor  # DTI-1 Flow Sensor
+        self.last_successful_flow_rate = 0.0
+        self.last_successful_total_flow = 0.0
+        self.consecutive_errors = 0
+        self.max_consecutive_errors = 5
 
     def fetchViaDeviceManager(self):
         try:
-            # Verwende die neuen Methoden für den DTI-1 Flow Sensor
+            # Verwende die verbesserten Methoden für den DTI-1 Flow Sensor
             current_flow = self.sensor.read_flow_rate_m3ph()
             total_flow, unit = self.sensor.read_totalizer_m3()
             
-            if current_flow is not None and total_flow is not None:
-                print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} {unit}")
-                return current_flow, total_flow
+            # Erfolgreiche Werte merken (für Fallback bei Fehlern)
+            if current_flow is not None:
+                self.last_successful_flow_rate = current_flow
+                self.consecutive_errors = 0  # Reset Fehlerzähler bei Erfolg
             else:
-                print("Fehler beim Lesen des DTI-1 Flow Sensors")
-                return None, None
+                self.consecutive_errors += 1
+                current_flow = self.last_successful_flow_rate
+                print(f"Warnung: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
+                
+            if total_flow is not None:
+                self.last_successful_total_flow = total_flow
+                self.consecutive_errors = 0  # Reset Fehlerzähler bei Erfolg
+            else:
+                self.consecutive_errors += 1
+                total_flow = self.last_successful_total_flow
+                print(f"Warnung: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} {unit or 'm³'}")
+            
+            # Protokolliere die gelesenen Werte
+            print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} {unit or 'm³'}")
+            
+            # Überprüfe auf zu viele aufeinanderfolgende Fehler
+            if self.consecutive_errors >= self.max_consecutive_errors:
+                print(f"WARNUNG: {self.consecutive_errors} aufeinanderfolgende Fehler beim DTI-1 Sensor. Überprüfen Sie die Verbindung!")
+                
+            return current_flow, total_flow
+            
         except Exception as e:
-            print(f"Ausnahme beim Lesen des DTI-1 Flow Sensors: {e}")
+            self.consecutive_errors += 1
+            print(f"Exception beim Lesen des DTI-1 Flow Sensors: {e}")
             import traceback
             traceback.print_exc()
-            return None, None
+            
+            # Bei Fehler die letzten erfolgreichen Werte zurückgeben
+            return self.last_successful_flow_rate, self.last_successful_total_flow
 
     def fetchViaDeviceManagerTest(self):
         """
