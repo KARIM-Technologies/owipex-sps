@@ -479,6 +479,10 @@ class UsHandler:
             pipeDiameter = self.sensor.read_pipediameter_mm()
             print(f"DTI-1 Test - Pipe Diameter: {pipeDiameter}")
             
+            # Lese Device ID
+            deviceId = self.sensor.read_deviceid()
+            print(f"DTI-1 Test - Device ID: {deviceId}")
+            
             # Erfolgreicher Test
             return True
         except Exception as e:

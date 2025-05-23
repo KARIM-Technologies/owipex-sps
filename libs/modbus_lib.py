@@ -54,6 +54,9 @@ class ModbusClient:
     def read_pipediameter_mm(self):
         return self.device_manager.read_pipediameter_mm(self.device_id)
 
+    def read_deviceid(self):
+        return self.device_manager.read_deviceid(self.device_id)
+
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
         self.ser = serial.Serial(
@@ -299,20 +302,40 @@ class DeviceManager:
 
     def read_pipediameter_mm(self, device_id):
         """
-        Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 200 (2 Register)
+        Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 221 (Address 220, 2 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
                 data = self.read_holding_raw(device_id, 220, 2)
-                value = struct.unpack('<f', data)[0]
+                value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
-                if value > 1000000:  # Unrealistisch hoher Durchfluss
+                if value < 0 or value > 1000000:  # Unrealistisch
                     print(f"Warnung: Unplausibler Pipe Diameter: {value}, setze auf 0")
                     return 0.0
-                return value  # m³/h
+                return value  # mm
             except Exception as e:
                 print(f"Fehler beim Lesen des Pipe Diameter (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+                
+        return None  # Nach allen Versuchen gescheitert
+
+    def read_deviceid(self, device_id):
+        """
+        Liest die DeviceId (INTEGER) aus Register 1441 (Address 1440, 1 Register)
+        """
+        # Bis zu 3 Versuche bei Fehlern
+        for attempt in range(3):
+            try:
+                data = self.read_holding_raw(device_id, 1440, 1)
+                value = struct.unpack('<l', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value < 0 or value > 1000000:  # Unrealistisch
+                    print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
+                    return 0
+                return value  # ID
+            except Exception as e:
+                print(f"Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
         return None  # Nach allen Versuchen gescheitert
