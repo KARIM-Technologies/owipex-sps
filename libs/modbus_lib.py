@@ -307,7 +307,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 220, 2)
+                data = self.read_holding_raw(device_id, 221, 2)
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
@@ -328,7 +328,7 @@ class DeviceManager:
         for attempt in range(3):
             try:
                 data = self.read_holding_raw(device_id, 1440, 1)
-                value = struct.unpack('<l', data)[0]
+                value = struct.unpack('<h', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
                     print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
