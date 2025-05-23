@@ -294,6 +294,26 @@ class DeviceManager:
                 
         return None, None  # Nach allen Versuchen gescheitert
 
+    def read_pipediameter_mm(self, device_id):
+        """
+        Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 200 (2 Register)
+        """
+        # Bis zu 3 Versuche bei Fehlern
+        for attempt in range(3):
+            try:
+                data = self.read_holding_raw(device_id, 200, 2)
+                value = struct.unpack('<f', data)[0]
+                # Nicht-plausible Werte abfangen (extreme Ausreißer)
+                if value > 1000000:  # Unrealistisch hoher Durchfluss
+                    print(f"Warnung: Unplausibler Pipe Diameter: {value}, setze auf 0")
+                    return 0.0
+                return value  # m³/h
+            except Exception as e:
+                print(f"Fehler beim Lesen des Pipe Diameter (Versuch {attempt+1}/3): {e}")
+                time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
+                
+        return None  # Nach allen Versuchen gescheitert
+
 # Beispiel-Nutzung:
 if __name__ == "__main__":
     # Passe ggf. Port und Device-ID an!
