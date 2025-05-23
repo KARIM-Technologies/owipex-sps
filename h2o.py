@@ -2,7 +2,7 @@ import sys
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
-
+# TODO: remove this comment (test)
 import signal
 import logging.handlers
 import time
@@ -10,7 +10,6 @@ import os
 import libs.gpsDataLib as gpsDataLib
 import json
 import threading
-
 
 from periphery import GPIO
 from threading import Thread
