@@ -51,6 +51,9 @@ class ModbusClient:
     def read_totalizer_m3(self):
         return self.device_manager.read_totalizer_m3(self.device_id)
 
+    def read_pipediameter_mm(self):
+        return self.device_manager.read_pipediameter_mm(self.device_id)
+
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
         self.ser = serial.Serial(
