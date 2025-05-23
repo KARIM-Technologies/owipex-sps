@@ -1,0 +1,182 @@
+DTI-1 Modbus/RS485 Protokoll – Technische Dokumentation
+1. Allgemeines
+Schnittstelle: RS485 (isoliert)
+
+Unterstützte Protokolle: MODBUS-RTU, MODBUS-ASCII (Standard: ASCII), Meter-BUS, Fuji Extended Protocol, sowie >10 weitere Kompatibilitätsprotokolle.
+
+Serielle Einstellungen (Standard):
+
+Baudrate: 9600 Baud
+
+Parität: None
+
+Datenbits: 8
+
+Stoppbits: 1
+
+2. MODBUS-Kommunikation
+2.1. MODBUS Varianten
+MODBUS-RTU und MODBUS-ASCII werden unterstützt.
+
+Auswahl des Formats über Window/Register M63.
+
+Nur die Funktionscodes 3 (Read Holding Registers) und 6 (Write Single Register) werden unterstützt.
+
+Geräteadresse (Slave-ID) wird über Window/Register M46 eingestellt (nur lokal am Gerät über Keypad, nicht remote).
+
+2.2. Standard-Kommunikation
+Beispiel (MODBUS-RTU):
+Lesen von 10 Registern ab Adresse 0 von Slave-ID 1:
+
+Kopieren
+Bearbeiten
+01 03 00 00 00 0A C5 CD
+01: Slave-Adresse
+
+03: Function Code (Read Holding Registers)
+
+00 00: Startadresse
+
+00 0A: Anzahl Register (10)
+
+C5 CD: CRC
+
+Beispiel (MODBUS-ASCII):
+
+php-template
+Kopieren
+Bearbeiten
+:01030000000AF2<CR><LF>
+2.3. Register-Übersicht (Holding Register ab 40001 = Register 0)
+Register-Nr.	Variable	Format	Einheit/Anmerkung
+0001-0002	Flow Rate	REAL4	m³/h
+0003-0004	Energy Flow Rate	REAL4	GJ/h
+0005-0006	Velocity	REAL4	m/s
+0007-0008	Fluid Sound Speed	REAL4	m/s
+0009-0010	Positive Accumulator	LONG	Einheit siehe M31 und Multiplier
+0011-0012	Positive Decimal Fraction	REAL4	wie Integer-Teil
+0013-0014	Negative Accumulator	LONG	
+...	...	...	...
+0033-0034	Temperature #1 (Inlet)	REAL4	°C
+0035-0036	Temperature #2 (Outlet)	REAL4	°C
+0077-0078	PT100 Resistance Inlet	REAL4	Ohm
+0079-0080	PT100 Resistance Outlet	REAL4	Ohm
+0092	Working Step/Signal Quality	INTEGER	High Byte: Step, Low: Quality
+0093	Upstream Strength	INTEGER	0–2047
+0094	Downstream Strength	INTEGER	0–2047
+...	...	...	...
+1438	Unit for Flow Totalizer	INTEGER	0–7 (siehe unten)
+1439	Multiplier for Totalizer	INTEGER	0–7
+1440	Multiplier for Energy Accum.	INTEGER	0–10
+1441	Unit for Energy Rate	INTEGER	0=GJ, 1=Kcal, 2=KWh, 3=BTU
+1442	Device Address	INTEGER	
+
+REAL4: IEEE-754 Single Precision Float (32 bit, 2 Register)
+LONG: 32-bit Integer (2 Register, little endian)
+
+2.4. Wichtige Einheiten & Umrechnungen
+Accumulator-Ausgabe:
+Der finale Wert = (N + Nf) × 10^n-3
+
+N: Integer-Teil (z.B. REG 0009/0010)
+
+Nf: Dezimal-Teil (z.B. REG 0011/0012)
+
+n: Multiplier (REG 1439)
+
+Einheit siehe REG 1438
+
+Wert REG 1438	Einheit
+0	m³
+1	Liter
+2	US-Gallone
+3	UK-Gallone
+4	Million Gal US
+5	Cubic Feet
+6	Oil Barrel US
+7	Oil Barrel UK
+
+3. Weitere Features und Hinweise
+Automatische Datenübertragung: Kann periodisch eingestellt werden.
+
+Analog- und Digital-I/Os:
+
+4–20 mA Ausgänge,
+
+OCT-Ausgänge (Schaltfunktionen für z.B. Pumpen)
+
+Passwort-/Sicherheitsmanagement: Siehe Register 0049–0051.
+
+Fehlercodes: Register 0072, 13–16 Bit-Masken (z.B. Bit0: Kein Empfangssignal, Bit4: Hardwarefehler etc.)
+
+4. Befehlsübersicht MODBUS
+4.1. Lesen von Werten (Function Code 3)
+Beispiel: Lesen des aktuellen Durchflusswerts (m³/h)
+Register: 0001–0002
+
+Request (RTU):
+
+css
+Kopieren
+Bearbeiten
+[SlaveID] 03 00 00 00 02 [CRC]
+Antwort:
+
+css
+Kopieren
+Bearbeiten
+[SlaveID] 03 04 [Wert als 4 Bytes] [CRC]
+Interpretation: Wert als IEEE-754 Float dekodieren (Little Endian)
+
+Beispiel: Lesen Temperatur #1 (Inlet)
+Register: 0033–0034
+
+Request:
+
+css
+Kopieren
+Bearbeiten
+[SlaveID] 03 00 32 00 02 [CRC]
+4.2. Schreiben eines einzelnen Registers (Function Code 6)
+Beispiel: Setzen der Display-Hintergrundbeleuchtung (Register 0061)
+Request:
+
+css
+Kopieren
+Bearbeiten
+[SlaveID] 06 00 3C 00 0A [CRC]
+→ Setzt die Backlight-Zeit auf 10 Sekunden
+
+5. Register für Tages- und Monatswertspeicherung
+Register 0162: Pointer für Tagesdaten (0–63)
+
+Register 2817–2832: Block für Tageswert (siehe Mapping im Protokoll)
+
+Register 0163: Pointer für Monatsdaten (0–31)
+
+Register 3329–3344: Block für Monatswert
+
+6. Beispiel-Python-Struct für IEEE754-Umwandlung
+python
+Kopieren
+Bearbeiten
+import struct
+
+# 2 Register (4 Bytes) einlesen und umwandeln (Little Endian)
+def modbus_to_float(registers):
+    bytes_data = struct.pack('<HH', registers[0], registers[1])
+    return struct.unpack('<f', bytes_data)[0]
+7. Adressierung und Besonderheiten
+Die Geräteadresse muss am Gerät lokal eingestellt werden.
+
+Mehrere Geräte am Bus: immer korrekte Slave-Adresse verwenden!
+
+Protokollauswahl (RTU/ASCII) am Gerät einstellen.
+
+8. Troubleshooting & Hinweise
+Prüfen der Kommunikationsparameter: Baudrate, Parität, Datenbits, Stoppbits müssen überall identisch sein.
+
+Register-Abweichungen: Die Registerbelegung weicht ggf. von anderen Wasserzählern ab – IMMER mit obiger Tabelle abgleichen!
+
+Fehlermasken: Siehe Fehlerregister und Bitmaske für präzise Fehlerauswertung.
+
