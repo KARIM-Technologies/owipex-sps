@@ -480,14 +480,8 @@ class UsHandler:
             print(f"DTI-1 Test - Pipe Diameter: {pipeDiameter}")
             
             # Lese Device ID
-            deviceId = self.sensor.read_deviceid(False, True)
-            print(f"DTI-1 Test - Device ID (little, minus1): {deviceId}")
-            deviceId = self.sensor.read_deviceid(True, True)
-            print(f"DTI-1 Test - Device ID (big, minus1): {deviceId}")
-            deviceId = self.sensor.read_deviceid(False, False)
-            print(f"DTI-1 Test - Device ID (little, orginal): {deviceId}")
-            deviceId = self.sensor.read_deviceid(True, False)
-            print(f"DTI-1 Test - Device ID (big, orginal): {deviceId}")
+            deviceId = self.sensor.read_deviceid()
+            print(f"DTI-1 Test - Device ID: {deviceId}")
             
             # Erfolgreicher Test
             return True
