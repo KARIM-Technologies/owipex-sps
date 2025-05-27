@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.32" # for internal use only
+DEVELOPMENT_VERSION = "2.33" # for internal use only
 
 # TODO: remove this comment (test4)
 from periphery import GPIO
@@ -75,6 +75,8 @@ def load_state():
 def attribute_callback(result, _):
     global gps_handler, gpsEnabled
     
+    print(f"Attribute callback: {result}")
+
     # Aktualisiere globale Variablen
     globals().update({key: result[key] for key in result if key in globals()})
     
