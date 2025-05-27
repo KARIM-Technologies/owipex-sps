@@ -233,7 +233,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 0, 2)
+                data = self.read_holding_raw(device_id, 1, 2)
                 print(f"Stop 1")
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
