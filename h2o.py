@@ -12,6 +12,8 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
+DEVELOPMENT_VERSION = "2.31" # for internal use only
+
 # TODO: remove this comment (test4)
 from periphery import GPIO
 from threading import Thread
@@ -528,6 +530,8 @@ isVersionSent = False
 def main():
     #def Global Variables for Main Funktion
     global isVersionSent, last_send_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled
+
+    print(f"Version: {DEVELOPMENT_VERSION}")
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
