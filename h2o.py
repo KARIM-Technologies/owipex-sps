@@ -631,7 +631,7 @@ def main():
                 radar_total_flow = radarTotalFlowManager.total_flow
                 radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
 
-        if (usSensorActive):
+        if (True or usSensorActive): # TODO: remove True
             print(f"DEBUG: DTI-1 Flow Sensor ist aktiv. Versuche Daten zu lesen...")
             try:
                 print(f"DEBUG: Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
