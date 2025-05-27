@@ -212,6 +212,7 @@ class DeviceManager:
                 # Integer-Teil: Register 9+10 (Adresse 9), LONG Big Endian
                 int_data = self.read_holding_raw(device_id, 9, 2)
                 N = struct.unpack('>l', int_data)[0]
+                print(f"Integer-Teil (aus Register 9+10): {N}")
 
                 # # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Little Endian
                 # frac_data = self.read_holding_raw(device_id, 11, 2)
@@ -219,7 +220,8 @@ class DeviceManager:
                 # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
                 frac_data = self.read_holding_raw(device_id, 11, 2)
                 Nf = struct.unpack('>f', frac_data)[0]
-                
+                print(f"Dezimalteil (aus Register 11+12): {Nf}")
+
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
                 unit_code = 0  # Standard: m³
                 n = 0          # Standard: Multiplikator = 10^-3
@@ -228,6 +230,7 @@ class DeviceManager:
                     # Einheit: Register 1438 (Adresse 1438), INT16 (i.d.R. Big Endian)
                     unit_data = self.read_holding_raw(device_id, 1438, 1)
                     unit_code = struct.unpack('>h', unit_data)[0]
+                    print(f"Einheit (aus Register 1438): {unit_code}")
                 except Exception as e:
                     print(f"Warnung: Fehler beim Lesen der Einheit: {e}, verwende m³")
                 
@@ -235,6 +238,7 @@ class DeviceManager:
                     # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
                     multi_data = self.read_holding_raw(device_id, 1439, 1)
                     n = struct.unpack('>h', multi_data)[0]
+                    print(f"Multiplier (aus Register 1439): {n}")
                 except Exception as e:
                     print(f"Warnung: Fehler beim Lesen des Multiplikators: {e}, verwende Standard")
                 
@@ -250,7 +254,7 @@ class DeviceManager:
                     4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
                 }
                 einheit = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
-
+                
                 return total, einheit
 
             except Exception as e:
