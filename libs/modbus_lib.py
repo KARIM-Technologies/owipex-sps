@@ -25,9 +25,6 @@ class ModbusClient:
     def read_register(self, start_address, register_count, data_format='>f'):
         return self.device_manager.read_register(self.device_id, start_address, register_count, data_format)
     
-    def read_register_FOR_TAOSONIC_ONLY(self, start_address, register_count, data_format, swap_bytes_in_registers):
-        return self.device_manager.read_register_FOR_TAOSONIC_ONLY(self.device_id, start_address, register_count, data_format, swap_bytes_in_registers)
-
     def read_radar_sensor(self, register_address):
         return self.device_manager.read_radar_sensor(self.device_id, register_address)
 
@@ -123,50 +120,6 @@ class DeviceManager:
         print(f"================")
         pass
     
-    def read_register_FOR_TAOSONIC_ONLY(self, device_id, start_address, register_count, data_format, swap_bytes_in_registers): 
-        function_code = 0x03
-
-        message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
-
-        crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
-        message += struct.pack('<H', crc16)
-
-        self.ser.write(message)
-
-        response = self.ser.read(100)
-        
-        # Check if the response is at least 2 bytes long
-        if len(response) < 2:
-            print('Received response is shorter than expected')
-            return self.last_read_values.get((device_id, start_address), None)
-
-        received_crc = struct.unpack('<H', response[-2:])[0]
-        calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
-        if received_crc != calculated_crc:
-            print('CRC error in response')
-            return self.last_read_values.get((device_id, start_address), None)
-
-        data = response[3:-2]
-        # Optionales Swapping der Bytes in den Registern
-        if swap_bytes_in_registers:
-            swapped_data = data[1:2] + data[0:1] + data[3:4] + data[2:3]
-        else:
-            swapped_data = data
-        try:
-            floating_point = struct.unpack(data_format, swapped_data)[0]
-        except struct.error:
-            print(f'Error decoding data from device {device_id}')
-            return self.last_read_values.get((device_id, start_address), None)
-
-        if floating_point is None:
-            print(f'Error reading register from device {device_id}')
-            return self.last_read_values.get((device_id, start_address), None)
-
-        # Store the read value in the last_read_values dictionary
-        self.last_read_values[(device_id, start_address)] = floating_point
-
-        return floating_point
-
     # Wandelt eine Ganzzahl (0-99) in ein BCD-codiertes Byte um.
     def int_to_bcd(self, n: int) -> int:
         if not (0 <= n <= 99):
@@ -234,7 +187,6 @@ class DeviceManager:
         for attempt in range(3):
             try:
                 data = self.read_holding_raw(device_id, 1, 2)
-                print(f"Stop 1")
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -254,28 +206,34 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                # Integer-Teil: Register 9+10 (Adresse 8), LONG Little Endian
-                int_data = self.read_holding_raw(device_id, 8, 2)
-                N = struct.unpack('<l', int_data)[0]
+                # # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
+                # int_data = self.read_holding_raw(device_id, 9, 2)
+                # N = struct.unpack('<l', int_data)[0]
+                # Integer-Teil: Register 9+10 (Adresse 9), LONG Big Endian
+                int_data = self.read_holding_raw(device_id, 9, 2)
+                N = struct.unpack('>l', int_data)[0]
 
-                # Dezimalteil: Register 11+12 (Adresse 10), FLOAT Little Endian
-                frac_data = self.read_holding_raw(device_id, 10, 2)
-                Nf = struct.unpack('<f', frac_data)[0]
+                # # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Little Endian
+                # frac_data = self.read_holding_raw(device_id, 11, 2)
+                # Nf = struct.unpack('<f', frac_data)[0]
+                # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
+                frac_data = self.read_holding_raw(device_id, 11, 2)
+                Nf = struct.unpack('>f', frac_data)[0]
                 
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
                 unit_code = 0  # Standard: m³
                 n = 0          # Standard: Multiplikator = 10^-3
                 
                 try:
-                    # Einheit: Register 1438 (Adresse 1437), INT16 (i.d.R. Big Endian)
-                    unit_data = self.read_holding_raw(device_id, 1437, 1)
+                    # Einheit: Register 1438 (Adresse 1438), INT16 (i.d.R. Big Endian)
+                    unit_data = self.read_holding_raw(device_id, 1438, 1)
                     unit_code = struct.unpack('>h', unit_data)[0]
                 except Exception as e:
                     print(f"Warnung: Fehler beim Lesen der Einheit: {e}, verwende m³")
                 
                 try:
                     # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
-                    multi_data = self.read_holding_raw(device_id, 1438, 1)
+                    multi_data = self.read_holding_raw(device_id, 1439, 1)
                     n = struct.unpack('>h', multi_data)[0]
                 except Exception as e:
                     print(f"Warnung: Fehler beim Lesen des Multiplikators: {e}, verwende Standard")
@@ -303,7 +261,7 @@ class DeviceManager:
 
     def read_pipediameter_mm(self, device_id):
         """
-        Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 221 (Address 220, 2 Register)
+        Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 221 (Address 221, 2 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
