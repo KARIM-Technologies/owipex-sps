@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.47" # for internal use only
+DEVELOPMENT_VERSION = "2.48" # for internal use only
 
 from periphery import GPIO
 from threading import Thread
@@ -498,7 +498,7 @@ isVersionSent = False
 
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled
+    global isVersionSent, last_send_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
 
     print(f"Version: {DEVELOPMENT_VERSION}")
 
@@ -604,7 +604,6 @@ def main():
                 print(f"DEBUG: Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
                 us_flow_handler = UsHandler(Us_Sensor)
                 usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
-                print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {usFlowRate} m³/h, Gesamtdurchfluss = {usFlowTotal} m³")
             except Exception as e:
                 print(f"Fehler beim Lesen des DTI-1 Flow Sensors: {e}")
                 import traceback
