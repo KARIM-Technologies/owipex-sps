@@ -186,24 +186,9 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                # Durchflusswert: Register 1+2 (Adresse 0 !!!, 2 Register), REAL4/Float, mit Little Endian
-                # data = self.read_holding_raw(device_id, 0, 2) # !!!
-                # value = struct.unpack('<f', data)[0]
-                # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Little Endian
-                data = self.read_holding_raw(device_id, 0, 2)
-                value = struct.unpack('>f', data)[0]
-                print(f"Durchflusswert (aus Register 0+1, Big Endian): {value}")
-                time.sleep(2)
                 data = self.read_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
                 print(f"Durchflusswert (aus Register 1+2, Big Endian): {value}")
-                data = self.read_holding_raw(device_id, 0, 2)
-                value = struct.unpack('<f', data)[0]
-                print(f"Durchflusswert (aus Register 0+1, Little Endian): {value}")
-                time.sleep(2)
-                data = self.read_holding_raw(device_id, 1, 2)
-                value = struct.unpack('<f', data)[0]
-                print(f"Durchflusswert (aus Register 1+2, Little Endian): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -234,13 +219,24 @@ class DeviceManager:
                 # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
                 int_data = self.read_holding_raw(device_id, 8, 2)
                 N = struct.unpack('<l', int_data)[0]
-                print(f"Integer-Teil (aus Register 9+10): {N}")
+                print(f"Integer-Teil (aus Register 8+9, Little Endian): {N}")
+                time.sleep(2)
+                int_data = self.read_holding_raw(device_id, 9, 2)
+                N = struct.unpack('<l', int_data)[0]
+                print(f"Integer-Teil (aus Register 9+10, Little Endian): {N}")
+                int_data = self.read_holding_raw(device_id, 8, 2)
+                N = struct.unpack('>l', int_data)[0]
+                print(f"Integer-Teil (aus Register 8+9, Big Endian): {N}")
+                time.sleep(2)
+                int_data = self.read_holding_raw(device_id, 9, 2)
+                vaNlue = struct.unpack('>l', int_data)[0]
+                print(f"Integer-Teil (aus Register 9+10, Big Endian): {N}")
 
                 # # Dezimalteil: Register 11+12 (Adresse 10 !!!), FLOAT Little Endian
                 # frac_data = self.read_holding_raw(device_id, 10, 2) # !!!
                 # Nf = struct.unpack('<f', frac_data)[0]
                 # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
-                frac_data = self.read_holding_raw(device_id, 10, 2)
+                frac_data = self.read_holding_raw(device_id, 11, 2)
                 Nf = struct.unpack('>f', frac_data)[0]
                 print(f"Dezimalteil (aus Register 11+12): {Nf}")
 
@@ -250,7 +246,7 @@ class DeviceManager:
                 
                 try:
                     # Einheit: Register 1438 (Adresse 1438), INT16 (i.d.R. Big Endian)
-                    unit_data = self.read_holding_raw(device_id, 1437, 1)
+                    unit_data = self.read_holding_raw(device_id, 1438, 1)
                     unit_code = struct.unpack('>h', unit_data)[0]
                     print(f"Einheit (aus Register 1438): {unit_code}")
                 except Exception as e:
@@ -258,7 +254,7 @@ class DeviceManager:
                 
                 try:
                     # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
-                    multi_data = self.read_holding_raw(device_id, 1438, 1)
+                    multi_data = self.read_holding_raw(device_id, 1439, 1)
                     n = struct.unpack('>h', multi_data)[0]
                     print(f"Multiplier (aus Register 1439): {n}")
                 except Exception as e:
