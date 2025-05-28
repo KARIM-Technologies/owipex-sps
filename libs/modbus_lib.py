@@ -189,9 +189,9 @@ class DeviceManager:
                 # Durchflusswert: Register 1+2 (Adresse 0 !!!, 2 Register), REAL4/Float, mit Little Endian
                 # data = self.read_holding_raw(device_id, 0, 2) # !!!
                 # value = struct.unpack('<f', data)[0]
-                # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Big Endian
+                # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Little Endian
                 data = self.read_holding_raw(device_id, 1, 2)
-                value = struct.unpack('>f', data)[0]
+                value = struct.unpack('<f', data)[0]
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -217,19 +217,19 @@ class DeviceManager:
         for attempt in range(3):
             try:
                 # Integer-Teil: Register 9+10 (Adresse 8 !!!), LONG Little Endian
-                int_data = self.read_holding_raw(device_id, 8, 2) # !!!
+                # int_data = self.read_holding_raw(device_id, 8, 2) # !!!
+                # N = struct.unpack('<l', int_data)[0]
+                # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
+                int_data = self.read_holding_raw(device_id, 9, 2)
                 N = struct.unpack('<l', int_data)[0]
-                # Integer-Teil: Register 9+10 (Adresse 9), LONG Big Endian
-                # int_data = self.read_holding_raw(device_id, 9, 2)
-                # N = struct.unpack('>l', int_data)[0]
                 print(f"Integer-Teil (aus Register 9+10): {N}")
 
                 # # Dezimalteil: Register 11+12 (Adresse 10 !!!), FLOAT Little Endian
-                frac_data = self.read_holding_raw(device_id, 10, 2) # !!!
-                Nf = struct.unpack('<f', frac_data)[0]
+                # frac_data = self.read_holding_raw(device_id, 10, 2) # !!!
+                # Nf = struct.unpack('<f', frac_data)[0]
                 # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
-                # frac_data = self.read_holding_raw(device_id, 11, 2)
-                # Nf = struct.unpack('>f', frac_data)[0]
+                frac_data = self.read_holding_raw(device_id, 11, 2)
+                Nf = struct.unpack('<f', frac_data)[0]
                 print(f"Dezimalteil (aus Register 11+12): {Nf}")
 
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
