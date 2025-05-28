@@ -12,9 +12,8 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.46" # for internal use only
+DEVELOPMENT_VERSION = "2.47" # for internal use only
 
-# TODO: remove this comment (test4)
 from periphery import GPIO
 from threading import Thread
 from tb_gateway_mqtt import TBDeviceMqttClient
@@ -146,16 +145,13 @@ class RuntimeTracker:
     def __init__(self, filename="run_time.txt"):
         self.start_time = None
         self.total_runtime = 0
-        self.filename = os.path.join(CONFIG_PATH, filename)  # Diese Zeile behalten
-        print(f"content of {CONFIG_PATH}: \"{CONFIG_PATH}\"")  # TODO: remove
+        self.filename = os.path.join(CONFIG_PATH, filename)
+        # print(f"content of {CONFIG_PATH}: \"{CONFIG_PATH}\"")
         
         # Lade die gespeicherte Laufzeit, wenn die Datei existiert
         if os.path.exists(self.filename):
             with open(self.filename, 'r') as file:
-                content = file.read() # TODO: remove
-                print(f"content of {filename}: \"{content}\"")  # TODO: remove
-                self.total_runtime = float(content)
-                # self.total_runtime = float(file.read()) # TODO: wierer einhängen
+                self.total_runtime = float(file.read())
 
     def start(self):
         self.start_time = time.time()
@@ -466,35 +462,6 @@ class UsHandler:
             # Bei Fehler die letzten erfolgreichen Werte zurückgeben
             return self.last_successful_flow_rate, self.last_successful_total_flow
 
-    def fetchViaDeviceManagerTest(self):
-        """
-        Test-Methode für den DTI-1 Flow Sensor, die verschiedene Register ausliest und ausgibt
-        """
-        try:
-            # Lese Durchflussrate
-            flow_rate = self.sensor.read_flow_rate_m3ph()
-            print(f"DTI-1 Test - Durchflussrate: {flow_rate} m³/h")
-            
-            # Lese Gesamtmenge
-            total_flow = self.sensor.read_totalizer_m3()
-            print(f"DTI-1 Test - Gesamtmenge: {total_flow} m³")
-            
-            # Lese Pipe Diameter
-            pipeDiameter = self.sensor.read_pipediameter_mm()
-            print(f"DTI-1 Test - Pipe Diameter: {pipeDiameter}")
-            
-            # Lese Device ID
-            deviceId = self.sensor.read_deviceid()
-            print(f"DTI-1 Test - Device ID: {deviceId}")
-            
-            # Erfolgreicher Test
-            return True
-        except Exception as e:
-            print(f"DTI-1 Testfehler: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
     pumpRelaySw = False
@@ -636,7 +603,6 @@ def main():
             try:
                 print(f"DEBUG: Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
                 us_flow_handler = UsHandler(Us_Sensor)
-                us_flow_handler.fetchViaDeviceManagerTest()  # Testausgabe
                 usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
                 print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {usFlowRate} m³/h, Gesamtdurchfluss = {usFlowTotal} m³")
             except Exception as e:

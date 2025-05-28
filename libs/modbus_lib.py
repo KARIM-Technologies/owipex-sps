@@ -188,13 +188,13 @@ class DeviceManager:
             try:
                 data = self.read_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                print(f"Durchflusswert (aus Register 1+2, Big Endian): {value}")
+                print(f"Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
                     print(f"Warnung: Unplausibel hoher Durchflusswert: {value}, setze auf 0")
                     return 0.0
-                print(f"Durchflusswert (aus Register 1+2): {value}")
+
                 return value  # m³/h
             except Exception as e:
                 print(f"Fehler beim Lesen des Durchflusswerts (Versuch {attempt+1}/3): {e}")
@@ -215,7 +215,7 @@ class DeviceManager:
             try:
                 data = self.read_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                print(f"NetAccumulator im m3(aus Register 113, Big Endian): {value}")
+                print(f"NetAccumulator im m3(aus Register 113): {value}")
                 return value
 
             except Exception as e:
@@ -246,13 +246,13 @@ class DeviceManager:
 
     def read_deviceid(self, device_id):
         """
-        Liest die DeviceId (INTEGER) aus Register 1441 (Address 1440, 1 Register)
+        Liest die DeviceId (INTEGER) aus Register 1442 (Address 1442, 1 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 1440, 1)
-                value = struct.unpack("<h", data)[0]
+                data = self.read_holding_raw(device_id, 1442, 1)
+                value = struct.unpack(">h", data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
                     print(f"Warnung: Unplausibler DeviceId: {value}, setze auf 0")
@@ -264,15 +264,15 @@ class DeviceManager:
 
         return None  # Nach allen Versuchen gescheitert
 
-# Beispiel-Nutzung:
-if __name__ == "__main__":
-    # Passe ggf. Port und Device-ID an!
-    dev = DeviceManager(port="/dev/ttyS0", baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
-    device_id = 0x28  # Beispiel
+# # Beispiel-Nutzung:
+# if __name__ == "__main__":
+#     # Passe ggf. Port und Device-ID an!
+#     dev = DeviceManager(port="/dev/ttyS0", baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+#     device_id = 0x28  # Beispiel
 
-    sensor = dev.get_device(device_id)
-    flow = sensor.read_flow_rate_m3ph()
-    print(f"Aktueller Durchfluss: {flow:.3f} m³/h")
+#     sensor = dev.get_device(device_id)
+#     flow = sensor.read_flow_rate_m3ph()
+#     print(f"Aktueller Durchfluss: {flow:.3f} m³/h")
 
-    total, einheit = sensor.read_totalizer_m3()
-    print(f"Gesamterfasste Menge: {total:.3f} {einheit}")
+#     total, einheit = sensor.read_totalizer_m3()
+#     print(f"Gesamterfasste Menge: {total:.3f} {einheit}")
