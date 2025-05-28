@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.49" # for internal use only
+DEVELOPMENT_VERSION = "2.51" # for internal use only
 
 from periphery import GPIO
 from threading import Thread
@@ -598,8 +598,7 @@ def main():
                 radar_total_flow = radarTotalFlowManager.total_flow
                 radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
 
-        if (True or usSensorActive): # TODO: remove True
-            print(f"DEBUG: DTI-1 Flow Sensor ist zum Test IMMER auf aktiv gesetzt. Diesen Code hier dann wieder entfernen...")
+        if usSensorActive:
             print(f"DTI-1 Flow Sensor ist aktiv. Versuche Daten zu lesen...")
             try:
                 print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
@@ -609,8 +608,8 @@ def main():
                 print(f"Fehler beim Lesen des DTI-1 Flow Sensors: {e}")
                 import traceback
                 traceback.print_exc()
-        else:
-            print("DTI-1 Flow Sensor ist deaktiviert (usSensorActive = False)")
+        # else:
+        #     print("DTI-1 Flow Sensor ist deaktiviert (usSensorActive = False)")
  
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
