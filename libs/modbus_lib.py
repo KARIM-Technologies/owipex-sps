@@ -208,97 +208,21 @@ class DeviceManager:
 
     def read_totalizer_m3(self, device_id):
         """
-        Liest die gesamterfasste Menge in m³ unter Berücksichtigung von Integer- und Dezimalteil, Multiplier und Einheit.
+        Liest die gesamterfasste Menge in m³ aus dem Register 113
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                # Integer-Teil: Register 9+10 (Adresse 8 !!!), LONG Little Endian
-                # int_data = self.read_holding_raw(device_id, 8, 2) # !!!
-                # N = struct.unpack('<l', int_data)[0]
-                # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
-                int_data = self.read_holding_raw(device_id, 8, 2)
-                N = struct.unpack('<l', int_data)[0]
-                print(f"Integer-Teil (aus Register 8+9, Little Endian): {N}")
-                time.sleep(2)
-                int_data = self.read_holding_raw(device_id, 9, 2)
-                N = struct.unpack('<l', int_data)[0]
-                print(f"Integer-Teil (aus Register 9+10, Little Endian): {N}")
-                int_data = self.read_holding_raw(device_id, 8, 2)
-                N = struct.unpack('>l', int_data)[0]
-                print(f"Integer-Teil (aus Register 8+9, Big Endian): {N}")
-                time.sleep(2)
-                int_data = self.read_holding_raw(device_id, 9, 2)
-                vaNlue = struct.unpack('>l', int_data)[0]
-                print(f"Integer-Teil (aus Register 9+10, Big Endian): {N}")
-                time.sleep(2)
-
-                # # Dezimalteil: Register 11+12 (Adresse 10 !!!), FLOAT Little Endian
-                # frac_data = self.read_holding_raw(device_id, 10, 2) # !!!
-                # Nf = struct.unpack('<f', frac_data)[0]
-                # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
-                frac_data = self.read_holding_raw(device_id, 11, 2)
-                Nf = struct.unpack('>f', frac_data)[0]
-                print(f"Dezimalteil (aus Register 11+12): {Nf}")
-                time.sleep(2)
-
-                # Einheit und Multiplikator mit Standardwerten im Fehlerfall
-                unit_code = 0  # Standard: m³
-                n = 0          # Standard: Multiplikator = 10^-3
-                
-                try:
-                    # Einheit: Register 1438 (Adresse 1438), INT16 (i.d.R. Big Endian)
-                    unit_data = self.read_holding_raw(device_id, 1438, 1)
-                    unit_code = struct.unpack('>h', unit_data)[0]
-                    print(f"Einheit (aus Register 1438): {unit_code}")
-                except Exception as e:
-                    print(f"Warnung: Fehler beim Lesen der Einheit: {e}, verwende m³")
-                time.sleep(2)
-                
-                try:
-                    # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
-                    multi_data = self.read_holding_raw(device_id, 1439, 1)
-                    n = struct.unpack('>h', multi_data)[0]
-                    print(f"Multiplier (aus Register 1439): {n}")
-                except Exception as e:
-                    print(f"Warnung: Fehler beim Lesen des Multiplikators: {e}, verwende Standard")
-                
-                # Protokollformel: Gesamtmenge = (N + Nf) * 10^(n-3)
-                total = (N + Nf) * (10 ** (n - 3))
-                
-                # Verwende immer den Absolutwert, um negative Werte zu vermeiden
-                total = abs(total)
-
-                # Optional: Einheit als Text (siehe Protokoll-Tabelle)
-                einheiten = {
-                    0: 'm³', 1: 'Liter', 2: 'US-Gallone', 3: 'UK-Gallone',
-                    4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
-                }
-                einheitAsText = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
-                print(f"Gesamterfasste Menge: {total:.3f} {einheitAsText}")
-
-                # Umrechnung in m3
-                mengeUndEinheitAsTextInM3 = ''
-                if unit_code == 0:
-                    mengeUndEinheitAsTextInM3 = f"{total:.3f} m³"
-                elif unit_code == 2:
-                    mengeUndEinheitAsTextInM3 = f"{self.gallonsToCubicMeters(total):.3f} m³"
-                else:
-                    mengeUndEinheitAsTextInM3 = f"TODO: noch nicht unterstützte Einheit ({unit_code})"
-                print(f"Gesamterfasste Menge in m3: {mengeUndEinheitAsTextInM3}")
-
-                time.sleep(2)
                 data = self.read_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
                 print(f"NetAccumulator im m3(aus Register 113, Big Endian): {value}")
-
-                return total, einheitAsText
+                return value
 
             except Exception as e:
                 print(f"Fehler beim Lesen des Totalizers (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
-        return None, None  # Nach allen Versuchen gescheitert
+        return None  # Nach allen Versuchen gescheitert
 
     def read_pipediameter_mm(self, device_id):
         """

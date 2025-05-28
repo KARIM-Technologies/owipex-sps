@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.45" # for internal use only
+DEVELOPMENT_VERSION = "2.46" # for internal use only
 
 # TODO: remove this comment (test4)
 from periphery import GPIO
@@ -429,7 +429,7 @@ class UsHandler:
         try:
             # Verwende die verbesserten Methoden für den DTI-1 Flow Sensor
             current_flow = self.sensor.read_flow_rate_m3ph()
-            total_flow, unit = self.sensor.read_totalizer_m3()
+            total_flow = self.sensor.read_totalizer_m3()
             
             # Erfolgreiche Werte merken (für Fallback bei Fehlern)
             if current_flow is not None:
@@ -446,10 +446,10 @@ class UsHandler:
             else:
                 self.consecutive_errors += 1
                 total_flow = self.last_successful_total_flow
-                print(f"Warnung: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} {unit or 'm³'}")
+                print(f"Warnung: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
             
             # Protokolliere die gelesenen Werte
-            print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} {unit or 'm³'}")
+            print(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
             
             # Überprüfe auf zu viele aufeinanderfolgende Fehler
             if self.consecutive_errors >= self.max_consecutive_errors:
@@ -476,8 +476,8 @@ class UsHandler:
             print(f"DTI-1 Test - Durchflussrate: {flow_rate} m³/h")
             
             # Lese Gesamtmenge
-            total_flow, unit = self.sensor.read_totalizer_m3()
-            print(f"DTI-1 Test - Gesamtmenge: {total_flow} {unit}")
+            total_flow = self.sensor.read_totalizer_m3()
+            print(f"DTI-1 Test - Gesamtmenge: {total_flow} m³")
             
             # Lese Pipe Diameter
             pipeDiameter = self.sensor.read_pipediameter_mm()
