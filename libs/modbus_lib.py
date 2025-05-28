@@ -186,12 +186,12 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                # Durchflusswert: Register 1+2 (Adresse 0 !!!, 2 Register), REAL4/Float, mit Big Endian
-                data = self.read_holding_raw(device_id, 0, 2) # !!!
-                value = struct.unpack('<f', data)[0]
+                # Durchflusswert: Register 1+2 (Adresse 0 !!!, 2 Register), REAL4/Float, mit Little Endian
+                # data = self.read_holding_raw(device_id, 0, 2) # !!!
+                # value = struct.unpack('<f', data)[0]
                 # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Big Endian
-                # data = self.read_holding_raw(device_id, 1, 2)
-                # value = struct.unpack('>f', data)[0]
+                data = self.read_holding_raw(device_id, 1, 2)
+                value = struct.unpack('>f', data)[0]
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
