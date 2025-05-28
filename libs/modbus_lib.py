@@ -192,12 +192,18 @@ class DeviceManager:
                 # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Little Endian
                 data = self.read_holding_raw(device_id, 0, 2)
                 value = struct.unpack('>f', data)[0]
-                print(f"Durchflusswert (aus Register 0+1): {value}")
+                print(f"Durchflusswert (aus Register 0+1, Big Endian): {value}")
                 time.sleep(2)
                 data = self.read_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                print(f"Durchflusswert (aus Register 1+2): {value}")
-                # Test, remove this comment 2
+                print(f"Durchflusswert (aus Register 1+2, Big Endian): {value}")
+                data = self.read_holding_raw(device_id, 0, 2)
+                value = struct.unpack('<f', data)[0]
+                print(f"Durchflusswert (aus Register 0+1, Little Endian): {value}")
+                time.sleep(2)
+                data = self.read_holding_raw(device_id, 1, 2)
+                value = struct.unpack('<f', data)[0]
+                print(f"Durchflusswert (aus Register 1+2, Little Endian): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
