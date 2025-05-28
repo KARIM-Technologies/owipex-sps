@@ -192,12 +192,17 @@ class DeviceManager:
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
                     print(f"Warnung: Unplausibel hoher Durchflusswert: {value}, setze auf 0")
                     return 0.0
+                print(f"Durchflusswert (aus Register 1+2): {value}")
                 return value  # m³/h
             except Exception as e:
                 print(f"Fehler beim Lesen des Durchflusswerts (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
         return None  # Nach allen Versuchen gescheitert
+
+    def gallonsToCubicMeters(self, gallons):
+        # 1 US gallon = 0.003785411784 m³
+        return gallons * 0.003785411784
 
     def read_totalizer_m3(self, device_id):
         """
@@ -253,9 +258,20 @@ class DeviceManager:
                     0: 'm³', 1: 'Liter', 2: 'US-Gallone', 3: 'UK-Gallone',
                     4: 'Million US-Gallonen', 5: 'cubic feet', 6: 'oil barrel US', 7: 'oil barrel UK'
                 }
-                einheit = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
-                
-                return total, einheit
+                einheitAsText = einheiten.get(unit_code, f'Unbekannt ({unit_code})')
+                print(f"Gesamterfasste Menge: {total:.3f} {einheitAsText}")
+
+                # Umrechnung in m3
+                mengeUndEinheitAsTextInM3 = ''
+                if unit_code == 0:
+                    mengeUndEinheitAsTextInM3 = f"{total:.3f} m³"
+                elif unit_code == 2:
+                    mengeUndEinheitAsTextInM3 = f"{self.gallonsToCubicMeters(total):.3f} m³"
+                else:
+                    mengeUndEinheitAsTextInM3 = f"TODO: noch nicht unterstützte Einheit ({unit_code})"
+                print(f"Gesamterfasste Menge in m3: {mengeUndEinheitAsTextInM3}")
+
+                return total, einheitAsText
 
             except Exception as e:
                 print(f"Fehler beim Lesen des Totalizers (Versuch {attempt+1}/3): {e}")
