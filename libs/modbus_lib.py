@@ -231,6 +231,7 @@ class DeviceManager:
                 int_data = self.read_holding_raw(device_id, 9, 2)
                 vaNlue = struct.unpack('>l', int_data)[0]
                 print(f"Integer-Teil (aus Register 9+10, Big Endian): {N}")
+                time.sleep(2)
 
                 # # Dezimalteil: Register 11+12 (Adresse 10 !!!), FLOAT Little Endian
                 # frac_data = self.read_holding_raw(device_id, 10, 2) # !!!
@@ -239,6 +240,7 @@ class DeviceManager:
                 frac_data = self.read_holding_raw(device_id, 11, 2)
                 Nf = struct.unpack('>f', frac_data)[0]
                 print(f"Dezimalteil (aus Register 11+12): {Nf}")
+                time.sleep(2)
 
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
                 unit_code = 0  # Standard: m³
@@ -251,6 +253,7 @@ class DeviceManager:
                     print(f"Einheit (aus Register 1438): {unit_code}")
                 except Exception as e:
                     print(f"Warnung: Fehler beim Lesen der Einheit: {e}, verwende m³")
+                time.sleep(2)
                 
                 try:
                     # Multiplier: Register 1439 (Adresse 1438), INT16 (i.d.R. Big Endian)
@@ -283,6 +286,11 @@ class DeviceManager:
                 else:
                     mengeUndEinheitAsTextInM3 = f"TODO: noch nicht unterstützte Einheit ({unit_code})"
                 print(f"Gesamterfasste Menge in m3: {mengeUndEinheitAsTextInM3}")
+
+                time.sleep(2)
+                data = self.read_holding_raw(device_id, 113, 2)
+                value = struct.unpack('>f', data)[0]
+                print(f"NetAccumulator im m3(aus Register 113, Big Endian): {value}")
 
                 return total, einheitAsText
 
