@@ -197,6 +197,7 @@ class DeviceManager:
                 data = self.read_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
                 print(f"Durchflusswert (aus Register 1+2): {value}")
+                # Test, remove this comment 2
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss

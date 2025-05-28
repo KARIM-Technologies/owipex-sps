@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.37" # for internal use only
+DEVELOPMENT_VERSION = "2.42" # for internal use only
 
 # TODO: remove this comment (test4)
 from periphery import GPIO
