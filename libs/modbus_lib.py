@@ -191,7 +191,12 @@ class DeviceManager:
                 # value = struct.unpack('<f', data)[0]
                 # Durchflusswert: Register 1+2 (Adresse 1 !!!, 2 Register), REAL4/Float, mit Little Endian
                 data = self.read_holding_raw(device_id, 0, 2)
-                value = struct.unpack('<f', data)[0]
+                value = struct.unpack('>f', data)[0]
+                print(f"Durchflusswert (aus Register 0+1): {value}")
+                time.sleep(2)
+                data = self.read_holding_raw(device_id, 1, 2)
+                value = struct.unpack('>f', data)[0]
+                print(f"Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -229,7 +234,7 @@ class DeviceManager:
                 # Nf = struct.unpack('<f', frac_data)[0]
                 # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
                 frac_data = self.read_holding_raw(device_id, 10, 2)
-                Nf = struct.unpack('<f', frac_data)[0]
+                Nf = struct.unpack('>f', frac_data)[0]
                 print(f"Dezimalteil (aus Register 11+12): {Nf}")
 
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
