@@ -211,20 +211,20 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                # # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
-                # int_data = self.read_holding_raw(device_id, 9, 2)
-                # N = struct.unpack('<l', int_data)[0]
-                # Integer-Teil: Register 9+10 (Adresse 9), LONG Big Endian
+                # Integer-Teil: Register 9+10 (Adresse 9), LONG Little Endian
                 int_data = self.read_holding_raw(device_id, 9, 2)
-                N = struct.unpack('>l', int_data)[0]
+                N = struct.unpack('<l', int_data)[0]
+                # Integer-Teil: Register 9+10 (Adresse 9), LONG Big Endian
+                # int_data = self.read_holding_raw(device_id, 9, 2)
+                # N = struct.unpack('>l', int_data)[0]
                 print(f"Integer-Teil (aus Register 9+10): {N}")
 
                 # # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Little Endian
-                # frac_data = self.read_holding_raw(device_id, 11, 2)
-                # Nf = struct.unpack('<f', frac_data)[0]
-                # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
                 frac_data = self.read_holding_raw(device_id, 11, 2)
-                Nf = struct.unpack('>f', frac_data)[0]
+                Nf = struct.unpack('<f', frac_data)[0]
+                # Dezimalteil: Register 11+12 (Adresse 11), FLOAT Big Endian
+                # frac_data = self.read_holding_raw(device_id, 11, 2)
+                # Nf = struct.unpack('>f', frac_data)[0]
                 print(f"Dezimalteil (aus Register 11+12): {Nf}")
 
                 # Einheit und Multiplikator mit Standardwerten im Fehlerfall
