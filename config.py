@@ -62,6 +62,12 @@ flow_rate_l_h = 20.0
 flow_rate_m3_min = 20.0
 total_flow = 0.0
 
+# OutletFlap Configuration
+outletFlapActive = False
+outletFlapRemoteLocal = 0
+outletFlapValvePosition = 0
+outletFlapSetpoint = 0
+outletFlapErrorCode = 0
 
 # GPS Configuration
 gpsTimestamp = 1.0
@@ -74,7 +80,8 @@ gpsHeight = 1.0
 telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisSw', 'co2HeatingRelaySw', 'pumpRelaySw', 'calculatedFlowRate', 'waterLevelHeight_telem', 'measuredTurbidity_telem',
                   'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
                   'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
-                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'maximumTurbidity', 'turbiditySensorActive', 'gpsEnabled']
+                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'maximumTurbidity', 'turbiditySensorActive', 'gpsEnabled',
+                  'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapValvePosition', 'outletFlapSetpoint', 'outletFlapErrorCode']
 
 attributes_keys = ['ip_address', 'macaddress']
 
@@ -85,4 +92,5 @@ shared_attributes_keys = ['minimumPHValStop', 'ph_low_delay_start_time', 'ph_hig
                           'PHValueOffset', 'maximumTurbidity', 'turbiditySensorActive', 
                           'turbidityOffset', 'radarSensorActive', 'autoSwitch', 'callGpsSwitch', 'powerButton', 'co2RelaisSwSig',
                           'calibratePH', 'targetPHValue', 'targetPHtolerrance', 'gemessener_high_wert',
-                          'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal', 'gpsEnabled']
+                          'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal', 'gpsEnabled',
+                          'outletFlapActive', 'outletFlapSetpoint', 'outletFlapRemoteLocal']

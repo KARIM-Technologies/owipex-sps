@@ -31,10 +31,12 @@ dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbi
 dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
+dev_manager.add_device(device_id=0x05)
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x01)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 PH_Sensor = dev_manager.get_device(device_id=0x03)
+OutletFlap = dev_manager.get_device(device_id=0x05)
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
@@ -257,9 +259,9 @@ class PHHandler:
         try:
             raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
             if raw_ph_value is None:
-                raise ValueError("Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
+                raise ValueError("PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
         except Exception as e:
-            print(f"Fehler bei der Sensorablesung: {e}")
+            print(f"Fehler bei der PH Sensorablesung: {e}")
             return None, None
 
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
@@ -356,6 +358,43 @@ class FlowRateHandler:
         }
 
 
+class OutletFlapHandler:
+    def __init__(self, sensor):
+        self.sensor = sensor  # Übergeben Sie die OutletFlap-Instanz
+
+    def fetch_and_display_data(self):
+        try:
+            remote_local = self.sensor.read_register(start_address=0x0000, register_count=1)
+            valve_position = self.sensor.read_register(start_address=0x0001, register_count=1)
+            setpoint = self.sensor.read_register(start_address=0x0002, register_count=1)
+            error_code = self.sensor.read_register(start_address=0x0003, register_count=1)
+            
+            print(f'OutletFlap - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}')
+            return remote_local, valve_position, setpoint, error_code
+        except Exception as e:
+            print(f"Fehler bei der OutletFlap-Ablesung: {e}")
+            return None, None, None, None
+
+    def write_setpoint(self, setpoint_value):
+        try:
+            # Write to setpoint register (0x0002)
+            self.sensor.write_register(start_address=0x0002, register_count=1, value=setpoint_value)
+            print(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
+            return True
+        except Exception as e:
+            print(f"Fehler beim Schreiben des Setpoints: {e}")
+            return False
+
+    def write_remote_local(self, remote_local_value):
+        try:
+            # Write to remote/local register (0x0000)
+            self.sensor.write_register(start_address=0x0000, register_count=1, value=remote_local_value)
+            print(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
+            return True
+        except Exception as e:
+            print(f"Fehler beim Schreiben von Remote/Local: {e}")
+            return False
+
 class TotalFlowManager:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
@@ -435,6 +474,7 @@ runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
+outlet_flap_handler = OutletFlapHandler(OutletFlap)
 ph_handler.load_calibration()
 
 # Vor der main-Funktion:
@@ -443,9 +483,55 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 isVersionSent = False
 
+def test_device_connectivity():
+    """Test connectivity of all configured Modbus devices"""
+    print("\n" + "="*50)
+    print("TESTING MODBUS DEVICE CONNECTIVITY")
+    print("="*50)
+    
+    devices_to_test = [
+        (0x01, "Radar Sensor", Radar_Sensor),
+        (0x02, "Trubidity Sensor", Trub_Sensor), 
+        (0x03, "PH Sensor", PH_Sensor),
+        (0x05, "OutletFlap", OutletFlap)
+    ]
+    
+    connected_devices = []
+    disconnected_devices = []
+    
+    for device_id, device_name, device in devices_to_test:
+        try:
+            # Try to read a register from each device
+            if device_id == 0x01:  # Radar sensor uses different register
+                test_value = device.read_radar_sensor(register_address=0x0001)
+            else:
+                test_value = device.read_register(start_address=0x0001, register_count=1)
+            
+            if test_value is not None:
+                print(f"✅ Device 0x{device_id:02X} ({device_name}): CONNECTED - Value: {test_value}")
+                connected_devices.append(device_name)
+            else:
+                print(f"❌ Device 0x{device_id:02X} ({device_name}): NO RESPONSE")
+                disconnected_devices.append(device_name)
+                
+        except Exception as e:
+            print(f"❌ Device 0x{device_id:02X} ({device_name}): ERROR - {str(e)}")
+            disconnected_devices.append(device_name)
+    
+    print("-"*50)
+    print(f"SUMMARY: {len(connected_devices)} connected, {len(disconnected_devices)} disconnected")
+    if connected_devices:
+        print(f"Connected devices: {', '.join(connected_devices)}")
+    if disconnected_devices:
+        print(f"Disconnected devices: {', '.join(disconnected_devices)}")
+    print("="*50 + "\n")
+
+# Test device connectivity at startup
+test_device_connectivity()
+
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled
+    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapActive, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
@@ -555,6 +641,13 @@ def main():
         else:
             measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
             measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
+
+        # OutletFlap data reading
+        if outletFlapActive:
+            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode = outlet_flap_handler.fetch_and_display_data()
+        else:
+            print("OutletFlap OFF", outletFlapActive)
+            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode = None, None, None, None
 
         if powerButton:
             runtime_tracker.start()
