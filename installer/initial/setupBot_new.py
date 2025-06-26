@@ -49,8 +49,6 @@ def adjust_tb_edge_conf(tb_edge_conf_path, cloud_rpc_host, cloud_rpc_port, cloud
     with open(tb_edge_conf_path, 'w') as file:
         file.writelines(new_lines)
 
-
-
 def confirm_and_restart():
     response = input("Möchten Sie den Rechner jetzt neu starten? (ja/nein): ").lower()
     if response == "ja":
@@ -58,7 +56,6 @@ def confirm_and_restart():
         run_command("sudo reboot")
     else:
         print("Der Neustart wurde abgebrochen.")
-
 
 def move_data_if_desired(move_data_script_path):
     response = input("Möchten Sie die Dateien jetzt verschieben? (ja/nein): ").lower()

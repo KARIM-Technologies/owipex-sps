@@ -29,7 +29,6 @@ import atexit
 import itertools
 import sys
 
-
 class Calibration:
     def __init__(self, device_manager):
         self.device_manager = device_manager
@@ -168,7 +167,6 @@ class Calibration:
         with open(calibration_file_path, 'w') as f:
             json.dump(self.calibration_data, f, indent=4)
         print(f"Kalibrierungsdaten wurden unter {calibration_file_path} gespeichert.")
-
 
 if __name__ == "__main__":
     dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)

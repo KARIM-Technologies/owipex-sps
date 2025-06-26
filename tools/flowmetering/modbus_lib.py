@@ -15,7 +15,6 @@ import crcmod.predefined
 from threading import Thread
 from time import sleep
 
-
 class ModbusClient:
     def __init__(self, device_manager, device_id):
         self.device_manager = device_manager
@@ -41,7 +40,6 @@ class ModbusClient:
     def stop_auto_read(self):
         self.auto_read_enabled = False
 
-
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
         self.ser = serial.Serial(
@@ -54,7 +52,6 @@ class DeviceManager:
         )
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
-
 
     def add_device(self, device_id):
         self.devices[device_id] = ModbusClient(self, device_id)
@@ -102,8 +99,6 @@ class DeviceManager:
         self.last_read_values[(device_id, start_address)] = floating_point
 
         return floating_point
-
-
 
     def read_radar_sensor(self, device_id, register_address):
         return self.read_register(device_id, register_address, 1, data_format='>H')

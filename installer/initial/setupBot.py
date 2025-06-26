@@ -85,7 +85,6 @@ def modify_thingsboard_gateway_config(config_path, hostname):
     except json.JSONDecodeError as e:
         print(f"Fehler beim Parsen der Thingsboard Gateway-Konfigurationsdatei: {e}")
 
-
 def confirm_and_restart():
     response = input("Möchten Sie den Rechner jetzt neu starten? (ja/nein): ").lower()
     if response == "ja":
@@ -93,7 +92,6 @@ def confirm_and_restart():
         run_command("sudo reboot")
     else:
         print("Der Neustart wurde abgebrochen.")
-
 
 def move_data_if_desired(move_data_script_path):
     response = input("Möchten Sie die Dateien jetzt verschieben? (ja/nein): ").lower()

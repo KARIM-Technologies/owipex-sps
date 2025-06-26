@@ -11,7 +11,6 @@
 
 # This script tests the functions of the Modbus Sensor Server by KARIM Technologies.
 
-
 import subprocess
 import time
 from libs.modbus_lib import DeviceManager
@@ -26,7 +25,6 @@ dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbi
 dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
-
 
 count = 2
 interval = 10  # Zeitintervall in Sekunden

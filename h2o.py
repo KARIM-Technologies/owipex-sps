@@ -2,6 +2,9 @@ import sys
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
+# Version number following the specified format
+ProgVers = "2.26"
+
 # TODO: remove this comment (test)
 import signal
 import logging.handlers
@@ -28,15 +31,15 @@ THINGSBOARD_PORT = 1883
 #RS485 Comunication and Devices
 # Create DeviceManager
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
-dev_manager.add_device(device_id=0x01)
+dev_manager.add_device(device_id=0x0B)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
-dev_manager.add_device(device_id=0x05)
+dev_manager.add_device(device_id=0x01)
 # Get devices and read their registers
-Radar_Sensor = dev_manager.get_device(device_id=0x01)
+Radar_Sensor = dev_manager.get_device(device_id=0x0B)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 PH_Sensor = dev_manager.get_device(device_id=0x03)
-OutletFlap = dev_manager.get_device(device_id=0x05)
+OutletFlap = dev_manager.get_device(device_id=0x01)
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
@@ -106,13 +109,12 @@ def rpc_callback(id, request_body):
 
 
 def get_data():
-
-
     attributes = {
         'SW-Version': "2.0.0",
         'HW-Version': "2.0.0"
     }
     telemetry = {key: globals()[key] for key in telemetry_keys if key in globals()}
+    telemetry['Prog-Version'] = ProgVers
 
     # Adding static data
     #telemetry.update({
@@ -240,13 +242,17 @@ class TurbidityHandler:
 
     def fetch_and_display_data(self, turbiditySensorActive):
         if turbiditySensorActive:
-            measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
-            tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
-            print(f'Trueb: {measuredTurbidity_telem}, Trueb Temp Sens: {tempTruebSens}')
-            return measuredTurbidity_telem, tempTruebSens
+            try:
+                measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
+                tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
+                print(f'✅ Trueb: {measuredTurbidity_telem}, Trueb Temp Sens: {tempTruebSens}')
+                return measuredTurbidity_telem, tempTruebSens
+            except Exception as e:
+                print(f'❌ Trubidity Sensor: ERROR - {e}')
+                return None, None
         else:
             print("TruebOFF", turbiditySensorActive)
-            return None, None      
+            return None, None
 
 class PHHandler:
     def __init__(self, sensor):
@@ -261,13 +267,13 @@ class PHHandler:
             if raw_ph_value is None:
                 raise ValueError("PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
         except Exception as e:
-            print(f"Fehler bei der PH Sensorablesung: {e}")
+            print(f"❌ PH Sensor: ERROR - {e}")
             return None, None
 
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
         temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
         
-        print(f'PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
+        print(f'✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
         return measuredPHValue_telem, temperaturPHSens_telem
 
     def correct_ph_value(self, raw_value):
@@ -337,13 +343,13 @@ class FlowRateHandler:
             if measured_air_distance is None:
                 raise ValueError("Keine Messung vom Radar-Sensor erhalten.")
         except Exception as e:
-            print(f"Fehler beim Lesen des Radar-Sensors: {e}")
+            print(f"❌ Radar Sensor: ERROR - {e}")
             return None
 
         water_level = self.zero_reference - measured_air_distance
-        print(f"Hoehe: {water_level} mm")
+        print(f"✅ Hoehe: {water_level} mm")
         flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
-        print(f"Flow Rate (L/s): {flow_rate}")
+        print(f"✅ Flow Rate (L/s): {flow_rate}")
 
         flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
         flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
@@ -368,12 +374,18 @@ class OutletFlapHandler:
             valve_position = self.sensor.read_register(start_address=0x0001, register_count=1)
             setpoint = self.sensor.read_register(start_address=0x0002, register_count=1)
             error_code = self.sensor.read_register(start_address=0x0003, register_count=1)
+            test_register = self.sensor.read_register(start_address=0x0004, register_count=1)
             
-            print(f'OutletFlap - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}')
-            return remote_local, valve_position, setpoint, error_code
+            # Check if all values are None (failed reading)
+            if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
+                print(f'❌ OutletFlap - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                return None, None, None, None, None
+            else:
+                print(f'✅ OutletFlap - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                return remote_local, valve_position, setpoint, error_code, test_register
         except Exception as e:
-            print(f"Fehler bei der OutletFlap-Ablesung: {e}")
-            return None, None, None, None
+            print(f"❌ OutletFlap: ERROR - {e}")
+            return None, None, None, None, None
 
     def write_setpoint(self, setpoint_value):
         try:
@@ -483,55 +495,15 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 isVersionSent = False
 
-def test_device_connectivity():
-    """Test connectivity of all configured Modbus devices"""
-    print("\n" + "="*50)
-    print("TESTING MODBUS DEVICE CONNECTIVITY")
-    print("="*50)
-    
-    devices_to_test = [
-        (0x01, "Radar Sensor", Radar_Sensor),
-        (0x02, "Trubidity Sensor", Trub_Sensor), 
-        (0x03, "PH Sensor", PH_Sensor),
-        (0x05, "OutletFlap", OutletFlap)
-    ]
-    
-    connected_devices = []
-    disconnected_devices = []
-    
-    for device_id, device_name, device in devices_to_test:
-        try:
-            # Try to read a register from each device
-            if device_id == 0x01:  # Radar sensor uses different register
-                test_value = device.read_radar_sensor(register_address=0x0001)
-            else:
-                test_value = device.read_register(start_address=0x0001, register_count=1)
-            
-            if test_value is not None:
-                print(f"✅ Device 0x{device_id:02X} ({device_name}): CONNECTED - Value: {test_value}")
-                connected_devices.append(device_name)
-            else:
-                print(f"❌ Device 0x{device_id:02X} ({device_name}): NO RESPONSE")
-                disconnected_devices.append(device_name)
-                
-        except Exception as e:
-            print(f"❌ Device 0x{device_id:02X} ({device_name}): ERROR - {str(e)}")
-            disconnected_devices.append(device_name)
-    
-    print("-"*50)
-    print(f"SUMMARY: {len(connected_devices)} connected, {len(disconnected_devices)} disconnected")
-    if connected_devices:
-        print(f"Connected devices: {', '.join(connected_devices)}")
-    if disconnected_devices:
-        print(f"Disconnected devices: {', '.join(disconnected_devices)}")
-    print("="*50 + "\n")
-
-# Test device connectivity at startup
-test_device_connectivity()
-
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapActive, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode
+    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapActive, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest
+
+    # Display version at startup
+    print(f"\n{'='*50}")
+    print(f"OWIPEX SPS - Water Quality Control System")
+    print(f"Version: {ProgVers}")
+    print(f"{'='*50}\n")
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
@@ -556,11 +528,8 @@ def main():
         client.subscribe_to_attribute(attribute, attribute_callback)
     client.set_server_side_rpc_request_handler(rpc_callback)
 
-    
-
     total_flow_manager = TotalFlowManager()
     total_flow_manager.start_periodic_save()
-
 
     # Initialisierung des GPSHandlers
     gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
@@ -643,11 +612,8 @@ def main():
             measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
         # OutletFlap data reading
-        if outletFlapActive:
-            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode = outlet_flap_handler.fetch_and_display_data()
-        else:
-            print("OutletFlap OFF", outletFlapActive)
-            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode = None, None, None, None
+        # TESTING: Always read OutletFlap data regardless of outletFlapActive setting
+        outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
 
         if powerButton:
             runtime_tracker.start()
@@ -708,8 +674,6 @@ def main():
             runtime_tracker.stop() 
             time.sleep(2)
 
-    
-    
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 

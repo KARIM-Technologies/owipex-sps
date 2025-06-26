@@ -24,7 +24,6 @@ class FlowCalculation:
     def calculate_flow_rate(self, water_level):
         return self.calibration_function(water_level)  # flow rate in L/s
 
-
     def get_zero_reference(self):
         return self.zero_reference
 

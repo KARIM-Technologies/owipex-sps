@@ -1,0 +1,180 @@
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.
+GPS ist deaktiviert. Keine GPS-Updates werden gestartet.
+{}
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False
+Received response is shorter than expected
+Fehler bei der PH Sensorablesung: PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.
+TruebOFF False
+Power Switch OFF. False

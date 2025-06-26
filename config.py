@@ -68,6 +68,7 @@ outletFlapRemoteLocal = 0
 outletFlapValvePosition = 0
 outletFlapSetpoint = 0
 outletFlapErrorCode = 0
+outletFlapTest = 0
 
 # GPS Configuration
 gpsTimestamp = 1.0
@@ -75,17 +76,14 @@ gpsLatitude = 1.0
 gpsLongitude = 1.0
 gpsHeight = 1.0
 
-
 # Telemetry and Attribute Variables
 telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisSw', 'co2HeatingRelaySw', 'pumpRelaySw', 'calculatedFlowRate', 'waterLevelHeight_telem', 'measuredTurbidity_telem',
                   'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
                   'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
                   'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'maximumTurbidity', 'turbiditySensorActive', 'gpsEnabled',
-                  'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapValvePosition', 'outletFlapSetpoint', 'outletFlapErrorCode']
+                  'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapValvePosition', 'outletFlapSetpoint', 'outletFlapErrorCode', 'outletFlapTest']
 
 attributes_keys = ['ip_address', 'macaddress']
-
-
 
 # Lists for different groups of attributes
 shared_attributes_keys = ['minimumPHValStop', 'ph_low_delay_start_time', 'ph_high_delay_duration', 

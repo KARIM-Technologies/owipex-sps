@@ -15,7 +15,6 @@ import crcmod.predefined
 from threading import Thread
 from time import sleep
 
-
 class ModbusClient:
     def __init__(self, device_manager, device_id):
         self.device_manager = device_manager
@@ -41,7 +40,6 @@ class ModbusClient:
     def stop_auto_read(self):
         self.auto_read_enabled = False
 
-
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
         self.ser = serial.Serial(
@@ -54,7 +52,7 @@ class DeviceManager:
         )
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
-
+        self.error_counts = {}  # Dictionary to track error counts for each device and register
 
     def add_device(self, device_id):
         self.devices[device_id] = ModbusClient(self, device_id)
@@ -65,6 +63,7 @@ class DeviceManager:
     
     def read_register(self, device_id, start_address, register_count, data_format):
         function_code = 0x03
+        error_key = (device_id, start_address)
 
         message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
 
@@ -78,13 +77,15 @@ class DeviceManager:
         # Check if the response is at least 2 bytes long
         if len(response) < 2:
             print('Received response is shorter than expected')
-            return self.last_read_values.get((device_id, start_address), None)
+            self._handle_error(error_key)
+            return self.last_read_values.get(error_key, None)
 
         received_crc = struct.unpack('<H', response[-2:])[0]
         calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
         if received_crc != calculated_crc:
             print('CRC error in response')
-            return self.last_read_values.get((device_id, start_address), None)
+            self._handle_error(error_key)
+            return self.last_read_values.get(error_key, None)
 
         data = response[3:-2]
         swapped_data = data[2:4] + data[0:2]
@@ -92,18 +93,34 @@ class DeviceManager:
             floating_point = struct.unpack(data_format, swapped_data)[0]
         except struct.error:
             print(f'Error decoding data from device {device_id}')
-            return self.last_read_values.get((device_id, start_address), None)
+            self._handle_error(error_key)
+            return self.last_read_values.get(error_key, None)
 
         if floating_point is None:
             print(f'Error reading register from device {device_id}')
-            return self.last_read_values.get((device_id, start_address), None)
+            self._handle_error(error_key)
+            return self.last_read_values.get(error_key, None)
 
+        # Reset error count on successful read
+        self.error_counts[error_key] = 0
+        
         # Store the read value in the last_read_values dictionary
-        self.last_read_values[(device_id, start_address)] = floating_point
+        self.last_read_values[error_key] = floating_point
 
         return floating_point
 
-
+    def _handle_error(self, error_key):
+        """Handle errors and clear cache after 5 failed attempts"""
+        if error_key not in self.error_counts:
+            self.error_counts[error_key] = 0
+        
+        self.error_counts[error_key] += 1
+        
+        if self.error_counts[error_key] >= 5:
+            print(f'Clearing cache for device/register {error_key} after 5 failed attempts')
+            if error_key in self.last_read_values:
+                del self.last_read_values[error_key]
+            self.error_counts[error_key] = 0
 
     def read_radar_sensor(self, device_id, register_address):
         return self.read_register(device_id, register_address, 1, data_format='>H')

@@ -2,7 +2,6 @@ import sys
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
-
 import signal
 import logging.handlers
 import time
@@ -10,7 +9,6 @@ import os
 import libs.gpsDataLib as gpsDataLib
 import json
 import threading
-
 
 from periphery import GPIO
 from threading import Thread
@@ -42,7 +40,6 @@ client = None
 #Import Global vars
 from config import *
 shared_attributes_keys
-
 
 def save_state(state_dict):
     state_file_path = os.path.join(CONFIG_PATH, 'state.json')
@@ -82,9 +79,7 @@ def rpc_callback(id, request_body):
     else:
         print('Unknown method: ' + method)
 
-
 def get_data():
-
 
     attributes = {
         'SW-Version': "2.0.0",
@@ -178,7 +173,6 @@ class GPSHandler:
                 print("Keine neuen GPS-Daten verfügbar. Letzte gültige Daten werden beibehalten.")
 
             time.sleep(self.update_interval)  # Warten bis zum nächsten Update
-
 
     def get_latest_gps_data(self):
         return self.latest_gps_data
@@ -306,7 +300,6 @@ class FlowRateHandler:
             "flow_rate_m3_min": flow_rate_m3_min
         }
 
-
 class TotalFlowManager:
     def __init__(self, update_interval=60):
         self.update_interval = update_interval
@@ -357,7 +350,6 @@ class TotalFlowManager:
                 time.sleep(self.update_interval)
         threading.Thread(target=save_periodically, daemon=True).start()
 
-
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
     pumpRelaySw = False
@@ -373,7 +365,6 @@ def signal_handler(sig, frame):
     time.sleep(3)  # Das Skript wartet hier 2 Sekunden
     print('Shutting down now.')  # Diese Zeile wird nach 2 Sekunden ausgeführt
     exit(0)
-
 
       
 pumpRelaySw = False
@@ -398,7 +389,6 @@ def main():
     saved_state = load_state()
     globals().update(saved_state)
 
-
     client = TBDeviceMqttClient(THINGSBOARD_SERVER, THINGSBOARD_PORT, ACCESS_TOKEN)
     client.connect()
     client.request_attributes(shared_keys=['powerButton', 'callGpsSwitch'], callback=sync_state)
@@ -414,7 +404,6 @@ def main():
 
     total_flow_manager = TotalFlowManager()
     total_flow_manager.start_periodic_save()
-
 
     # Initialisierung des GPSHandlers
     gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
