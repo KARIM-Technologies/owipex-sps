@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.26"
+ProgVers = "2.30"
 
 # TODO: remove this comment (test)
 import signal
@@ -30,16 +30,32 @@ THINGSBOARD_PORT = 1883
 
 #RS485 Comunication and Devices
 # Create DeviceManager
-dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=2400, parity='N', stopbits=1, bytesize=8, timeout=1)
 dev_manager.add_device(device_id=0x0B)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
 dev_manager.add_device(device_id=0x01)
+dev_manager.add_device(device_id=0x05)
+dev_manager.add_device(device_id=0x00)
+dev_manager.add_device(device_id=0x02)
+dev_manager.add_device(device_id=0x0C)
+dev_manager.add_device(device_id=0x10)
+dev_manager.add_device(device_id=0x21)
+dev_manager.add_device(device_id=0x3C)
+dev_manager.add_device(device_id=0xBD)
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x0B)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 PH_Sensor = dev_manager.get_device(device_id=0x03)
 OutletFlap = dev_manager.get_device(device_id=0x01)
+OutletFlap5 = dev_manager.get_device(device_id=0x05)
+OutletFlap0 = dev_manager.get_device(device_id=0x00)
+OutletFlap2 = dev_manager.get_device(device_id=0x02)
+OutletFlap12 = dev_manager.get_device(device_id=0x0C)
+OutletFlap16 = dev_manager.get_device(device_id=0x10)
+OutletFlap33 = dev_manager.get_device(device_id=0x21)
+OutletFlap60 = dev_manager.get_device(device_id=0x3C)
+OutletFlap189 = dev_manager.get_device(device_id=0xBD)
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
@@ -365,8 +381,9 @@ class FlowRateHandler:
 
 
 class OutletFlapHandler:
-    def __init__(self, sensor):
+    def __init__(self, sensor, name="OutletFlap"):
         self.sensor = sensor  # Übergeben Sie die OutletFlap-Instanz
+        self.name = name
 
     def fetch_and_display_data(self):
         try:
@@ -378,13 +395,13 @@ class OutletFlapHandler:
             
             # Check if all values are None (failed reading)
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
-                print(f'❌ OutletFlap - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                print(f'❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return None, None, None, None, None
             else:
-                print(f'✅ OutletFlap - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                print(f'✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return remote_local, valve_position, setpoint, error_code, test_register
         except Exception as e:
-            print(f"❌ OutletFlap: ERROR - {e}")
+            print(f"❌ {self.name}: ERROR - {e}")
             return None, None, None, None, None
 
     def write_setpoint(self, setpoint_value):
@@ -486,7 +503,15 @@ runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
 gps_handler = GPSHandler()
-outlet_flap_handler = OutletFlapHandler(OutletFlap)
+outlet_flap_handler = OutletFlapHandler(OutletFlap, name="OutletFlap")
+outlet_flap5_handler = OutletFlapHandler(OutletFlap5, name="OutletFlap5")
+outlet_flap0_handler = OutletFlapHandler(OutletFlap0, name="OutletFlap0")
+outlet_flap2_handler = OutletFlapHandler(OutletFlap2, name="OutletFlap2")
+outlet_flap12_handler = OutletFlapHandler(OutletFlap12, name="OutletFlap12")
+outlet_flap16_handler = OutletFlapHandler(OutletFlap16, name="OutletFlap16")
+outlet_flap33_handler = OutletFlapHandler(OutletFlap33, name="OutletFlap33")
+outlet_flap60_handler = OutletFlapHandler(OutletFlap60, name="OutletFlap60")
+outlet_flap189_handler = OutletFlapHandler(OutletFlap189, name="OutletFlap189")
 ph_handler.load_calibration()
 
 # Vor der main-Funktion:
@@ -614,6 +639,14 @@ def main():
         # OutletFlap data reading
         # TESTING: Always read OutletFlap data regardless of outletFlapActive setting
         outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+        outletFlapRemoteLocal5, outletFlapValvePosition5, outletFlapSetpoint5, outletFlapErrorCode5, outletFlapTest5 = outlet_flap5_handler.fetch_and_display_data()
+        outletFlapRemoteLocal0, outletFlapValvePosition0, outletFlapSetpoint0, outletFlapErrorCode0, outletFlapTest0 = outlet_flap0_handler.fetch_and_display_data()
+        outletFlapRemoteLocal2, outletFlapValvePosition2, outletFlapSetpoint2, outletFlapErrorCode2, outletFlapTest2 = outlet_flap2_handler.fetch_and_display_data()
+        outletFlapRemoteLocal12, outletFlapValvePosition12, outletFlapSetpoint12, outletFlapErrorCode12, outletFlapTest12 = outlet_flap12_handler.fetch_and_display_data()
+        outletFlapRemoteLocal16, outletFlapValvePosition16, outletFlapSetpoint16, outletFlapErrorCode16, outletFlapTest16 = outlet_flap16_handler.fetch_and_display_data()
+        outletFlapRemoteLocal33, outletFlapValvePosition33, outletFlapSetpoint33, outletFlapErrorCode33, outletFlapTest33 = outlet_flap33_handler.fetch_and_display_data()
+        outletFlapRemoteLocal60, outletFlapValvePosition60, outletFlapSetpoint60, outletFlapErrorCode60, outletFlapTest60 = outlet_flap60_handler.fetch_and_display_data()
+        outletFlapRemoteLocal189, outletFlapValvePosition189, outletFlapSetpoint189, outletFlapErrorCode189, outletFlapTest189 = outlet_flap189_handler.fetch_and_display_data()
 
         if powerButton:
             runtime_tracker.start()

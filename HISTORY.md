@@ -2,6 +2,13 @@
 
 ## 2024-12-19
 
+### Version 2.27
+- **Baudrate geändert**: Alle Devices auf 2400 Baud umgestellt
+- **OutletFlap5 hinzugefügt**: OutletFlap wurde dupliziert, neues Device OutletFlap5 mit Device-ID 5 und eigenem Handler integriert
+- **OutletFlap0 hinzugefügt**: OutletFlap wurde dupliziert, neues Device OutletFlap0 mit Device-ID 0 und eigenem Handler integriert
+- **Weitere OutletFlap-Devices hinzugefügt**: OutletFlap2 (ID 2), OutletFlap12 (ID 12), OutletFlap16 (ID 16), OutletFlap33 (ID 33), OutletFlap60 (ID 60), OutletFlap189 (ID 189) mit jeweils eigenem Handler integriert
+- **Version Update**: ProgVers von 2.26 auf 2.27 erhöht
+
 ### Version 2.26
 - **Cache Management**: Implemented error counting system in DeviceManager
 - **Cache Clearing**: After 5 failed attempts to read from a device/register, the cache is automatically cleared
@@ -29,4 +36,6 @@
 - Cache is cleared after 5 consecutive failed read attempts
 - Error counting is per device and register combination
 - Successful reads reset the error counter
-- Prevents display of stale data from disconnected sensors 
+- Prevents display of stale data from disconnected sensors
+
+- ProgVers von 2.27 auf 2.28 erhöht (automatisch, auf User-Befehl) 
