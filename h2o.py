@@ -3,7 +3,14 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.30"
+ProgVers = "2.31"
+
+# Device enable flags
+isRadarEnabled = False
+isTrubEnabled = False
+isPhEnabled = True
+isOutletFlapEnabled = False
+isGpsEnabled = False
 
 import signal
 import logging.handlers
@@ -272,7 +279,13 @@ class PHHandler:
             return None, None
 
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
-        temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
+        
+        # Try to read temperature with error handling
+        try:
+            temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
+        except Exception as e:
+            print(f"❌ PH Temperature Sensor: ERROR - {e}")
+            temperaturPHSens_telem = None
         
         print(f'✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
         return measuredPHValue_telem, temperaturPHSens_telem
@@ -483,13 +496,6 @@ co2RelaisSw = False
 co2HeatingRelaySw = False
 minimumPHValStop = 5
 gpsEnabled = False  # Globale Initialisierung der GPS-Aktivierung
-
-# Device enable flags
-isRadarEnabled = True
-isTrubEnabled = True
-isPhEnabled = True
-isOutletFlapEnabled = True
-isGpsEnabled = True
 
 runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
