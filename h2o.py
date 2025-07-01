@@ -382,8 +382,57 @@ class OutletFlapHandler:
     def __init__(self, sensor, name="OutletFlap"):
         self.sensor = sensor  # Übergeben Sie die OutletFlap-Instanz
         self.name = name
+        
+        # Heartbeat attributes
+        self.running = False
+        self.heartbeat_thread = None
+        self.last_position = None
+        self.heartbeat_interval = 5  # seconds
+        
+        # CRITICAL: Lock für Modbus-Zugriffe - verhindert parallele Kommunikation
+        self.sensor_lock = threading.Lock()
+
+    def start_heartbeat(self):
+        """Start heartbeat communication every 5 seconds"""
+        self.running = True
+        self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop)
+        self.heartbeat_thread.daemon = True
+        self.heartbeat_thread.start()
+        print(f"💓 {self.name} Heartbeat gestartet (alle 5s)")
+        
+    def stop_heartbeat(self):
+        """Stop heartbeat communication"""
+        self.running = False
+        if self.heartbeat_thread:
+            self.heartbeat_thread.join()
+        print(f"💓 {self.name} Heartbeat gestoppt")
+        
+    def _heartbeat_loop(self):
+        """Internal heartbeat loop - prevents E1 alarm"""
+        while self.running:
+            try:
+                # WARTEN auf freien Modbus-Zugriff - KEINE parallelen Zugriffe!
+                with self.sensor_lock:
+                    remote_local, valve_position, setpoint, error_code, test_register = self._read_sensor_data()
+                
+                # Nur loggen wenn sich Position geändert hat
+                if valve_position != self.last_position and valve_position is not None:
+                    print(f"💓 {self.name} - Position: {valve_position}%, Error: {error_code}")
+                    self.last_position = valve_position
+                    
+            except Exception as e:
+                print(f"💓 {self.name} Heartbeat Fehler: {e}")
+                
+            time.sleep(self.heartbeat_interval)
 
     def fetch_and_display_data(self):
+        """Normal sensor read - synchronized with heartbeat to prevent parallel Modbus access"""
+        # WARTEN bis Heartbeat-Modbus-Zugriff fertig ist
+        with self.sensor_lock:
+            return self._read_sensor_data()
+    
+    def _read_sensor_data(self):
+        """Internal method for actual sensor reading - ALWAYS use with lock!"""
         try:
             remote_local = self.sensor.read_register(start_address=0x0000, register_count=1)
             valve_position = self.sensor.read_register(start_address=0x0001, register_count=1)
@@ -403,24 +452,30 @@ class OutletFlapHandler:
             return None, None, None, None, None
 
     def write_setpoint(self, setpoint_value):
-        try:
-            # Write to setpoint register (0x0002)
-            self.sensor.write_register(start_address=0x0002, register_count=1, value=setpoint_value)
-            print(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
-            return True
-        except Exception as e:
-            print(f"Fehler beim Schreiben des Setpoints: {e}")
-            return False
+        """Write setpoint - synchronized to prevent parallel Modbus access"""
+        # WARTEN bis andere Modbus-Zugriffe fertig sind
+        with self.sensor_lock:
+            try:
+                # Write to setpoint register (0x0002)
+                self.sensor.write_register(start_address=0x0002, register_count=1, value=setpoint_value)
+                print(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
+                return True
+            except Exception as e:
+                print(f"Fehler beim Schreiben des Setpoints: {e}")
+                return False
 
     def write_remote_local(self, remote_local_value):
-        try:
-            # Write to remote/local register (0x0000)
-            self.sensor.write_register(start_address=0x0000, register_count=1, value=remote_local_value)
-            print(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
-            return True
-        except Exception as e:
-            print(f"Fehler beim Schreiben von Remote/Local: {e}")
-            return False
+        """Write remote/local - synchronized to prevent parallel Modbus access"""
+        # WARTEN bis andere Modbus-Zugriffe fertig sind
+        with self.sensor_lock:
+            try:
+                # Write to remote/local register (0x0000)
+                self.sensor.write_register(start_address=0x0000, register_count=1, value=remote_local_value)
+                print(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
+                return True
+            except Exception as e:
+                print(f"Fehler beim Schreiben von Remote/Local: {e}")
+                return False
 
 class TotalFlowManager:
     def __init__(self, update_interval=60):
@@ -475,6 +530,15 @@ class TotalFlowManager:
 
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
+    
+    # Stop OutletFlap Heartbeat
+    if isOutletFlapEnabled:
+        try:
+            outlet_flap_handler.stop_heartbeat()
+            print("OutletFlap Heartbeat gestoppt")
+        except Exception as e:
+            print(f"Fehler beim Stoppen des OutletFlap Heartbeat: {e}")
+    
     pumpRelaySw = False
     co2RelaisSw = False
     co2HeatingRelaySw = False
@@ -560,6 +624,16 @@ def main():
     else:
         print("GPS ist deaktiviert. Keine GPS-Updates werden gestartet.")
         gps_handler.gps_enabled = False  # Stelle sicher, dass auch der Handler weiß, dass GPS deaktiviert ist
+
+    # Start OutletFlap Heartbeat wenn aktiviert
+    if isOutletFlapEnabled:
+        try:
+            outlet_flap_handler.start_heartbeat()
+            print("OutletFlap Heartbeat aktiviert - verhindert E1-Alarm")
+        except Exception as e:
+            print(f"Fehler beim Starten des OutletFlap Heartbeat: {e}")
+    else:
+        print("OutletFlap Heartbeat deaktiviert")
 
     #Laden der alten werte
     saved_state = load_state()
