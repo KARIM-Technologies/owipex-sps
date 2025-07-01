@@ -879,6 +879,10 @@ def main():
                 outletFlapLocalMode = True
                 outletFlapHasError = True
 
+TODO: Klären: PowerButton klären und die beiden anderen Schalter im Dashboard (Steuerung und Automatic). 
+Dann rausfinden, welche Flags aktiv sind, denn es wird (noch) nicht angezeigt.
+
+
         if powerButton:
             runtime_tracker.start()
             if autoSwitch:
