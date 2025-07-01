@@ -12,6 +12,9 @@ isPhEnabled = True
 isOutletFlapEnabled = True
 isGpsEnabled = False
 
+# OutletFlap sub-control flag (controlled via ThingsBoard)
+isOutletFlapActive = False
+
 import signal
 import logging.handlers
 import time
@@ -76,7 +79,7 @@ def load_state():
 
  #that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
-    global gps_handler, gpsEnabled
+    global gps_handler, gpsEnabled, isOutletFlapActive, powerButton
     
     # Aktualisiere globale Variablen
     globals().update({key: result[key] for key in result if key in globals()})
@@ -96,6 +99,41 @@ def attribute_callback(result, _):
             gps_handler.gps_enabled = False
             gps_handler.stop_gps_updates()
             print("GPS-Funktionalität deaktiviert")
+    
+    # Dynamische OutletFlap Heartbeat Kontrolle bei isOutletFlapActive-Änderung
+    if 'isOutletFlapActive' in result:
+        old_active = isOutletFlapActive
+        isOutletFlapActive = result['isOutletFlapActive']
+        print(f"OutletFlap Active-Status: {old_active} → {isOutletFlapActive}")
+        
+        # Dynamischer Heartbeat Start/Stop bei Änderung
+        if old_active != isOutletFlapActive:
+            start_heartbeat_if_needed()
+    
+    # OutletFlap Commands - NUR wenn powerButton=True UND beide Flags aktiv
+    if powerButton and isOutletFlapEnabled and isOutletFlapActive:
+        if 'outletFlapTargetPosition' in result:
+            target_pos = result['outletFlapTargetPosition']
+            if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
+                print(f"📍 OutletFlap Zielposition: {target_pos}%")
+                outlet_flap_handler.set_valve_position(target_pos)
+            else:
+                print(f"❌ Ungültige OutletFlap Position: {target_pos}")
+        
+        if 'outletFlapSetRemoteMode' in result and result['outletFlapSetRemoteMode']:
+            print("🔄 OutletFlap: Wechsle zu REMOTE-Modus (AUTO)")
+            outlet_flap_handler.set_remote_mode()
+        
+        if 'outletFlapSetLocalMode' in result and result['outletFlapSetLocalMode']:
+            print("🔄 OutletFlap: Wechsle zu LOCAL-Modus (MANUAL)")
+            outlet_flap_handler.set_local_mode()
+    else:
+        # Log why commands are ignored
+        if 'outletFlapTargetPosition' in result or 'outletFlapSetRemoteMode' in result or 'outletFlapSetLocalMode' in result:
+            if not powerButton:
+                print("⚠️ OutletFlap Commands ignoriert - powerButton=False")
+            elif not (isOutletFlapEnabled and isOutletFlapActive):
+                print("⚠️ OutletFlap Commands ignoriert - Flags nicht beide aktiv")
     
     # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
@@ -391,6 +429,13 @@ class OutletFlapHandler:
         
         # CRITICAL: Lock für Modbus-Zugriffe - verhindert parallele Kommunikation
         self.sensor_lock = threading.Lock()
+        
+        # FC11R Register Definitions (from valve_actuator.py pattern)
+        self.REMOTE_LOCAL_REG = 0x0000      # Remote/Local Control (0=Local, 1=Remote)
+        self.POSITION_FEEDBACK_REG = 0x0001  # Istposition lesen (read only)
+        self.POSITION_SETPOINT_REG = 0x0002  # Sollposition schreiben (read/write)
+        self.ERROR_CODE_REG = 0x0003         # Fehlercode (read only)
+        self.TEST_REG = 0x0004               # Test register
 
     def start_heartbeat(self):
         """Start heartbeat communication every 5 seconds"""
@@ -450,6 +495,104 @@ class OutletFlapHandler:
         except Exception as e:
             print(f"❌ {self.name}: ERROR - {e}")
             return None, None, None, None, None
+
+    def read_valve_data(self):
+        """NEUE Methode - Enhanced valve reading mit FC11R-spezifischer Datenkonvertierung"""
+        with self.sensor_lock:
+            try:
+                # Istposition mit FC11R-Konvertierung: (raw_value - 1999) / 10.0
+                raw_position = self.sensor.read_register(start_address=self.POSITION_FEEDBACK_REG, register_count=1)
+                current_position = (raw_position - 1999) / 10.0 if raw_position is not None and raw_position >= 1999 else 0.0
+                
+                time.sleep(0.05)  # Kurze Pause zwischen Abfragen
+                
+                # Remote/Local Status (0=Local/Manual, 1=Remote/Auto)
+                remote_local = self.sensor.read_register(start_address=self.REMOTE_LOCAL_REG, register_count=1) or 0
+                
+                time.sleep(0.05)
+                
+                # Sollposition mit FC11R-Konvertierung
+                setpoint_raw = self.sensor.read_register(start_address=self.POSITION_SETPOINT_REG, register_count=1)
+                setpoint_position = (setpoint_raw - 1999) / 10.0 if setpoint_raw is not None and setpoint_raw >= 1999 else 0.0
+                
+                time.sleep(0.05)
+                
+                # Fehlercode
+                error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1) or 0
+                
+                print(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
+                
+                return {
+                    'current_position': round(current_position, 1),      # Konvertierte aktuelle Position
+                    'raw_position_value': raw_position,                  # Raw-Position-Wert
+                    'setpoint_position': round(setpoint_position, 1),    # Konvertierte Sollposition
+                    'raw_setpoint_value': setpoint_raw,                  # Raw-Sollwert
+                    'remote_local_status': remote_local,                 # 0=Local, 1=Remote
+                    'is_remote_mode': (remote_local == 1),              # Boolean
+                    'is_local_mode': (remote_local == 0),               # Boolean
+                    'error_code': error_code,                           # Fehlercode
+                    'has_error': (error_code != 0)                     # Boolean
+                }
+                
+            except Exception as e:
+                print(f"❌ {self.name} read_valve_data Error: {e}")
+                return None
+
+    def set_valve_position(self, target_position):
+        """Set valve position mit FC11R-Konvertierung (0-100%)"""
+        with self.sensor_lock:
+            try:
+                if not (0 <= target_position <= 100):
+                    print(f"❌ {self.name}: Position muss zwischen 0 und 100% liegen")
+                    return False
+                
+                # FC11R Konvertierung: percentage * 10 + 1999
+                # Beispiel: 75.0% = 750 + 1999 = 2749
+                raw_value = int(target_position * 10) + 1999
+                
+                # Write single register (wie in valve_actuator.py)
+                success = self.sensor.write_register(start_address=self.POSITION_SETPOINT_REG, register_count=1, value=raw_value)
+                
+                if success:
+                    print(f'✅ {self.name}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
+                    return True
+                else:
+                    print(f'❌ {self.name}: Fehler beim Setzen der Position {target_position}%')
+                    return False
+                    
+            except Exception as e:
+                print(f"❌ {self.name}: Fehler beim Setzen der Position: {e}")
+                return False
+
+    def set_remote_mode(self):
+        """Switch to REMOTE mode (AUTO) - FC11R equivalent"""
+        with self.sensor_lock:
+            try:
+                success = self.sensor.write_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
+                if success:
+                    print(f'✅ {self.name}: REMOTE-Modus (AUTO) aktiviert')
+                    return True
+                else:
+                    print(f'❌ {self.name}: Fehler beim Setzen des REMOTE-Modus')
+                    return False
+            except Exception as e:
+                print(f"❌ {self.name}: Fehler beim Setzen des REMOTE-Modus: {e}")
+                return False
+
+    def set_local_mode(self):
+        """Switch to LOCAL mode (MANUAL) - FC11R equivalent"""
+        with self.sensor_lock:
+            try:
+                success = self.sensor.write_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
+                if success:
+                    print(f'✅ {self.name}: LOCAL-Modus (MANUAL) aktiviert')
+                    return True
+                else:
+                    print(f'❌ {self.name}: Fehler beim Setzen des LOCAL-Modus')
+                    return False
+            except Exception as e:
+                print(f"❌ {self.name}: Fehler beim Setzen des LOCAL-Modus: {e}")
+                return False
 
     def write_setpoint(self, setpoint_value):
         """Write setpoint - synchronized to prevent parallel Modbus access"""
@@ -531,8 +674,8 @@ class TotalFlowManager:
 def signal_handler(sig, frame):
     print('Shutting down gracefully...')
     
-    # Stop OutletFlap Heartbeat
-    if isOutletFlapEnabled:
+    # Stop OutletFlap Heartbeat (falls läuft)
+    if outlet_flap_handler.running:
         try:
             outlet_flap_handler.stop_heartbeat()
             print("OutletFlap Heartbeat gestoppt")
@@ -574,9 +717,28 @@ last_send_time = time.time() - DATA_SEND_INTERVAL  # Stellt sicher, dass beim er
         
 isVersionSent = False
 
+def start_heartbeat_if_needed():
+    """Dynamischer Heartbeat Start/Stop - nur wenn beide Flags aktiv"""
+    global isOutletFlapEnabled, isOutletFlapActive, outlet_flap_handler
+    
+    if isOutletFlapEnabled and isOutletFlapActive:
+        if not outlet_flap_handler.running:
+            try:
+                outlet_flap_handler.start_heartbeat()
+                print("💓 OutletFlap Heartbeat gestartet (beide Flags aktiv)")
+            except Exception as e:
+                print(f"Fehler beim Starten des OutletFlap Heartbeat: {e}")
+    else:
+        if outlet_flap_handler.running:
+            try:
+                outlet_flap_handler.stop_heartbeat()
+                print("💓 OutletFlap Heartbeat gestoppt (Flag(s) inaktiv)")
+            except Exception as e:
+                print(f"Fehler beim Stoppen des OutletFlap Heartbeat: {e}")
+
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapActive, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest
+    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapActive, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, isOutletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError
 
     # Display version at startup
     print(f"\n{'='*50}")
@@ -625,15 +787,8 @@ def main():
         print("GPS ist deaktiviert. Keine GPS-Updates werden gestartet.")
         gps_handler.gps_enabled = False  # Stelle sicher, dass auch der Handler weiß, dass GPS deaktiviert ist
 
-    # Start OutletFlap Heartbeat wenn aktiviert
-    if isOutletFlapEnabled:
-        try:
-            outlet_flap_handler.start_heartbeat()
-            print("OutletFlap Heartbeat aktiviert - verhindert E1-Alarm")
-        except Exception as e:
-            print(f"Fehler beim Starten des OutletFlap Heartbeat: {e}")
-    else:
-        print("OutletFlap Heartbeat deaktiviert")
+    # Dynamische OutletFlap Heartbeat Kontrolle (beide Flags müssen aktiv sein)
+    start_heartbeat_if_needed()
 
     #Laden der alten werte
     saved_state = load_state()
@@ -702,9 +857,27 @@ def main():
             if isTrubEnabled:
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
-        # OutletFlap data reading
+        # OutletFlap data reading - ALTE Methode (für Kompatibilität)
         if isOutletFlapEnabled:
             outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+        
+        # OutletFlap Enhanced data reading - NEUE Methode (nur wenn beide Flags aktiv)
+        if isOutletFlapEnabled and isOutletFlapActive:
+            enhanced_valve_data = outlet_flap_handler.read_valve_data()
+            if enhanced_valve_data:
+                # Update enhanced telemetry variables
+                outletFlapCurrentPosition = enhanced_valve_data['current_position']
+                outletFlapSetpointPosition = enhanced_valve_data['setpoint_position']
+                outletFlapRemoteMode = enhanced_valve_data['is_remote_mode']
+                outletFlapLocalMode = enhanced_valve_data['is_local_mode']
+                outletFlapHasError = enhanced_valve_data['has_error']
+            else:
+                # Fallback values if enhanced reading fails
+                outletFlapCurrentPosition = None
+                outletFlapSetpointPosition = None
+                outletFlapRemoteMode = False
+                outletFlapLocalMode = True
+                outletFlapHasError = True
 
         if powerButton:
             runtime_tracker.start()

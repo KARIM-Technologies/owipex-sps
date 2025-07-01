@@ -70,6 +70,19 @@ outletFlapSetpoint = 0
 outletFlapErrorCode = 0
 outletFlapTest = 0
 
+# OutletFlap Enhanced Configuration (FC11R-specific)
+outletFlapCurrentPosition = 0.0       # Konvertierte aktuelle Position (%)
+outletFlapSetpointPosition = 0.0      # Konvertierte Sollposition (%)
+outletFlapRemoteMode = False          # Boolean: Remote-Modus aktiv
+outletFlapLocalMode = True            # Boolean: Local-Modus aktiv
+outletFlapHasError = False            # Boolean: Fehler vorhanden
+
+# OutletFlap Command Variables (ThingsBoard controlled)
+isOutletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
+outletFlapTargetPosition = 0          # Command: Zielposition setzen (0-100%)
+outletFlapSetRemoteMode = False       # Command: auf Remote-Modus schalten
+outletFlapSetLocalMode = False        # Command: auf Local-Modus schalten
+
 # GPS Configuration
 gpsTimestamp = 1.0
 gpsLatitude = 1.0
@@ -81,7 +94,8 @@ telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisS
                   'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
                   'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
                   'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'maximumTurbidity', 'turbiditySensorActive', 'gpsEnabled',
-                  'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapValvePosition', 'outletFlapSetpoint', 'outletFlapErrorCode', 'outletFlapTest']
+                  'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapValvePosition', 'outletFlapSetpoint', 'outletFlapErrorCode', 'outletFlapTest',
+                  'outletFlapCurrentPosition', 'outletFlapSetpointPosition', 'outletFlapRemoteMode', 'outletFlapLocalMode', 'outletFlapHasError']
 
 attributes_keys = ['ip_address', 'macaddress']
 
@@ -91,4 +105,5 @@ shared_attributes_keys = ['minimumPHValStop', 'ph_low_delay_start_time', 'ph_hig
                           'turbidityOffset', 'radarSensorActive', 'autoSwitch', 'callGpsSwitch', 'powerButton', 'co2RelaisSwSig',
                           'calibratePH', 'targetPHValue', 'targetPHtolerrance', 'gemessener_high_wert',
                           'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 'minimumPHVal', 'gpsEnabled',
-                          'outletFlapActive', 'outletFlapSetpoint', 'outletFlapRemoteLocal']
+                          'outletFlapActive', 'outletFlapSetpoint', 'outletFlapRemoteLocal',
+                          'isOutletFlapActive', 'outletFlapTargetPosition', 'outletFlapSetRemoteMode', 'outletFlapSetLocalMode']
