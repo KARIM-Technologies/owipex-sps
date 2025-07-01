@@ -857,12 +857,12 @@ def main():
             if isTrubEnabled:
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
-        # OutletFlap data reading - ALTE Methode (für Kompatibilität)
-        if isOutletFlapEnabled:
-            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
-        
-        # OutletFlap Enhanced data reading - NEUE Methode (nur wenn beide Flags aktiv)
+        # OutletFlap data reading - beide Flags müssen aktiv sein (hierarchische Kontrolle)
         if isOutletFlapEnabled and isOutletFlapActive:
+            # ALTE Methode (für Kompatibilität)
+            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+            
+            # NEUE Methode (Enhanced data reading)
             enhanced_valve_data = outlet_flap_handler.read_valve_data()
             if enhanced_valve_data:
                 # Update enhanced telemetry variables
