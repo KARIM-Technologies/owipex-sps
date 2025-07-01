@@ -5,7 +5,6 @@ CONFIG_PATH = "/etc/owipex/"
 # Version number following the specified format
 ProgVers = "2.30"
 
-# TODO: remove this comment (test)
 import signal
 import logging.handlers
 import time
@@ -30,7 +29,7 @@ THINGSBOARD_PORT = 1883
 
 #RS485 Comunication and Devices
 # Create DeviceManager
-dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=2400, parity='N', stopbits=1, bytesize=8, timeout=1)
+dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 dev_manager.add_device(device_id=1)
 dev_manager.add_device(device_id=2)
 dev_manager.add_device(device_id=3)
@@ -78,7 +77,7 @@ def attribute_callback(result, _):
     # Überprüfe, ob sich gpsEnabled geändert hat
     if 'gpsEnabled' in result:
         gpsEnabled = result['gpsEnabled']
-        if gpsEnabled:
+        if isGpsEnabled and gpsEnabled:
             try:
                 gps_handler.gps_enabled = True
                 gps_handler.start_gps_updates()
@@ -266,6 +265,8 @@ class PHHandler:
             raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
             if raw_ph_value is None:
                 raise ValueError("PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
+            else:
+                print(f'✅ PH: {raw_ph_value}')
         except Exception as e:
             print(f"❌ PH Sensor: ERROR - {e}")
             return None, None
@@ -483,6 +484,13 @@ co2HeatingRelaySw = False
 minimumPHValStop = 5
 gpsEnabled = False  # Globale Initialisierung der GPS-Aktivierung
 
+# Device enable flags
+isRadarEnabled = True
+isTrubEnabled = True
+isPhEnabled = True
+isOutletFlapEnabled = True
+isGpsEnabled = True
+
 runtime_tracker = RuntimeTracker()
 ph_handler = PHHandler(PH_Sensor)
 turbidity_handler = TurbidityHandler(Trub_Sensor)
@@ -536,7 +544,7 @@ def main():
     gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
     
     # Nur GPS starten, wenn es aktiviert ist
-    if gpsEnabled:
+    if isGpsEnabled and gpsEnabled:
         try:
             gps_handler.start_gps_updates()
             print("GPS-Updates gestartet")
@@ -576,7 +584,7 @@ def main():
         
         # Sichere Abfrage der GPS-Daten
         try:
-            if gpsEnabled and gps_handler.gps_enabled:
+            if isGpsEnabled and gpsEnabled and gps_handler.gps_enabled:
                 gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data()
             else:
                 # Wenn GPS deaktiviert ist, setze Standardwerte
@@ -593,7 +601,7 @@ def main():
             last_send_time = current_time
             client.send_telemetry(telemetry)
 
-        if (radarSensorActive):
+        if isRadarEnabled and radarSensorActive:
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
             flow_data = flow_rate_handler.fetch_and_calculate()
 
@@ -609,12 +617,14 @@ def main():
             calibratePH = False
 
         else:
-            measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
-            measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
+            if isPhEnabled:
+                measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
+            if isTrubEnabled:
+                measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
         # OutletFlap data reading
-        # TESTING: Always read OutletFlap data regardless of outletFlapActive setting
-        outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+        if isOutletFlapEnabled:
+            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
 
         if powerButton:
             runtime_tracker.start()
