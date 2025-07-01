@@ -9,7 +9,7 @@ ProgVers = "2.31"
 isRadarEnabled = False
 isTrubEnabled = False
 isPhEnabled = True
-isOutletFlapEnabled = False
+isOutletFlapEnabled = True
 isGpsEnabled = False
 
 import signal
