@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.31"
+ProgVers = "2.32"
 
 # Device enable flags
 isRadarEnabled = False
@@ -808,14 +808,17 @@ def main():
     while not client.stopped:
         attributes, telemetry = get_data()
         #PH Initial
-
-        
+      
         runtime_tracker_var = runtime_tracker.get_total_runtime()   
         maximumPHVal = targetPHValue + targetPHtolerrance
         minimumPHVal = targetPHValue - targetPHtolerrance   
         pumpRelaySwSig = pumpRelaySw
         co2RelaisSwSig = co2RelaisSw
         co2HeatingRelaySwSig = co2HeatingRelaySw
+        
+        # Status output with current time and flags
+        current_time_str = time.strftime("%H:%M:%S", time.localtime())
+        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(isGpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(isOutletFlapActive)}")
         
         # Sichere Abfrage der GPS-Daten
         try:
@@ -879,10 +882,6 @@ def main():
                 outletFlapLocalMode = True
                 outletFlapHasError = True
 
-TODO: Klären: PowerButton klären und die beiden anderen Schalter im Dashboard (Steuerung und Automatic). 
-Dann rausfinden, welche Flags aktiv sind, denn es wird (noch) nicht angezeigt.
-
-
         if powerButton:
             runtime_tracker.start()
             if autoSwitch:
@@ -922,7 +921,7 @@ Dann rausfinden, welche Flags aktiv sind, denn es wird (noch) nicht angezeigt.
                         co2HeatingRelaySw = False
 
             else:
-                print("automode OFF", autoSwitch)
+                #print("automode OFF", autoSwitch)
                 pumpRelaySw = False
                 co2RelaisSw = False
                 co2HeatingRelaySw = False
@@ -930,9 +929,10 @@ Dann rausfinden, welche Flags aktiv sind, denn es wird (noch) nicht angezeigt.
                 ph_high_delay_start_time = None
                 countdownPHLow = ph_low_delay_duration
                 countdownPHHigh = ph_high_delay_duration
-                
+                time.sleep(1) # Wartezeit wenn PowerButton aktiv , aber AutoMode off ist
+
         else:
-            print("Power Switch OFF.", powerButton)        
+            # print("Power Switch OFF.", powerButton)        
             pumpRelaySw = False
             co2RelaisSw = False
             co2HeatingRelaySw = False
@@ -940,7 +940,7 @@ Dann rausfinden, welche Flags aktiv sind, denn es wird (noch) nicht angezeigt.
             countdownPHLow = ph_low_delay_duration
             countdownPHHigh = ph_high_delay_duration
             runtime_tracker.stop() 
-            time.sleep(2)
+            time.sleep(2) # Wartezeit wenn PowerButton NICHT aktiv ist
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
