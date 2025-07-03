@@ -136,8 +136,9 @@ telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2Heating
                   'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'measuredPHValue_telem',
                   'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'isOutletFlapActive',
                   'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
-                  'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetpoint', 'outletFlapSetpointPosition',
-                  'outletFlapTest', 'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time',
+                  'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetLocalMode', 'outletFlapSetpoint',
+                  'outletFlapSetpointPosition', 'outletFlapSetRemoteMode', 'outletFlapTargetPosition', 'outletFlapTest',
+                  'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time',
                   'powerButton', 'pumpRelaySw', 'pumpRelaySwSig', 'runtime_tracker_var',
                   'tempTruebSens', 'temperaturPHSens_telem', 'total_flow', 'turbiditySensorActive',
                   'waterLevelHeight_telem']

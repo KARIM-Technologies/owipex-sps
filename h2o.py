@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.33"
+ProgVers = "2.34"
 
 # Device enable flags
 isRadarEnabled = False
