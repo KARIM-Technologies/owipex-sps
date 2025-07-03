@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.45"
+ProgVers = "2.49"
 
 # Device enable flags (Configuration Constants)
 IS_RADAR_ENABLED = False
@@ -20,7 +20,10 @@ OUTLETFLAP_REGREADDELAY_SEC = 0.2   # Pause zwischen OutletFlap Register-Lesunge
 RADAR_REGREADDELAY_SEC = 0.2        # Pause nach Radar Register-Lesungen
 TRUB_REGREADDELAY_SEC = 0.2         # Pause nach Turbidity Register-Lesungen
 PH_REGREADDELAY_SEC = 0.2           # Pause nach PH Register-Lesungen
-GPS_REGREADDELAY_SEC = 0.2          # Pause nach GPS Daten-Lesungen
+GPS_REGREADDELAY_SEC = 0.2          # Pause nach GPS-Datenabfrage
+
+# Modbus communication timeout (in seconds)
+MODBUS_TIMEOUT_SEC = 2              # Timeout für Modbus RS485 Kommunikation
 
 # OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
 
@@ -48,7 +51,7 @@ THINGSBOARD_PORT = 1883
 
 #RS485 Comunication and Devices
 # Create DeviceManager
-dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=MODBUS_TIMEOUT_SEC)
 dev_manager.add_device(device_id=1)
 dev_manager.add_device(device_id=2)
 dev_manager.add_device(device_id=3)
@@ -315,14 +318,17 @@ class PHHandler:
         self.load_calibration()  # Laden der Kalibrierungsdaten beim Start
 
     def fetch_and_display_data(self):
+        # Try to read PH value with error handling
         try:
             raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
             if raw_ph_value is None:
                 raise ValueError("PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
             else:
-                print(f'✅ PH: {raw_ph_value}')
+                current_time_str = time.strftime("%H:%M:%S", time.localtime())
+                print(f'[{current_time_str}] ✅ PH: {raw_ph_value}')
         except Exception as e:
-            print(f"❌ PH Sensor: ERROR - {e}")
+            current_time_str = time.strftime("%H:%M:%S", time.localtime())
+            print(f"[{current_time_str}] ❌ PH Sensor: ERROR - {e}")
             return None, None
 
         measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
@@ -331,10 +337,12 @@ class PHHandler:
         try:
             temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
         except Exception as e:
-            print(f"❌ PH Temperature Sensor: ERROR - {e}")
+            current_time_str = time.strftime("%H:%M:%S", time.localtime())
+            print(f"[{current_time_str}] ❌ PH Temperature Sensor: ERROR - {e}")
             temperaturPHSens_telem = None
         
-        print(f'✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
+        current_time_str = time.strftime("%H:%M:%S", time.localtime())
+        print(f'[{current_time_str}] ✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
         return measuredPHValue_telem, temperaturPHSens_telem
 
     def correct_ph_value(self, raw_value):
@@ -467,7 +475,7 @@ class OutletFlapHandler:
             try:
                 # WARTEN auf freien Modbus-Zugriff - KEINE parallelen Zugriffe!
                 with self.sensor_lock:
-                    remote_local, valve_position, setpoint, error_code, test_register = self._read_sensor_data()
+                    remote_local, valve_position, setpoint, error_code, test_register = self.read_outletflap_sensor_data()
                 
                 # Nur loggen wenn sich Position geändert hat
                 if valve_position != self.last_position and valve_position is not None:
@@ -483,16 +491,25 @@ class OutletFlapHandler:
         """Normal sensor read - synchronized with heartbeat to prevent parallel Modbus access"""
         # WARTEN bis Heartbeat-Modbus-Zugriff fertig ist
         with self.sensor_lock:
-            return self._read_sensor_data()
+            return self.read_outletflap_sensor_data()
     
-    def _read_sensor_data(self):
+    def read_outletflap_sensor_data(self):
         """Internal method for actual sensor reading - ALWAYS use with lock!"""
         try:
             remote_local = self.sensor.read_register(start_address=0x0000, register_count=1, data_format='>H')
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach Register 0x0000
+            
             valve_position = self.sensor.read_register(start_address=0x0001, register_count=1, data_format='>H')
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach Register 0x0001
+            
             setpoint = self.sensor.read_register(start_address=0x0002, register_count=1, data_format='>H')
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach Register 0x0002
+            
             error_code = self.sensor.read_register(start_address=0x0003, register_count=1, data_format='>H')
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach Register 0x0003
+            
             test_register = self.sensor.read_register(start_address=0x0004, register_count=1, data_format='>H')
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach Register 0x0004
             
             # Check if all values are None (failed reading)
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
@@ -531,7 +548,9 @@ class OutletFlapHandler:
                 
                 time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause auch nach ERROR_CODE_REG
                 
-                print(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
+                # Aktuelle Uhrzeit für die Ausgabe
+                current_time_str = time.strftime("%H:%M:%S", time.localtime())
+                print(f'[{current_time_str}] ✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
                 
                 return {
                     'current_position': round(current_position, 1),      # Konvertierte aktuelle Position
@@ -850,6 +869,7 @@ def main():
             # Aktualisiere den letzten Sendungszeitpunkt
             last_send_time = current_time
             client.send_telemetry(telemetry)
+            time.sleep(0.05)  # 50ms Pause nach Telemetrie-Übertragung
 
         if IS_RADAR_ENABLED and radarSensorActive:
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
