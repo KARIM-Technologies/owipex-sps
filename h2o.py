@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.42"
+ProgVers = "2.45"
 
 # Device enable flags (Configuration Constants)
 IS_RADAR_ENABLED = False
@@ -11,12 +11,16 @@ IS_TRUB_ENABLED = False
 IS_PH_ENABLED = True
 IS_OUTLET_FLAP_ENABLED = True
 
-# Sleep delay constants (in milliseconds)
-SLEEP_DELAY_AUTOMODE_OFF_MS = 50    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
-SLEEP_DELAY_POWERBUTTON_OFF_MS = 2000 # Wartezeit wenn PowerButton NICHT aktiv
+# Sleep delay constants (in seconds)
+SLEEP_DELAY_AUTOMODE_OFF_SEC = 0.05    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
+SLEEP_DELAY_POWERBUTTON_OFF_SEC = 2.0  # Wartezeit wenn PowerButton NICHT aktiv
 
-# OutletFlap timing constant (in milliseconds)
-OUTLETFLAP_REGISTER_DELAY_MS = 200   # Pause zwischen OutletFlap Register-Lesungen
+# Device register read delay constants (in seconds)
+OUTLETFLAP_REGREADDELAY_SEC = 0.2   # Pause zwischen OutletFlap Register-Lesungen
+RADAR_REGREADDELAY_SEC = 0.2        # Pause nach Radar Register-Lesungen
+TRUB_REGREADDELAY_SEC = 0.2         # Pause nach Turbidity Register-Lesungen
+PH_REGREADDELAY_SEC = 0.2           # Pause nach PH Register-Lesungen
+GPS_REGREADDELAY_SEC = 0.2          # Pause nach GPS Daten-Lesungen
 
 # OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
 
@@ -509,23 +513,23 @@ class OutletFlapHandler:
                 raw_position = self.sensor.read_register(start_address=self.POSITION_FEEDBACK_REG, register_count=1, data_format='>H')
                 current_position = (raw_position - 1999) / 10.0 if raw_position is not None and raw_position >= 1999 else 0.0
                 
-                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)  # Pause zwischen Register-Lesungen
+                time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause zwischen Register-Lesungen
                 
                 # Remote/Local Status (0=Local/Manual, 1=Remote/Auto)
                 remote_local = self.sensor.read_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, data_format='>H') or 0
                 
-                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)
+                time.sleep(OUTLETFLAP_REGREADDELAY_SEC)
                 
                 # Sollposition mit FC11R-Konvertierung
                 setpoint_raw = self.sensor.read_register(start_address=self.POSITION_SETPOINT_REG, register_count=1, data_format='>H')
                 setpoint_position = (setpoint_raw - 1999) / 10.0 if setpoint_raw is not None and setpoint_raw >= 1999 else 0.0
                 
-                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)
+                time.sleep(OUTLETFLAP_REGREADDELAY_SEC)
                 
                 # Fehlercode
                 error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
                 
-                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)  # Pause auch nach ERROR_CODE_REG
+                time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause auch nach ERROR_CODE_REG
                 
                 print(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
                 
@@ -831,6 +835,7 @@ def main():
         try:
             if gpsEnabled and gps_handler.gps_enabled:
                 gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data()
+                time.sleep(GPS_REGREADDELAY_SEC)  # Pause nach GPS-Datenabfrage
             else:
                 # Wenn GPS deaktiviert ist, setze Standardwerte
                 gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
@@ -849,6 +854,7 @@ def main():
         if IS_RADAR_ENABLED and radarSensorActive:
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
             flow_data = flow_rate_handler.fetch_and_calculate()
+            time.sleep(RADAR_REGREADDELAY_SEC)  # Pause nach Radar-Datenabfrage
 
             if flow_data:
                 # Update the total flow using the calculated flow rate
@@ -863,17 +869,22 @@ def main():
 
         else:
             if IS_PH_ENABLED:
-                measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
+                measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()
+                time.sleep(PH_REGREADDELAY_SEC)  # Pause nach PH-Datenabfrage
             if IS_TRUB_ENABLED:
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
+                time.sleep(TRUB_REGREADDELAY_SEC)  # Pause nach Turbidity-Datenabfrage
 
         # OutletFlap data reading - beide Flags müssen aktiv sein (hierarchische Kontrolle)
         if IS_OUTLET_FLAP_ENABLED and outletFlapActive:
             # ALTE Methode (für Kompatibilität)
             outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach fetch_and_display_data
             
             # NEUE Methode (Enhanced data reading)
             enhanced_valve_data = outlet_flap_handler.read_valve_data()
+            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach read_valve_data wie bei anderen OutletFlap-Lesungen
+            
             if enhanced_valve_data:
                 # Update enhanced telemetry variables
                 outletFlapCurrentPosition = enhanced_valve_data['current_position']
@@ -936,8 +947,8 @@ def main():
                 ph_high_delay_start_time = None
                 countdownPHLow = ph_low_delay_duration
                 countdownPHHigh = ph_high_delay_duration
-                if SLEEP_DELAY_AUTOMODE_OFF_MS > 0:
-                    time.sleep(SLEEP_DELAY_AUTOMODE_OFF_MS / 1000.0)  # Wartezeit wenn PowerButton aktiv, aber AutoMode off
+                if SLEEP_DELAY_AUTOMODE_OFF_SEC > 0:
+                    time.sleep(SLEEP_DELAY_AUTOMODE_OFF_SEC)  # Wartezeit wenn PowerButton aktiv, aber AutoMode off
 
         else:
             # print("Power Switch OFF.", powerButton)        
@@ -948,8 +959,8 @@ def main():
             countdownPHLow = ph_low_delay_duration
             countdownPHHigh = ph_high_delay_duration
             runtime_tracker.stop() 
-            if SLEEP_DELAY_POWERBUTTON_OFF_MS > 0:
-                time.sleep(SLEEP_DELAY_POWERBUTTON_OFF_MS / 1000.0)  # Wartezeit wenn PowerButton NICHT aktiv
+            if SLEEP_DELAY_POWERBUTTON_OFF_SEC > 0:
+                time.sleep(SLEEP_DELAY_POWERBUTTON_OFF_SEC)  # Wartezeit wenn PowerButton NICHT aktiv
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
