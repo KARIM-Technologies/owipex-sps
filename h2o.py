@@ -3,13 +3,17 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.35"
+ProgVers = "2.36"
 
-# Device enable flags
-isRadarEnabled = False
-isTrubEnabled = False
-isPhEnabled = False
-isOutletFlapEnabled = True
+# Device enable flags (Configuration Constants)
+IS_RADAR_ENABLED = True
+IS_TRUB_ENABLED = True
+IS_PH_ENABLED = True
+IS_OUTLET_FLAP_ENABLED = True
+
+# Sleep delay constants (in milliseconds)
+SLEEP_DELAY_AUTOMODE_OFF_MS = 1000    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
+SLEEP_DELAY_POWERBUTTON_OFF_MS = 2000 # Wartezeit wenn PowerButton NICHT aktiv
 
 # OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
 
@@ -109,7 +113,7 @@ def attribute_callback(result, _):
             start_heartbeat_if_needed()
     
     # OutletFlap Commands - NUR wenn powerButton=True UND beide Flags aktiv
-    if powerButton and isOutletFlapEnabled and outletFlapActive:
+    if powerButton and IS_OUTLET_FLAP_ENABLED and outletFlapActive:
         if 'outletFlapTargetPosition' in result:
             target_pos = result['outletFlapTargetPosition']
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
@@ -130,7 +134,7 @@ def attribute_callback(result, _):
         if 'outletFlapTargetPosition' in result or 'outletFlapSetRemoteMode' in result or 'outletFlapSetLocalMode' in result:
             if not powerButton:
                 print("⚠️ OutletFlap Commands ignoriert - powerButton=False")
-            elif not (isOutletFlapEnabled and outletFlapActive):
+            elif not (IS_OUTLET_FLAP_ENABLED and outletFlapActive):
                 print("⚠️ OutletFlap Commands ignoriert - Flags nicht beide aktiv")
     
     # Speichere den Zustand
@@ -717,9 +721,9 @@ isVersionSent = False
 
 def start_heartbeat_if_needed():
     """Dynamischer Heartbeat Start/Stop - nur wenn beide Flags aktiv"""
-    global isOutletFlapEnabled, outletFlapActive, outlet_flap_handler
+    global outletFlapActive, outlet_flap_handler
     
-    if isOutletFlapEnabled and outletFlapActive:
+    if IS_OUTLET_FLAP_ENABLED and outletFlapActive:
         if not outlet_flap_handler.running:
             try:
                 outlet_flap_handler.start_heartbeat()
@@ -816,7 +820,7 @@ def main():
         
         # Status output with current time and flags
         current_time_str = time.strftime("%H:%M:%S", time.localtime())
-        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(outletFlapActive)}")
+        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(IS_RADAR_ENABLED)} T={int(IS_TRUB_ENABLED)} pH={int(IS_PH_ENABLED)} OF={int(IS_OUTLET_FLAP_ENABLED)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(outletFlapActive)}")
         
         # Sichere Abfrage der GPS-Daten
         try:
@@ -837,7 +841,7 @@ def main():
             last_send_time = current_time
             client.send_telemetry(telemetry)
 
-        if isRadarEnabled and radarSensorActive:
+        if IS_RADAR_ENABLED and radarSensorActive:
             flow_rate_handler = FlowRateHandler(Radar_Sensor)
             flow_data = flow_rate_handler.fetch_and_calculate()
 
@@ -853,13 +857,13 @@ def main():
             calibratePH = False
 
         else:
-            if isPhEnabled:
+            if IS_PH_ENABLED:
                 measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()  
-            if isTrubEnabled:
+            if IS_TRUB_ENABLED:
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
         # OutletFlap data reading - beide Flags müssen aktiv sein (hierarchische Kontrolle)
-        if isOutletFlapEnabled and outletFlapActive:
+        if IS_OUTLET_FLAP_ENABLED and outletFlapActive:
             # ALTE Methode (für Kompatibilität)
             outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
             
@@ -927,7 +931,8 @@ def main():
                 ph_high_delay_start_time = None
                 countdownPHLow = ph_low_delay_duration
                 countdownPHHigh = ph_high_delay_duration
-                time.sleep(1) # Wartezeit wenn PowerButton aktiv , aber AutoMode off ist
+                if SLEEP_DELAY_AUTOMODE_OFF_MS > 0:
+                    time.sleep(SLEEP_DELAY_AUTOMODE_OFF_MS / 1000.0)  # Wartezeit wenn PowerButton aktiv, aber AutoMode off
 
         else:
             # print("Power Switch OFF.", powerButton)        
@@ -938,7 +943,8 @@ def main():
             countdownPHLow = ph_low_delay_duration
             countdownPHHigh = ph_high_delay_duration
             runtime_tracker.stop() 
-            time.sleep(2) # Wartezeit wenn PowerButton NICHT aktiv ist
+            if SLEEP_DELAY_POWERBUTTON_OFF_MS > 0:
+                time.sleep(SLEEP_DELAY_POWERBUTTON_OFF_MS / 1000.0)  # Wartezeit wenn PowerButton NICHT aktiv
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
