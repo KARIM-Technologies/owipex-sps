@@ -3,17 +3,20 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.36"
+ProgVers = "2.42"
 
 # Device enable flags (Configuration Constants)
-IS_RADAR_ENABLED = True
-IS_TRUB_ENABLED = True
+IS_RADAR_ENABLED = False
+IS_TRUB_ENABLED = False
 IS_PH_ENABLED = True
 IS_OUTLET_FLAP_ENABLED = True
 
 # Sleep delay constants (in milliseconds)
-SLEEP_DELAY_AUTOMODE_OFF_MS = 1000    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
+SLEEP_DELAY_AUTOMODE_OFF_MS = 50    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
 SLEEP_DELAY_POWERBUTTON_OFF_MS = 2000 # Wartezeit wenn PowerButton NICHT aktiv
+
+# OutletFlap timing constant (in milliseconds)
+OUTLETFLAP_REGISTER_DELAY_MS = 200   # Pause zwischen OutletFlap Register-Lesungen
 
 # OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
 
@@ -506,21 +509,23 @@ class OutletFlapHandler:
                 raw_position = self.sensor.read_register(start_address=self.POSITION_FEEDBACK_REG, register_count=1, data_format='>H')
                 current_position = (raw_position - 1999) / 10.0 if raw_position is not None and raw_position >= 1999 else 0.0
                 
-                time.sleep(0.05)  # Kurze Pause zwischen Abfragen
+                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)  # Pause zwischen Register-Lesungen
                 
                 # Remote/Local Status (0=Local/Manual, 1=Remote/Auto)
                 remote_local = self.sensor.read_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, data_format='>H') or 0
                 
-                time.sleep(0.05)
+                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)
                 
                 # Sollposition mit FC11R-Konvertierung
                 setpoint_raw = self.sensor.read_register(start_address=self.POSITION_SETPOINT_REG, register_count=1, data_format='>H')
                 setpoint_position = (setpoint_raw - 1999) / 10.0 if setpoint_raw is not None and setpoint_raw >= 1999 else 0.0
                 
-                time.sleep(0.05)
+                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)
                 
                 # Fehlercode
                 error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
+                
+                time.sleep(OUTLETFLAP_REGISTER_DELAY_MS / 1000.0)  # Pause auch nach ERROR_CODE_REG
                 
                 print(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
                 
