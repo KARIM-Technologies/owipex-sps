@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.51"
+ProgVers = "2.54"
 
 # Device enable flags (Configuration Constants)
 IS_RADAR_ENABLED = False
@@ -13,14 +13,19 @@ IS_OUTLET_FLAP_ENABLED = True
 
 # Sleep delay constants (in seconds)
 SLEEP_DELAY_AUTOMODE_OFF_SEC = 0.05    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
+SLEEP_DELAY_AUTOMODE_ON_SEC = 0.1      # Wartezeit wenn PowerButton aktiv UND AutoMode on
 SLEEP_DELAY_POWERBUTTON_OFF_SEC = 2.0  # Wartezeit wenn PowerButton NICHT aktiv
 
+# Heartbeat timing constants (in seconds)
+OUTLETFLAP_HEARTBEAT_INTERVAL_SEC = 5    # Ausführungsintervall für OutletFlap Heartbeat
+OUTLETFLAP_HEARTBEAT_CHECK_INTERVAL_SEC = 1  # Check-Intervall für OutletFlap Heartbeat Thread
+
 # Device register read delay constants (in seconds)
-OUTLETFLAP_REGREADDELAY_SEC = 0.2   # Pause zwischen OutletFlap Register-Lesungen
-RADAR_REGREADDELAY_SEC = 0.2        # Pause nach Radar Register-Lesungen
-TRUB_REGREADDELAY_SEC = 0.2         # Pause nach Turbidity Register-Lesungen
-PH_REGREADDELAY_SEC = 0.2           # Pause nach PH Register-Lesungen
-GPS_REGREADDELAY_SEC = 0.2          # Pause nach GPS-Datenabfrage
+OUTLETFLAP_REGREADDELAY_SEC = 0.05   # Pause zwischen OutletFlap Register-Lesungen
+RADAR_REGREADDELAY_SEC = 0.05        # Pause nach Radar Register-Lesungen
+TRUB_REGREADDELAY_SEC = 0.05         # Pause nach Turbidity Register-Lesungen
+PH_REGREADDELAY_SEC = 0.05           # Pause nach PH Register-Lesungen
+GPS_REGREADDELAY_SEC = 0.05          # Pause nach GPS-Datenabfrage
 
 # Modbus communication timeout (in seconds)
 MODBUS_TIMEOUT_SEC = 2              # Timeout für Modbus RS485 Kommunikation
@@ -442,7 +447,9 @@ class OutletFlapHandler:
         self.running = False
         self.heartbeat_thread = None
         self.last_position = None
-        self.heartbeat_interval = 5  # seconds
+        self.heartbeat_interval = OUTLETFLAP_HEARTBEAT_INTERVAL_SEC  # seconds - actual heartbeat execution interval
+        self.heartbeat_check_interval = OUTLETFLAP_HEARTBEAT_CHECK_INTERVAL_SEC  # seconds - loop check interval
+        self.last_heartbeat_time = 0  # timestamp of last heartbeat execution
         
         # CRITICAL: Lock für Modbus-Zugriffe - verhindert parallele Kommunikation
         self.sensor_lock = threading.Lock()
@@ -455,12 +462,13 @@ class OutletFlapHandler:
         self.TEST_REG = 0x0004               # Test register
 
     def start_heartbeat(self):
-        """Start heartbeat communication every 5 seconds"""
+        """Start heartbeat communication every 5 seconds (checked every 1 second)"""
         self.running = True
+        self.last_heartbeat_time = 0  # Reset timestamp to force immediate first execution
         self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop)
         self.heartbeat_thread.daemon = True
         self.heartbeat_thread.start()
-        print(f"💓 {self.name} Heartbeat gestartet (alle 5s)")
+        print(f"💓 {self.name} Heartbeat gestartet (alle {self.heartbeat_interval}s, check alle {self.heartbeat_check_interval}s)")
         
     def stop_heartbeat(self):
         """Stop heartbeat communication"""
@@ -470,26 +478,36 @@ class OutletFlapHandler:
         print(f"💓 {self.name} Heartbeat gestoppt")
         
     def _heartbeat_loop(self):
-        """Internal heartbeat loop - prevents E1 alarm"""
+        """Internal heartbeat loop - prevents E1 alarm - time-based execution"""
         while self.running:
-            try:
-                # WARTEN auf freien Modbus-Zugriff - KEINE parallelen Zugriffe!
-                with self.sensor_lock:
-                    remote_local, valve_position, setpoint, error_code, test_register = self.read_outletflap_sensor_data()
-                
-                # Zeitstempel für Heartbeat-Lesung
-                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
-                print(f"[{current_time_str}] 💓 {self.name} Heartbeat - Lesung durchgeführt")
-                
-                # Nur loggen wenn sich Position geändert hat
-                if valve_position != self.last_position and valve_position is not None:
-                    print(f"💓 {self.name} - Position: {valve_position}%, Error: {error_code}")
-                    self.last_position = valve_position
+            current_time = time.time()
+            
+            # Check if it's time for the next heartbeat
+            if current_time - self.last_heartbeat_time >= self.heartbeat_interval:
+                try:
+                    # WARTEN auf freien Modbus-Zugriff - KEINE parallelen Zugriffe!
+                    with self.sensor_lock:
+                        remote_local, valve_position, setpoint, error_code, test_register = self.read_outletflap_sensor_data()
                     
-            except Exception as e:
-                print(f"💓 {self.name} Heartbeat Fehler: {e}")
-                
-            time.sleep(self.heartbeat_interval)
+                    # Zeitstempel für Heartbeat-Lesung
+                    current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
+                    print(f"[{current_time_str}] 💓 {self.name} Heartbeat - Lesung durchgeführt")
+                    
+                    # Nur loggen wenn sich Position geändert hat
+                    if valve_position != self.last_position and valve_position is not None:
+                        print(f"💓 {self.name} - Position: {valve_position}%, Error: {error_code}")
+                        self.last_position = valve_position
+                    
+                    # Update last heartbeat time
+                    self.last_heartbeat_time = current_time
+                        
+                except Exception as e:
+                    print(f"💓 {self.name} Heartbeat Fehler: {e}")
+                    # Update time even on error to avoid rapid retry
+                    self.last_heartbeat_time = current_time
+            
+            # Sleep for check interval (1 second)
+            time.sleep(self.heartbeat_check_interval)
 
     def fetch_and_display_data(self):
         """Normal sensor read - synchronized with heartbeat to prevent parallel Modbus access"""
@@ -964,6 +982,10 @@ def main():
                         pumpRelaySw = True
                         co2RelaisSw = False
                         co2HeatingRelaySw = False
+
+                # Sleep am Ende des AutoMode-ON Blocks
+                if SLEEP_DELAY_AUTOMODE_ON_SEC > 0:
+                    time.sleep(SLEEP_DELAY_AUTOMODE_ON_SEC)  # Wartezeit wenn PowerButton aktiv UND AutoMode on
 
             else:
                 #print("automode OFF", autoSwitch)
