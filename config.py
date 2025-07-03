@@ -77,7 +77,7 @@ outletFlapLocalMode = True            # Boolean: Local-Modus aktiv
 outletFlapHasError = False            # Boolean: Fehler vorhanden
 
 # OutletFlap Command Variables (ThingsBoard controlled)
-isOutletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
+outletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
 outletFlapTargetPosition = 0          # Command: Zielposition setzen (0-100%)
 outletFlapSetRemoteMode = False       # Command: auf Remote-Modus schalten
 outletFlapSetLocalMode = False        # Command: auf Local-Modus schalten
@@ -100,7 +100,7 @@ gpsHeight = 1.0
 #
 # DUPLICATE DEFINITIONS (Same name, potentially different behavior):
 # - gpsEnabled: Defined here AND in h2o.py (lines 704, 749) 
-# - isOutletFlapActive: Defined here AND in h2o.py (line 15)
+# - outletFlapActive: Defined here AND in h2o.py (line 15)
 # - powerButton: Defined here AND in h2o.py (lines 688, 700, etc.)
 # - autoSwitch: Defined here AND in h2o.py (lines 687, 700, etc.)
 # - pumpRelaySw: Defined here AND in h2o.py (lines 700, 814, etc.)
@@ -126,7 +126,7 @@ gpsHeight = 1.0
 #
 # AFFECTED THINGSBOARD ARRAYS:
 # telemetry_keys: gpsEnabled, powerButton, autoSwitch, pumpRelaySw, co2RelaisSw, co2HeatingRelaySw
-# shared_attributes_keys: gpsEnabled, isOutletFlapActive, powerButton, autoSwitch, minimumPHValStop
+# shared_attributes_keys: gpsEnabled, outletFlapActive, powerButton, autoSwitch, minimumPHValStop
 
 # Telemetry and Attribute Variables
 telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2HeatingRelaySw',
@@ -134,7 +134,7 @@ telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2Heating
                   'countdownPHLow', 'flow_rate_l_h', 'flow_rate_l_min', 'flow_rate_m3_min',
                   'gpsEnabled', 'gpsHeight', 'gpsLatitude', 'gpsLongitude',
                   'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'measuredPHValue_telem',
-                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'isOutletFlapActive',
+                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
                   'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
                   'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetLocalMode', 'outletFlapSetpoint',
                   'outletFlapSetpointPosition', 'outletFlapSetRemoteMode', 'outletFlapTargetPosition', 'outletFlapTest',
@@ -147,7 +147,7 @@ attributes_keys = ['ip_address', 'macaddress']
 
 # Lists for different groups of attributes
 shared_attributes_keys = ['autoSwitch', 'calibratePH', 'callGpsSwitch', 'co2RelaisSwSig',
-                          'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'isOutletFlapActive',
+                          'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'outletFlapActive',
                           'maximumPHVal', 'maximumTurbidity', 'minimumPHVal', 'minimumPHValStop',
                           'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode',
                           'outletFlapSetpoint', 'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_low_delay_start_time',

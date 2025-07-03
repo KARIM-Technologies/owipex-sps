@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.34"
+ProgVers = "2.35"
 
 # Device enable flags
 isRadarEnabled = False
@@ -77,7 +77,7 @@ def load_state():
 
  #that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
-    global gps_handler, gpsEnabled, isOutletFlapActive, powerButton
+    global gps_handler, gpsEnabled, outletFlapActive, powerButton
     
     # Aktualisiere globale Variablen
     globals().update({key: result[key] for key in result if key in globals()})
@@ -98,18 +98,18 @@ def attribute_callback(result, _):
             gps_handler.stop_gps_updates()
             print("GPS-Funktionalität deaktiviert")
     
-    # Dynamische OutletFlap Heartbeat Kontrolle bei isOutletFlapActive-Änderung
-    if 'isOutletFlapActive' in result:
-        old_active = isOutletFlapActive
-        isOutletFlapActive = result['isOutletFlapActive']
-        print(f"OutletFlap Active-Status: {old_active} → {isOutletFlapActive}")
+    # Dynamische OutletFlap Heartbeat Kontrolle bei outletFlapActive-Änderung
+    if 'outletFlapActive' in result:
+        old_active = outletFlapActive
+        outletFlapActive = result['outletFlapActive']
+        print(f"OutletFlap Active-Status: {old_active} → {outletFlapActive}")
         
         # Dynamischer Heartbeat Start/Stop bei Änderung
-        if old_active != isOutletFlapActive:
+        if old_active != outletFlapActive:
             start_heartbeat_if_needed()
     
     # OutletFlap Commands - NUR wenn powerButton=True UND beide Flags aktiv
-    if powerButton and isOutletFlapEnabled and isOutletFlapActive:
+    if powerButton and isOutletFlapEnabled and outletFlapActive:
         if 'outletFlapTargetPosition' in result:
             target_pos = result['outletFlapTargetPosition']
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
@@ -130,7 +130,7 @@ def attribute_callback(result, _):
         if 'outletFlapTargetPosition' in result or 'outletFlapSetRemoteMode' in result or 'outletFlapSetLocalMode' in result:
             if not powerButton:
                 print("⚠️ OutletFlap Commands ignoriert - powerButton=False")
-            elif not (isOutletFlapEnabled and isOutletFlapActive):
+            elif not (isOutletFlapEnabled and outletFlapActive):
                 print("⚠️ OutletFlap Commands ignoriert - Flags nicht beide aktiv")
     
     # Speichere den Zustand
@@ -717,9 +717,9 @@ isVersionSent = False
 
 def start_heartbeat_if_needed():
     """Dynamischer Heartbeat Start/Stop - nur wenn beide Flags aktiv"""
-    global isOutletFlapEnabled, isOutletFlapActive, outlet_flap_handler
+    global isOutletFlapEnabled, outletFlapActive, outlet_flap_handler
     
-    if isOutletFlapEnabled and isOutletFlapActive:
+    if isOutletFlapEnabled and outletFlapActive:
         if not outlet_flap_handler.running:
             try:
                 outlet_flap_handler.start_heartbeat()
@@ -736,7 +736,7 @@ def start_heartbeat_if_needed():
 
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, isOutletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError
+    global isVersionSent, last_send_time, total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, flow_rate_handler, gpsEnabled, outlet_flap_handler, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError
 
     # Display version at startup
     print(f"\n{'='*50}")
@@ -816,7 +816,7 @@ def main():
         
         # Status output with current time and flags
         current_time_str = time.strftime("%H:%M:%S", time.localtime())
-        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(isOutletFlapActive)}")
+        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(outletFlapActive)}")
         
         # Sichere Abfrage der GPS-Daten
         try:
@@ -859,7 +859,7 @@ def main():
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
 
         # OutletFlap data reading - beide Flags müssen aktiv sein (hierarchische Kontrolle)
-        if isOutletFlapEnabled and isOutletFlapActive:
+        if isOutletFlapEnabled and outletFlapActive:
             # ALTE Methode (für Kompatibilität)
             outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
             
