@@ -27,6 +27,9 @@ class ModbusClient:
     def read_radar_sensor(self, register_address):
         return self.device_manager.read_radar_sensor(self.device_id, register_address)
 
+    def write_register(self, start_address, register_count, value):
+        return self.device_manager.write_register(self.device_id, start_address, value)
+
     def auto_read_registers(self, start_address, register_count, data_format='>f', interval=1):
         self.auto_read_enabled = True
         def read_loop():
@@ -124,4 +127,40 @@ class DeviceManager:
 
     def read_radar_sensor(self, device_id, register_address):
         return self.read_register(device_id, register_address, 1, data_format='>H')
+
+    def write_register(self, device_id, start_address, value):
+        """Write single register using Modbus function code 0x06"""
+        function_code = 0x06
+        
+        # Build Modbus message: Device ID + Function Code + Address + Value
+        message = struct.pack('>B B H H', device_id, function_code, start_address, value)
+        
+        # Calculate and append CRC16
+        crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
+        message += struct.pack('<H', crc16)
+        
+        # Send message
+        self.ser.write(message)
+        
+        # Read response
+        response = self.ser.read(100)
+        
+        # Check response length
+        if len(response) < 8:
+            print(f'Write response too short from device {device_id}')
+            return False
+            
+        # Verify CRC
+        received_crc = struct.unpack('<H', response[-2:])[0]
+        calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
+        if received_crc != calculated_crc:
+            print(f'CRC error in write response from device {device_id}')
+            return False
+            
+        # Check if response echoes our request (successful write)
+        if response[:6] == message[:6]:
+            return True
+        else:
+            print(f'Unexpected write response from device {device_id}')
+            return False
 

@@ -63,7 +63,6 @@ flow_rate_m3_min = 20.0
 total_flow = 0.0
 
 # OutletFlap Configuration
-outletFlapActive = False
 outletFlapRemoteLocal = 0
 outletFlapValvePosition = 0
 outletFlapSetpoint = 0
@@ -135,7 +134,7 @@ telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2Heating
                   'countdownPHLow', 'flow_rate_l_h', 'flow_rate_l_min', 'flow_rate_m3_min',
                   'gpsEnabled', 'gpsHeight', 'gpsLatitude', 'gpsLongitude',
                   'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'measuredPHValue_telem',
-                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
+                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'isOutletFlapActive',
                   'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
                   'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetpoint', 'outletFlapSetpointPosition',
                   'outletFlapTest', 'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time',
@@ -149,7 +148,7 @@ attributes_keys = ['ip_address', 'macaddress']
 shared_attributes_keys = ['autoSwitch', 'calibratePH', 'callGpsSwitch', 'co2RelaisSwSig',
                           'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'isOutletFlapActive',
                           'maximumPHVal', 'maximumTurbidity', 'minimumPHVal', 'minimumPHValStop',
-                          'outletFlapActive', 'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode',
+                          'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode',
                           'outletFlapSetpoint', 'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_low_delay_start_time',
                           'ph_slope', 'ph_intercept', 'PHValueOffset', 'powerButton',
                           'radarSensorActive', 'targetPHtolerrance', 'targetPHValue', 'turbidityOffset',
