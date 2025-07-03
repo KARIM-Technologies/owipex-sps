@@ -10,10 +10,8 @@ isRadarEnabled = False
 isTrubEnabled = False
 isPhEnabled = False
 isOutletFlapEnabled = True
-isGpsEnabled = False
 
-# OutletFlap sub-control flag (controlled via ThingsBoard)
-isOutletFlapActive = False
+# OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
 
 import signal
 import logging.handlers
@@ -87,7 +85,7 @@ def attribute_callback(result, _):
     # Überprüfe, ob sich gpsEnabled geändert hat
     if 'gpsEnabled' in result:
         gpsEnabled = result['gpsEnabled']
-        if isGpsEnabled and gpsEnabled:
+        if gpsEnabled:
             try:
                 gps_handler.gps_enabled = True
                 gps_handler.start_gps_updates()
@@ -776,7 +774,7 @@ def main():
     gps_handler = GPSHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
     
     # Nur GPS starten, wenn es aktiviert ist
-    if isGpsEnabled and gpsEnabled:
+    if gpsEnabled:
         try:
             gps_handler.start_gps_updates()
             print("GPS-Updates gestartet")
@@ -818,11 +816,11 @@ def main():
         
         # Status output with current time and flags
         current_time_str = time.strftime("%H:%M:%S", time.localtime())
-        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(isGpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(isOutletFlapActive)}")
+        print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(isRadarEnabled)} T={int(isTrubEnabled)} pH={int(isPhEnabled)} OF={int(isOutletFlapEnabled)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(isOutletFlapActive)}")
         
         # Sichere Abfrage der GPS-Daten
         try:
-            if isGpsEnabled and gpsEnabled and gps_handler.gps_enabled:
+            if gpsEnabled and gps_handler.gps_enabled:
                 gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data()
             else:
                 # Wenn GPS deaktiviert ist, setze Standardwerte

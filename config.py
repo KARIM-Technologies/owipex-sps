@@ -89,6 +89,46 @@ gpsLatitude = 1.0
 gpsLongitude = 1.0
 gpsHeight = 1.0
 
+# REVIEW NOTE: Variables defined above but not included in any array:
+# - ph_low_delay_duration: Could be added to shared_attributes_keys if ThingsBoard configuration needed
+# - ph_high_delay_start_time: Internal runtime variable, should not be in arrays
+# - measuredTurbidity: Possible deprecated (measuredTurbidity_telem exists), consider removal
+# - waterLevelHeight: Possible deprecated (waterLevelHeight_telem exists), consider removal  
+# - radarSensorOffset: Could be added to shared_attributes_keys if ThingsBoard configuration needed
+
+# 🚨 CRITICAL INCONSISTENCY WARNING 🚨
+# The following variables are defined BOTH in this file AND in h2o.py, creating dangerous conflicts:
+#
+# DUPLICATE DEFINITIONS (Same name, potentially different behavior):
+# - gpsEnabled: Defined here AND in h2o.py (lines 704, 749) 
+# - isOutletFlapActive: Defined here AND in h2o.py (line 15)
+# - powerButton: Defined here AND in h2o.py (lines 688, 700, etc.)
+# - autoSwitch: Defined here AND in h2o.py (lines 687, 700, etc.)
+# - pumpRelaySw: Defined here AND in h2o.py (lines 700, 814, etc.)
+# - co2RelaisSw: Defined here AND in h2o.py (lines 701, 815, etc.)
+# - co2HeatingRelaySw: Defined here AND in h2o.py (lines 702, 816, etc.)
+#
+# VALUE CONFLICTS (Same name, DIFFERENT values):
+# - minimumPHValStop: config.py=6.5 vs h2o.py=5 ⚠️ DIFFERENT VALUES!
+#
+# WHY THIS IS DANGEROUS:
+# 1. ThingsBoard interface depends on variable names in telemetry_keys/shared_attributes_keys
+# 2. These array names are IMMUTABLE (cannot be changed due to ThingsBoard integration)
+# 3. Duplicate definitions create unpredictable behavior depending on import order
+# 4. Value conflicts mean ThingsBoard sends one value but application uses another
+# 5. Debugging becomes nearly impossible when values don't match expectations
+#
+# SOLUTION REQUIRED:
+# - h2o.py should ONLY import these variables from config.py via "from config import *"
+# - h2o.py should NOT define any variables that exist in telemetry_keys/shared_attributes_keys
+# - config.py must be the SINGLE SOURCE OF TRUTH for all ThingsBoard-interfaced variables
+# - Remove ALL duplicate definitions from h2o.py
+# - Ensure h2o.py uses config.py values exclusively
+#
+# AFFECTED THINGSBOARD ARRAYS:
+# telemetry_keys: gpsEnabled, powerButton, autoSwitch, pumpRelaySw, co2RelaisSw, co2HeatingRelaySw
+# shared_attributes_keys: gpsEnabled, isOutletFlapActive, powerButton, autoSwitch, minimumPHValStop
+
 # Telemetry and Attribute Variables
 telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2HeatingRelaySw',
                   'co2HeatingRelaySwSig', 'co2RelaisSw', 'co2RelaisSwSig', 'countdownPHHigh',
