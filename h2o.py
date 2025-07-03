@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.54"
+ProgVers = "2.55"
 
 # Device enable flags (Configuration Constants)
 IS_RADAR_ENABLED = False
@@ -14,7 +14,7 @@ IS_OUTLET_FLAP_ENABLED = True
 # Sleep delay constants (in seconds)
 SLEEP_DELAY_AUTOMODE_OFF_SEC = 0.05    # Wartezeit wenn PowerButton aktiv, aber AutoMode off
 SLEEP_DELAY_AUTOMODE_ON_SEC = 0.1      # Wartezeit wenn PowerButton aktiv UND AutoMode on
-SLEEP_DELAY_POWERBUTTON_OFF_SEC = 2.0  # Wartezeit wenn PowerButton NICHT aktiv
+SLEEP_DELAY_POWERBUTTON_OFF_SEC = 0.5  # Wartezeit wenn PowerButton NICHT aktiv
 
 # Heartbeat timing constants (in seconds)
 OUTLETFLAP_HEARTBEAT_INTERVAL_SEC = 5    # Ausführungsintervall für OutletFlap Heartbeat
@@ -482,12 +482,34 @@ class OutletFlapHandler:
         while self.running:
             current_time = time.time()
             
+            # ==== DEBUG: HEARTBEAT TIMING (REMOVE AFTER TROUBLESHOOTING!) ====
+            time_since_last = current_time - self.last_heartbeat_time
+            debug_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(current_time * 1000) % 1000:03d}"
+            # ==== END DEBUG SECTION ====
+            
             # Check if it's time for the next heartbeat
             if current_time - self.last_heartbeat_time >= self.heartbeat_interval:
+                # ==== DEBUG: HEARTBEAT TIMING (REMOVE AFTER TROUBLESHOOTING!) ====
+                print(f"[{debug_time_str}] 🔧 DEBUG: Heartbeat triggered after {time_since_last:.2f}s (target: {self.heartbeat_interval}s)")
+                lock_start_time = time.time()
+                # ==== END DEBUG SECTION ====
+                
                 try:
                     # WARTEN auf freien Modbus-Zugriff - KEINE parallelen Zugriffe!
                     with self.sensor_lock:
+                        # ==== DEBUG: HEARTBEAT TIMING (REMOVE AFTER TROUBLESHOOTING!) ====
+                        lock_acquired_time = time.time()
+                        lock_wait_time = lock_acquired_time - lock_start_time
+                        if lock_wait_time > 0.1:  # Log if lock wait > 100ms
+                            print(f"🔧 DEBUG: Lock wait time: {lock_wait_time:.3f}s")
+                        # ==== END DEBUG SECTION ====
+                        
                         remote_local, valve_position, setpoint, error_code, test_register = self.read_outletflap_sensor_data()
+                        
+                        # ==== DEBUG: HEARTBEAT TIMING (REMOVE AFTER TROUBLESHOOTING!) ====
+                        lock_held_time = time.time() - lock_acquired_time
+                        print(f"🔧 DEBUG: Lock held time: {lock_held_time:.3f}s")
+                        # ==== END DEBUG SECTION ====
                     
                     # Zeitstempel für Heartbeat-Lesung
                     current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
@@ -505,6 +527,12 @@ class OutletFlapHandler:
                     print(f"💓 {self.name} Heartbeat Fehler: {e}")
                     # Update time even on error to avoid rapid retry
                     self.last_heartbeat_time = current_time
+            else:
+                # ==== DEBUG: HEARTBEAT TIMING (REMOVE AFTER TROUBLESHOOTING!) ====
+                remaining_time = self.heartbeat_interval - time_since_last
+                if remaining_time > 2:  # Only log if more than 2s remaining
+                    print(f"🔧 DEBUG: Heartbeat waiting - {remaining_time:.1f}s remaining")
+                # ==== END DEBUG SECTION ====
             
             # Sleep for check interval (1 second)
             time.sleep(self.heartbeat_check_interval)
@@ -922,11 +950,15 @@ def main():
 
         # OutletFlap data reading - beide Flags müssen aktiv sein (hierarchische Kontrolle)
         if IS_OUTLET_FLAP_ENABLED and outletFlapActive:
-            # ALTE Methode (für Kompatibilität)
-            outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
-            time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach fetch_and_display_data
+            # ========================================
+            # TEMPORARILY DISABLED FOR LOCK-OPTIMIZATION (DO NOT REMOVE WITHOUT ASKING USER!)
+            # Reason: Reduces sensor_lock holding time to improve Heartbeat timing
+            # ========================================
+            # # ALTE Methode (für Kompatibilität)
+            # outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest = outlet_flap_handler.fetch_and_display_data()
+            # time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach fetch_and_display_data
             
-            # NEUE Methode (Enhanced data reading)
+            # NEUE Methode (Enhanced data reading) - verwendet für bessere Performance
             enhanced_valve_data = outlet_flap_handler.read_valve_data()
             time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause nach read_valve_data wie bei anderen OutletFlap-Lesungen
             
@@ -937,6 +969,13 @@ def main():
                 outletFlapRemoteMode = enhanced_valve_data['is_remote_mode']
                 outletFlapLocalMode = enhanced_valve_data['is_local_mode']
                 outletFlapHasError = enhanced_valve_data['has_error']
+                
+                # Map enhanced data to old variable names for compatibility
+                outletFlapRemoteLocal = enhanced_valve_data['remote_local_status']
+                outletFlapValvePosition = enhanced_valve_data['raw_position_value']
+                outletFlapSetpoint = enhanced_valve_data['raw_setpoint_value']
+                outletFlapErrorCode = enhanced_valve_data['error_code']
+                outletFlapTest = 0  # Test register not available in enhanced method
             else:
                 # Fallback values if enhanced reading fails
                 outletFlapCurrentPosition = None
@@ -944,6 +983,12 @@ def main():
                 outletFlapRemoteMode = False
                 outletFlapLocalMode = True
                 outletFlapHasError = True
+                # Old variable fallbacks
+                outletFlapRemoteLocal = None
+                outletFlapValvePosition = None
+                outletFlapSetpoint = None
+                outletFlapErrorCode = None
+                outletFlapTest = None
 
         if powerButton:
             runtime_tracker.start()
