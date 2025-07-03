@@ -3,7 +3,7 @@ sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
 # Version number following the specified format
-ProgVers = "2.49"
+ProgVers = "2.51"
 
 # Device enable flags (Configuration Constants)
 IS_RADAR_ENABLED = False
@@ -324,10 +324,10 @@ class PHHandler:
             if raw_ph_value is None:
                 raise ValueError("PH Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
             else:
-                current_time_str = time.strftime("%H:%M:%S", time.localtime())
+                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
                 print(f'[{current_time_str}] ✅ PH: {raw_ph_value}')
         except Exception as e:
-            current_time_str = time.strftime("%H:%M:%S", time.localtime())
+            current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
             print(f"[{current_time_str}] ❌ PH Sensor: ERROR - {e}")
             return None, None
 
@@ -337,11 +337,11 @@ class PHHandler:
         try:
             temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
         except Exception as e:
-            current_time_str = time.strftime("%H:%M:%S", time.localtime())
+            current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
             print(f"[{current_time_str}] ❌ PH Temperature Sensor: ERROR - {e}")
             temperaturPHSens_telem = None
         
-        current_time_str = time.strftime("%H:%M:%S", time.localtime())
+        current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
         print(f'[{current_time_str}] ✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
         return measuredPHValue_telem, temperaturPHSens_telem
 
@@ -477,6 +477,10 @@ class OutletFlapHandler:
                 with self.sensor_lock:
                     remote_local, valve_position, setpoint, error_code, test_register = self.read_outletflap_sensor_data()
                 
+                # Zeitstempel für Heartbeat-Lesung
+                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
+                print(f"[{current_time_str}] 💓 {self.name} Heartbeat - Lesung durchgeführt")
+                
                 # Nur loggen wenn sich Position geändert hat
                 if valve_position != self.last_position and valve_position is not None:
                     print(f"💓 {self.name} - Position: {valve_position}%, Error: {error_code}")
@@ -513,13 +517,16 @@ class OutletFlapHandler:
             
             # Check if all values are None (failed reading)
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
-                print(f'❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
+                print(f'[{current_time_str}] ❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return None, None, None, None, None
             else:
-                print(f'✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
+                print(f'[{current_time_str}] ✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return remote_local, valve_position, setpoint, error_code, test_register
         except Exception as e:
-            print(f"❌ {self.name}: ERROR - {e}")
+            current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
+            print(f"[{current_time_str}] ❌ {self.name}: ERROR - {e}")
             return None, None, None, None, None
 
     def read_valve_data(self):
@@ -549,7 +556,7 @@ class OutletFlapHandler:
                 time.sleep(OUTLETFLAP_REGREADDELAY_SEC)  # Pause auch nach ERROR_CODE_REG
                 
                 # Aktuelle Uhrzeit für die Ausgabe
-                current_time_str = time.strftime("%H:%M:%S", time.localtime())
+                current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
                 print(f'[{current_time_str}] ✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
                 
                 return {
@@ -847,7 +854,7 @@ def main():
         co2HeatingRelaySwSig = co2HeatingRelaySw
         
         # Status output with current time and flags
-        current_time_str = time.strftime("%H:%M:%S", time.localtime())
+        current_time_str = time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
         print(f"[{current_time_str}] Flags: PB={int(powerButton)} AS={int(autoSwitch)} R={int(IS_RADAR_ENABLED)} T={int(IS_TRUB_ENABLED)} pH={int(IS_PH_ENABLED)} OF={int(IS_OUTLET_FLAP_ENABLED)} GPS={int(gpsEnabled)} | Active: R={int(radarSensorActive)} T={int(turbiditySensorActive)} OF={int(outletFlapActive)}")
         
         # Sichere Abfrage der GPS-Daten
