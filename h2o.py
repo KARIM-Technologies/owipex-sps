@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.53" # for internal use only
+DEVELOPMENT_VERSION = "2.54" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -304,7 +304,7 @@ class TurbidityHandler:
                 printTs(f"❌ Turbidity-Sensor: Lesung fehlgeschlagen")
                 return None, None
         else:
-            printTs(f"Turbidity-Sensor deaktiviert")
+            # printTs(f"Turbidity-Sensor deaktiviert")
             return None, None      
 
 class PhHandler:
@@ -324,7 +324,7 @@ class PhHandler:
             temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
             
             if temperaturPHSens_telem is not None:
-                printTs(f'PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
+                printTs(f'✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
                 return measuredPHValue_telem, temperaturPHSens_telem
             else:
                 printTs(f"❌ PH-Sensor: Temperatur-Lesung fehlgeschlagen")
@@ -923,7 +923,8 @@ def main():
                 measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()
                 
                 if measuredPHValue_telem is not None and temperaturPHSens_telem is not None:
-                    printTs("✅ PH-Sensor: Lesung erfolgreich")
+                    # printTs("✅ PH-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der PH-Wert-Ausgabe angezeigt
+                    pass
                 else:
                     printTs("❌ PH-Sensor: Lesung fehlgeschlagen")
             
@@ -1015,7 +1016,7 @@ def main():
                         co2HeatingRelaySw = False
 
             else:
-                print("automode OFF", autoSwitch)
+                # print("automode OFF", autoSwitch)
                 pumpRelaySw = False
                 co2RelaisSw = False
                 co2HeatingRelaySw = False
@@ -1025,7 +1026,7 @@ def main():
                 countdownPHHigh = ph_high_delay_duration
                 
         else:
-            print("Power Switch OFF.", powerButton)        
+            # print("Power Switch OFF.", powerButton)        
             pumpRelaySw = False
             co2RelaisSw = False
             co2HeatingRelaySw = False
