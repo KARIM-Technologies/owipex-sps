@@ -583,8 +583,8 @@ class OutletFlapHandler:
             # Beispiel: 75.0% = 750 + 1999 = 2749
             raw_value = int(target_position * 10) + 1999
             
-            # Write single register (wie in valve_actuator.py)
-            success = self.sensor.write_register(start_address=self.POSITION_SETPOINT_REG, register_count=1, value=raw_value)
+            # Write single register using VincerValve method
+            success = self.sensor.write_VincerValve(start_address=self.POSITION_SETPOINT_REG, register_count=1, value=raw_value)
             
             if success:
                 print(f'✅ {self.name}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
@@ -600,7 +600,7 @@ class OutletFlapHandler:
     def set_remote_mode(self):
         """Switch to REMOTE mode (AUTO) - FC11R equivalent"""
         try:
-            success = self.sensor.write_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
+            success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
             if success:
                 print(f'✅ {self.name}: REMOTE-Modus (AUTO) aktiviert')
                 return True
@@ -614,7 +614,7 @@ class OutletFlapHandler:
     def set_local_mode(self):
         """Switch to LOCAL mode (MANUAL) - FC11R equivalent"""
         try:
-            success = self.sensor.write_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
+            success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
             if success:
                 print(f'✅ {self.name}: LOCAL-Modus (MANUAL) aktiviert')
                 return True
@@ -629,7 +629,7 @@ class OutletFlapHandler:
         """Write setpoint - synchronized to prevent parallel Modbus access"""
         try:
             # Write to setpoint register (0x0002)
-            self.sensor.write_register(start_address=0x0002, register_count=1, value=setpoint_value)
+            self.sensor.write_VincerValve(start_address=0x0002, register_count=1, value=setpoint_value)
             print(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
             return True
         except Exception as e:
@@ -640,7 +640,7 @@ class OutletFlapHandler:
         """Write remote/local - synchronized to prevent parallel Modbus access"""
         try:
             # Write to remote/local register (0x0000)
-            self.sensor.write_register(start_address=0x0000, register_count=1, value=remote_local_value)
+            self.sensor.write_VincerValve(start_address=0x0000, register_count=1, value=remote_local_value)
             print(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
             return True
         except Exception as e:

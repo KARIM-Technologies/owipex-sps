@@ -53,6 +53,10 @@ class ModbusClient:
 
     def read_deviceid(self):
         return self.device_manager.read_deviceid(self.device_id)
+    
+    def write_VincerValve(self, start_address, register_count, value):
+        """Write to VincerValve register - forwards to DeviceManager"""
+        return self.device_manager.write_VincerValve(self.device_id, start_address, register_count, value)
 
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
@@ -263,6 +267,56 @@ class DeviceManager:
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
 
         return None  # Nach allen Versuchen gescheitert
+
+    def write_VincerValve(self, device_id, start_address, register_count, value):
+        """
+        Write to VincerValve register using Modbus Function Code 0x06 (Write Single Register)
+        """
+        try:
+            # Für einzelne Register verwenden wir Function Code 0x06
+            if register_count == 1:
+                function_code = 0x06
+                # Nachricht: Device ID, Function Code, Register Address, Value
+                message = struct.pack('>B B H H', device_id, function_code, start_address, value)
+                
+                # CRC berechnen und anhängen
+                crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
+                message += struct.pack('<H', crc16)
+                
+                # Puffer leeren vor dem Senden
+                self.ser.reset_input_buffer()
+                
+                # Nachricht senden
+                self.ser.write(message)
+                time.sleep(0.1)  # Warten auf Antwort
+                
+                # Antwort lesen
+                response = self.ser.read(100)
+                
+                # Minimale Antwortlänge prüfen
+                if len(response) < 8:
+                    print(f'VincerValve Write: Antwort zu kurz ({len(response)} Bytes)')
+                    return False
+                
+                # CRC der Antwort prüfen
+                received_crc = struct.unpack('<H', response[-2:])[0]
+                calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
+                
+                if received_crc != calculated_crc:
+                    print('VincerValve Write: CRC-Fehler in Antwort')
+                    return False
+                
+                # Bei erfolgreicher Antwort sollte die Antwort die geschriebenen Werte zurückgeben
+                print(f'VincerValve Write erfolgreich: Device {device_id}, Adresse {start_address}, Wert {value}')
+                return True
+                
+            else:
+                print(f'VincerValve Write: Mehrere Register ({register_count}) noch nicht implementiert')
+                return False
+                
+        except Exception as e:
+            print(f'VincerValve Write Fehler: {e}')
+            return False
 
 # # Beispiel-Nutzung:
 # if __name__ == "__main__":
