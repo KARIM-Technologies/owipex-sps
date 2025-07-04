@@ -31,6 +31,7 @@ GPS_REGREADDELAY_SEC = 0.05          # Pause nach GPS-Datenabfrage
 MODBUS_TIMEOUT_SEC = 2              # Timeout für Modbus RS485 Kommunikation
 
 # OutletFlap sub-control flag (controlled via ThingsBoard) - imported from config.py
+# please remove this comment
 
 import signal
 import logging.handlers
