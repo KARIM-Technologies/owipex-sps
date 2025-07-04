@@ -67,30 +67,57 @@ usSensorActive = False
 usFlowRate = 0.0
 usFlowTotal = 0.0
 
+# OutletFlap Configuration
+outletFlapRemoteLocal = 0
+outletFlapValvePosition = 0
+outletFlapSetpoint = 0
+outletFlapErrorCode = 0
+outletFlapTest = 0
+
+# OutletFlap Enhanced Configuration (FC11R-specific)
+outletFlapCurrentPosition = 0.0       # Konvertierte aktuelle Position (%)
+outletFlapSetpointPosition = 0.0      # Konvertierte Sollposition (%)
+outletFlapRemoteMode = False          # Boolean: Remote-Modus aktiv
+outletFlapLocalMode = True            # Boolean: Local-Modus aktiv
+outletFlapHasError = False            # Boolean: Fehler vorhanden
+
+# OutletFlap Command Variables (ThingsBoard controlled)
+outletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
+outletFlapTargetPosition = 0          # Command: Zielposition setzen (0-100%)
+outletFlapSetRemoteMode = False       # Command: auf Remote-Modus schalten
+outletFlapSetLocalMode = False        # Command: auf Local-Modus schalten
+
 # GPS Configuration
 gpsTimestamp = 1.0
 gpsLatitude = 1.0
 gpsLongitude = 1.0
 gpsHeight = 1.0
 
-
 # Telemetry and Attribute Variables
-telemetry_keys = ['runtime_tracker_var','powerButton', 'autoSwitch', 'co2RelaisSw', 'co2HeatingRelaySw', 'pumpRelaySw', 'calculatedFlowRate', 'waterLevelHeight_telem', 'measuredTurbidity_telem',
-                  'co2RelaisSwSig', 'co2HeatingRelaySwSig', 'pumpRelaySwSig', 'measuredPHValue_telem', 'temperaturPHSens_telem', 'gpsTimestamp', 'messuredRadar_Air_telem', 
-                  'countdownPHHigh', 'countdownPHLow', 'flow_rate_l_min', 'flow_rate_l_h', 'flow_rate_m3_min', 'gpsLatitude', 'gpsLongitude', 'gpsHeight', 'ph_low_delay_start_time', 
-                  'ph_high_delay_duration', 'minimumPHVal', 'maximumPHVal', 'tempTruebSens', 'calibratePH', 'total_flow', 'maximumTurbidity', 'turbiditySensorActive', 
-                  'gpsEnabled', 'usSensorActive', 'usFlowRate', 'usFlowTotal']
+telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2HeatingRelaySw',
+                  'co2HeatingRelaySwSig', 'co2RelaisSw', 'co2RelaisSwSig', 'countdownPHHigh',
+                  'countdownPHLow', 'flow_rate_l_h', 'flow_rate_l_min', 'flow_rate_m3_min',
+                  'gpsEnabled', 'gpsHeight', 'gpsLatitude', 'gpsLongitude',
+                  'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'measuredPHValue_telem',
+                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
+                  'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
+                  'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetLocalMode', 'outletFlapSetpoint',
+                  'outletFlapSetpointPosition', 'outletFlapSetRemoteMode', 'outletFlapTargetPosition', 'outletFlapTest',
+                  'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'powerButton',
+                  'pumpRelaySw', 'pumpRelaySwSig', 'runtime_tracker_var', 'tempTruebSens',
+                  'temperaturPHSens_telem', 'total_flow', 'turbiditySensorActive', 'usFlowRate',
+                  'usFlowTotal', 'usSensorActive', 'waterLevelHeight_telem']
 
 attributes_keys = ['ip_address', 'macaddress']
 
-
-
 # Lists for different groups of attributes
-shared_attributes_keys = ['minimumPHValStop', 'ph_low_delay_start_time', 'ph_high_delay_duration', 
-                          'PHValueOffset', 'maximumTurbidity', 'turbiditySensorActive', 
-                          'turbidityOffset', 'radarSensorActive', 'usSensorActive', 'autoSwitch', 
-                          'callGpsSwitch', 'powerButton', 'co2RelaisSwSig',
-                          'calibratePH', 'targetPHValue', 'targetPHtolerrance', 'gemessener_high_wert',
-                          'gemessener_low_wert', 'ph_slope', 'ph_intercept', 'maximumPHVal', 
-                          'usSensorActive', 
-                          'gpsEnabled']
+shared_attributes_keys = ['autoSwitch', 'calibratePH', 'callGpsSwitch', 'co2RelaisSwSig',
+                          'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'maximumPHVal',
+                          'maximumTurbidity', 'minimumPHVal', 'minimumPHValStop', 'outletFlapActive',
+                          'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode', 'outletFlapSetpoint',
+                          'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'ph_intercept',
+                          'ph_slope', 'PHValueOffset', 'powerButton', 'radarSensorActive',
+                          'targetPHtolerrance', 'targetPHValue', 'turbidityOffset', 'turbiditySensorActive',
+                          'usSensorActive']
+
+
