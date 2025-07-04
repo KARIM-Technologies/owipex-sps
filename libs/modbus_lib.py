@@ -20,6 +20,10 @@ def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
     return time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
 
+def printTs(message):
+    """Prints a message with a timestamp."""
+    print(f"[{get_timestamp()}] {message}")
+
 class ModbusClient:
     def __init__(self, device_manager, device_id):
         self.device_manager = device_manager
@@ -37,7 +41,7 @@ class ModbusClient:
         def read_loop():
             while self.auto_read_enabled:
                 value = self.read_register(start_address, register_count, data_format)
-                print(f'Auto Read: {value}')
+                printTs(f'Auto Read: {value}')
                 sleep(interval)
 
         Thread(target=read_loop).start()
@@ -95,15 +99,13 @@ class DeviceManager:
         
         # Check if the response is at least 2 bytes long
         if len(response) < 2:
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ⚠️  Device {device_id}: Received response is shorter than expected ({len(response)} bytes)')
+            printTs(f'⚠️  Device {device_id}: Received response is shorter than expected ({len(response)} bytes)')
             return self.last_read_values.get((device_id, start_address), None)
 
         received_crc = struct.unpack('<H', response[-2:])[0]
         calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
         if received_crc != calculated_crc:
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ⚠️  Device {device_id}: CRC error in response')
+            printTs(f'⚠️  Device {device_id}: CRC error in response')
             return self.last_read_values.get((device_id, start_address), None)
 
         data = response[3:-2]
@@ -111,13 +113,11 @@ class DeviceManager:
         try:
             floating_point = struct.unpack(data_format, swapped_data)[0]
         except struct.error:
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ⚠️  Device {device_id}: Error decoding data')
+            printTs(f'⚠️  Device {device_id}: Error decoding data')
             return self.last_read_values.get((device_id, start_address), None)
 
         if floating_point is None:
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ⚠️  Device {device_id}: Error reading register')
+            printTs(f'⚠️  Device {device_id}: Error reading register')
             return self.last_read_values.get((device_id, start_address), None)
 
         # Store the read value in the last_read_values dictionary
@@ -175,8 +175,7 @@ class DeviceManager:
             offset += 1
             
         if offset > 0:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ⚠️  Device {device_id}: {offset} zusätzliche Bytes am Anfang der Antwort, werden ignoriert")
+            printTs(f"⚠️  Device {device_id}: {offset} zusätzliche Bytes am Anfang der Antwort, werden ignoriert")
             response = response[offset:]
             
         if len(response) < 5:
@@ -201,19 +200,16 @@ class DeviceManager:
             try:
                 data = self.read_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
+                printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ⚠️  Device {device_id}: Unplausibel hoher Durchflusswert: {value}, setze auf 0")
+                    printTs(f"⚠️  Device {device_id}: Unplausibel hoher Durchflusswert: {value}, setze auf 0")
                     return 0.0
 
                 return value  # m³/h
             except Exception as e:
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ❌ DTI-1 Device {device_id}: Fehler beim Lesen des Durchflusswerts (Versuch {attempt+1}/3): {e}")
+                printTs(f"❌ DTI-1 Device {device_id}: Fehler beim Lesen des Durchflusswerts (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
         return None  # Nach allen Versuchen gescheitert
@@ -231,13 +227,11 @@ class DeviceManager:
             try:
                 data = self.read_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
+                printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
             except Exception as e:
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ❌ DTI-1 Device {device_id}: Fehler beim Lesen des Totalizers (Versuch {attempt+1}/3): {e}")
+                printTs(f"❌ DTI-1 Device {device_id}: Fehler beim Lesen des Totalizers (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
         return None  # Nach allen Versuchen gescheitert
@@ -253,13 +247,11 @@ class DeviceManager:
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ⚠️  Device {device_id}: Unplausibler Pipe Diameter: {value}, setze auf 0")
+                    printTs(f"⚠️  Device {device_id}: Unplausibler Pipe Diameter: {value}, setze auf 0")
                     return 0.0
                 return value  # mm
             except Exception as e:
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ❌ DTI-1 Device {device_id}: Fehler beim Lesen des Pipe Diameter (Versuch {attempt+1}/3): {e}")
+                printTs(f"❌ DTI-1 Device {device_id}: Fehler beim Lesen des Pipe Diameter (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
                 
         return None  # Nach allen Versuchen gescheitert
@@ -275,13 +267,11 @@ class DeviceManager:
                 value = struct.unpack(">h", data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ⚠️  Device {device_id}: Unplausibler DeviceId: {value}, setze auf 0")
+                    printTs(f"⚠️  Device {device_id}: Unplausibler DeviceId: {value}, setze auf 0")
                     return 0
                 return value  # ID
             except Exception as e:
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ❌ DTI-1 Device {device_id}: Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
+                printTs(f"❌ DTI-1 Device {device_id}: Fehler beim Lesen des DeviceId (Versuch {attempt+1}/3): {e}")
                 time.sleep(0.2 * (attempt + 1))  # Längere Pause bei jedem Versuch
 
         return None  # Nach allen Versuchen gescheitert
@@ -313,8 +303,7 @@ class DeviceManager:
                 
                 # Minimale Antwortlänge prüfen
                 if len(response) < 8:
-                    timestamp = get_timestamp()
-                    print(f'[{timestamp}] ⚠️  Device {device_id} VincerValve Write: Antwort zu kurz ({len(response)} Bytes)')
+                    printTs(f'⚠️  Device {device_id} VincerValve Write: Antwort zu kurz ({len(response)} Bytes)')
                     return False
                 
                 # CRC der Antwort prüfen
@@ -322,23 +311,19 @@ class DeviceManager:
                 calculated_crc = crcmod.predefined.mkPredefinedCrcFun('modbus')(response[:-2])
                 
                 if received_crc != calculated_crc:
-                    timestamp = get_timestamp()
-                    print(f'[{timestamp}] ⚠️  Device {device_id} VincerValve Write: CRC-Fehler in Antwort')
+                    printTs(f'⚠️  Device {device_id} VincerValve Write: CRC-Fehler in Antwort')
                     return False
                 
                 # Bei erfolgreicher Antwort sollte die Antwort die geschriebenen Werte zurückgeben
-                timestamp = get_timestamp()
-                print(f'[{timestamp}] ✅ VincerValve Write erfolgreich: Device {device_id}, Adresse {start_address}, Wert {value}')
+                printTs(f'✅ VincerValve Write erfolgreich: Device {device_id}, Adresse {start_address}, Wert {value}')
                 return True
                 
             else:
-                timestamp = get_timestamp()
-                print(f'[{timestamp}] ⚠️  Device {device_id} VincerValve Write: Mehrere Register ({register_count}) noch nicht implementiert')
+                printTs(f'⚠️  Device {device_id} VincerValve Write: Mehrere Register ({register_count}) noch nicht implementiert')
                 return False
                 
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ⚠️  Device {device_id} VincerValve Write Fehler: {e}')
+            printTs(f'⚠️  Device {device_id} VincerValve Write Fehler: {e}')
             return False
 
 # # Beispiel-Nutzung:

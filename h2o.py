@@ -82,6 +82,11 @@ def load_state():
         print(f"Fehler beim Lesen des Zustands: {e}. Ein leerer Zustand wird verwendet.")
     return {}
 
+def printTs(message):
+    """Central print function with timestamp"""
+    timestamp = get_timestamp()
+    print(f"[{timestamp}] {message}")
+
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
     return time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
@@ -292,16 +297,14 @@ class TurbidityHandler:
             measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
             tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
             
-            timestamp = get_timestamp()
             if measuredTurbidity_telem is not None and tempTruebSens is not None:
-                print(f'[{timestamp}] Turbidity: {measuredTurbidity_telem}, Turbidity Temp Sens: {tempTruebSens}')
+                printTs(f'Turbidity: {measuredTurbidity_telem}, Turbidity Temp Sens: {tempTruebSens}')
                 return measuredTurbidity_telem, tempTruebSens
             else:
-                print(f"[{timestamp}] ❌ Turbidity-Sensor: Lesung fehlgeschlagen")
+                printTs(f"❌ Turbidity-Sensor: Lesung fehlgeschlagen")
                 return None, None
         else:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] Turbidity-Sensor deaktiviert")
+            printTs(f"Turbidity-Sensor deaktiviert")
             return None, None      
 
 class PhHandler:
@@ -315,22 +318,20 @@ class PhHandler:
         try:
             raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
             if raw_ph_value is None:
-                raise ValueError("Sensorlesung fehlgeschlagen. Überprüfen Sie die Verbindung.")
-                
+                return None, None
+            
             measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
             temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
             
-            timestamp = get_timestamp()
             if temperaturPHSens_telem is not None:
-                print(f'[{timestamp}] PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
+                printTs(f'PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
                 return measuredPHValue_telem, temperaturPHSens_telem
             else:
-                print(f"[{timestamp}] ❌ PH-Sensor: Temperatur-Lesung fehlgeschlagen")
+                printTs(f"❌ PH-Sensor: Temperatur-Lesung fehlgeschlagen")
                 return measuredPHValue_telem, None
                 
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ PH-Sensor: Fehler bei der Ablesung: {e}")
+            printTs(f"❌ PH-Sensor: Fehler bei der Ablesung: {e}")
             return None, None
 
     def correct_ph_value(self, raw_value):
@@ -399,17 +400,16 @@ class RadarHandler:
             measured_air_distance = self.radar_sensor.read_radar_sensor(register_address=0x0001)
             if measured_air_distance is None:
                 raise ValueError("Keine Messung vom Radar-Sensor erhalten.")
-                
+            
             water_level = self.zero_reference - measured_air_distance
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] Radar: Wasserhöhe: {water_level} mm")
+            printTs(f"Radar: Wasserhöhe: {water_level} mm")
             flow_rate = self.flow_calculator.calculate_flow_rate(water_level)
-            print(f"[{timestamp}] Radar: Flow Rate (L/s): {flow_rate}")
+            printTs(f"Radar: Flow Rate (L/s): {flow_rate}")
 
             flow_rate_l_min = self.flow_calculator.convert_to_liters_per_minute(flow_rate)
             flow_rate_l_h = self.flow_calculator.convert_to_liters_per_hour(flow_rate)
             flow_rate_m3_min = self.flow_calculator.convert_to_cubic_meters_per_minute(flow_rate)
-
+            
             return {
                 "water_level_mm": water_level,
                 "flow_rate_l_s": flow_rate,
@@ -419,8 +419,7 @@ class RadarHandler:
             }
             
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ Radar-Sensor: Fehler beim Lesen: {e}")
+            printTs(f"❌ Radar-Sensor: Fehler beim Lesen: {e}")
             return None
 
 class RadarTotalFlowManager:
@@ -483,52 +482,44 @@ class UsHandler:
 
     def fetchViaDeviceManager(self):
         try:
-            # Verwende die verbesserten Methoden für den DTI-1 Flow Sensor
+            # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
             current_flow = self.sensor.read_flow_rate_m3ph()
             total_flow = self.sensor.read_totalizer_m3()
             
-            # Erfolgreiche Werte merken (für Fallback bei Fehlern)
             if current_flow is not None:
+                self.consecutive_errors = 0
                 self.last_successful_flow_rate = current_flow
-                self.consecutive_errors = 0  # Reset Fehlerzähler bei Erfolg
             else:
                 self.consecutive_errors += 1
                 current_flow = self.last_successful_flow_rate
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ⚠️  DTI-1: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
+                printTs(f"⚠️  DTI-1: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
                 
             if total_flow is not None:
+                self.consecutive_errors = 0
                 self.last_successful_total_flow = total_flow
-                self.consecutive_errors = 0  # Reset Fehlerzähler bei Erfolg
             else:
                 self.consecutive_errors += 1
                 total_flow = self.last_successful_total_flow
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ⚠️  DTI-1: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
+                printTs(f"⚠️  DTI-1: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
             
             # Protokolliere die gelesenen Werte
-            timestamp = get_timestamp()
             if current_flow is not None and total_flow is not None:
-                print(f"[{timestamp}] DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
+                printTs(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
             else:
-                print(f"[{timestamp}] ❌ DTI-1 Flow Sensor: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
+                printTs(f"❌ DTI-1 Flow Sensor: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
             
             # Überprüfe auf zu viele aufeinanderfolgende Fehler
             if self.consecutive_errors >= self.max_consecutive_errors:
-                timestamp = get_timestamp()
-                print(f"[{timestamp}] ⚠️  DTI-1: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
+                printTs(f"⚠️  DTI-1: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
                 
             return current_flow, total_flow
             
         except Exception as e:
             self.consecutive_errors += 1
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ DTI-1: Exception beim Lesen: {e}")
+            printTs(f"❌ DTI-1: Exception beim Lesen: {e}")
             import traceback
             traceback.print_exc()
-            
-            # Bei Fehler die letzten erfolgreichen Werte zurückgeben
-            return self.last_successful_flow_rate, self.last_successful_total_flow
+            return None, None
 
 class OutletFlapHandler:
     def __init__(self, sensor):
@@ -555,16 +546,14 @@ class OutletFlapHandler:
             test_register = self.sensor.read_register(start_address=0x0004, register_count=1, data_format='>H')
             
             # Check if all values are None (failed reading)
-            timestamp = get_timestamp()
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
-                print(f'[{timestamp}] ❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                printTs(f'❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return None, None, None, None, None
             else:
-                print(f'[{timestamp}] ✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                printTs(f'✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return remote_local, valve_position, setpoint, error_code, test_register
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: ERROR - {e}")
+            printTs(f"❌ {self.name}: ERROR - {e}")
             return None, None, None, None, None
 
     def read_valve_data(self):
@@ -585,8 +574,7 @@ class OutletFlapHandler:
             error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
             
             # Aktuelle Uhrzeit für die Ausgabe
-            timestamp = get_timestamp()
-            print(f'[{timestamp}] ✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
+            printTs(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
             
             return {
                 'current_position': round(current_position, 1),      # Konvertierte aktuelle Position
@@ -601,17 +589,15 @@ class OutletFlapHandler:
             }
             
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name} read_valve_data Error: {e}")
+            printTs(f"❌ {self.name} read_valve_data Error: {e}")
             return None
 
     def set_valve_position(self, target_position):
         """Set valve position mit FC11R-Konvertierung (0-100%)"""
         try:
-                    if not (0 <= target_position <= 100):
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Position muss zwischen 0 und 100% liegen")
-            return False
+            if not (0 <= target_position <= 100):
+                printTs(f"❌ {self.name}: Position muss zwischen 0 und 100% liegen")
+                return False
             
             # FC11R Konvertierung: percentage * 10 + 1999
             # Beispiel: 75.0% = 750 + 1999 = 2749
@@ -621,15 +607,14 @@ class OutletFlapHandler:
             success = self.sensor.write_VincerValve(start_address=self.POSITION_SETPOINT_REG, register_count=1, value=raw_value)
             
             if success:
-                print(f'✅ {self.name}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
+                printTs(f'✅ {self.name}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
                 return True
             else:
-                print(f'❌ {self.name}: Fehler beim Setzen der Position {target_position}%')
+                printTs(f'❌ {self.name}: Fehler beim Setzen der Position {target_position}%')
                 return False
                 
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Fehler beim Setzen der Position: {e}")
+            printTs(f"❌ {self.name}: Fehler beim Setzen der Position: {e}")
             return False
 
     def set_remote_mode(self):
@@ -637,14 +622,13 @@ class OutletFlapHandler:
         try:
             success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
             if success:
-                print(f'✅ {self.name}: REMOTE-Modus (AUTO) aktiviert')
+                printTs(f'✅ {self.name}: REMOTE-Modus (AUTO) aktiviert')
                 return True
             else:
-                print(f'❌ {self.name}: Fehler beim Setzen des REMOTE-Modus')
+                printTs(f'❌ {self.name}: Fehler beim Setzen des REMOTE-Modus')
                 return False
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Fehler beim Setzen des REMOTE-Modus: {e}")
+            printTs(f"❌ {self.name}: Fehler beim Setzen des REMOTE-Modus: {e}")
             return False
 
     def set_local_mode(self):
@@ -652,14 +636,13 @@ class OutletFlapHandler:
         try:
             success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
             if success:
-                print(f'✅ {self.name}: LOCAL-Modus (MANUAL) aktiviert')
+                printTs(f'✅ {self.name}: LOCAL-Modus (MANUAL) aktiviert')
                 return True
             else:
-                print(f'❌ {self.name}: Fehler beim Setzen des LOCAL-Modus')
+                printTs(f'❌ {self.name}: Fehler beim Setzen des LOCAL-Modus')
                 return False
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Fehler beim Setzen des LOCAL-Modus: {e}")
+            printTs(f"❌ {self.name}: Fehler beim Setzen des LOCAL-Modus: {e}")
             return False
 
     def write_setpoint(self, setpoint_value):
@@ -667,11 +650,10 @@ class OutletFlapHandler:
         try:
             # Write to setpoint register (0x0002)
             self.sensor.write_VincerValve(start_address=0x0002, register_count=1, value=setpoint_value)
-            print(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
+            printTs(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
             return True
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Fehler beim Schreiben des Setpoints: {e}")
+            printTs(f"❌ {self.name}: Fehler beim Schreiben des Setpoints: {e}")
             return False
 
     def write_remote_local(self, remote_local_value):
@@ -679,11 +661,10 @@ class OutletFlapHandler:
         try:
             # Write to remote/local register (0x0000)
             self.sensor.write_VincerValve(start_address=0x0000, register_count=1, value=remote_local_value)
-            print(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
+            printTs(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
             return True
         except Exception as e:
-            timestamp = get_timestamp()
-            print(f"[{timestamp}] ❌ {self.name}: Fehler beim Schreiben von Remote/Local: {e}")
+            printTs(f"❌ {self.name}: Fehler beim Schreiben von Remote/Local: {e}")
             return False
 
 def signal_handler(sig, frame):
@@ -778,7 +759,20 @@ def main():
     global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
     global outlet_flap_handler, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError, outletFlapTargetPosition
 
-    print(f"Version: {DEVELOPMENT_VERSION}")
+    print("=" * 25)
+    print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
+    print("=" * 25)
+    print("")
+    print("Konfigurierte Leseintervalle:")
+    print("-" * 29)
+    print(f"  Main Loop Sleep:        {MAINLOOP_SLEEP_SEC} s")
+    print(f"  Radar Sensor:           {RADAR_READINGS_INTERVAL_SEC} s")
+    print(f"  DTI-1 Flow Sensor:      {US_READINGS_INTERVAL_SEC} s")
+    print(f"  PH Sensor:              {PH_READINGS_INTERVAL_SEC} s")
+    print(f"  Turbidity Sensor:       {TURBIDITY_READINGS_INTERVAL_SEC} s")
+    print(f"  OutletFlap Valve:       {OUTLETFLAP_READINGS_INTERVAL_SEC} s")
+    print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
+    print("")
 
     # Initialisiere gpsEnabled mit Standardwert
     gpsEnabled = False
@@ -883,15 +877,13 @@ def main():
                 radar_flow_data = radar_rate_Handler.fetch_and_calculate()
 
                 if radar_flow_data:
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ✅ Radar-Sensor: Lesung erfolgreich")
+                    printTs("✅ Radar-Sensor: Lesung erfolgreich")
                     # Update the total flow using the calculated flow rate
                     radarTotalFlowManager.update_flow_rate(radar_flow_data['flow_rate_l_min'])
                     radar_total_flow = radarTotalFlowManager.total_flow
                     radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
                 else:
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ❌ Radar-Sensor: Lesung fehlgeschlagen")
+                    printTs("❌ Radar-Sensor: Lesung fehlgeschlagen")
 
         if usSensorActive:
             # Check if enough time has passed since last US reading
@@ -905,15 +897,13 @@ def main():
                     us_flow_handler = UsHandler(Us_Sensor)
                     usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
                     
-                    timestamp = get_timestamp()
                     if usFlowRate is not None and usFlowTotal is not None:
-                        print(f"[{timestamp}] ✅ DTI-1 Flow Sensor: Lesung erfolgreich")
+                        printTs("✅ DTI-1 Flow Sensor: Lesung erfolgreich")
                     else:
-                        print(f"[{timestamp}] ❌ DTI-1 Flow Sensor: Unvollständige Daten")
+                        printTs("❌ DTI-1 Flow Sensor: Unvollständige Daten")
                         
                 except Exception as e:
-                    timestamp = get_timestamp()
-                    print(f"[{timestamp}] ❌ DTI-1 Flow Sensor: Fehler beim Lesen: {e}")
+                    printTs(f"❌ DTI-1 Flow Sensor: Fehler beim Lesen: {e}")
                     import traceback
                     traceback.print_exc()
         # else:
@@ -932,11 +922,10 @@ def main():
                 
                 measuredPHValue_telem, temperaturPHSens_telem = ph_handler.fetch_and_display_data()
                 
-                timestamp = get_timestamp()
                 if measuredPHValue_telem is not None and temperaturPHSens_telem is not None:
-                    print(f"[{timestamp}] ✅ PH-Sensor: Lesung erfolgreich")
+                    printTs("✅ PH-Sensor: Lesung erfolgreich")
                 else:
-                    print(f"[{timestamp}] ❌ PH-Sensor: Lesung fehlgeschlagen")
+                    printTs("❌ PH-Sensor: Lesung fehlgeschlagen")
             
             # Check if enough time has passed since last Turbidity reading
             if device_check_time - last_turbidity_reading_time >= TURBIDITY_READINGS_INTERVAL_SEC:
@@ -945,12 +934,11 @@ def main():
                 
                 measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
                 
-                timestamp = get_timestamp()
                 if turbiditySensorActive:
                     if measuredTurbidity_telem is not None and tempTruebSens is not None:
-                        print(f"[{timestamp}] ✅ Turbidity-Sensor: Lesung erfolgreich")
+                        printTs("✅ Turbidity-Sensor: Lesung erfolgreich")
                     else:
-                        print(f"[{timestamp}] ❌ Turbidity-Sensor: Lesung fehlgeschlagen")
+                        printTs("❌ Turbidity-Sensor: Lesung fehlgeschlagen")
 
         if outletFlapActive:
             # Check if enough time has passed since last OutletFlap reading
