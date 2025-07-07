@@ -12,21 +12,23 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.56" # for internal use only
+DEVELOPMENT_VERSION = "2.58" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
 
 # Device reading interval configuration
-# OUTLETFLAP_READINGS_INTERVAL_SEC = 30.0  # OutletFlap readings every 30 seconds
-# RADAR_READINGS_INTERVAL_SEC = 10.0       # Radar readings every 10 seconds
-# PH_READINGS_INTERVAL_SEC = 60.0          # PH readings every 15 seconds
-# TURBIDITY_READINGS_INTERVAL_SEC = 30.0   # Turbidity readings every 20 seconds
-# US_READINGS_INTERVAL_SEC = 60.0          # US Flow readings every 12 seconds
+# OUTLETFLAP_READINGS_INTERVAL_SEC = 31.0  # OutletFlap readings every 30 seconds
+# RADAR_READINGS_INTERVAL_SEC = 10.0       # Radar readings every 10 seconds
+# PH_READINGS_INTERVAL_SEC = 59.0          # PH readings every 15 seconds
+# TURBIDITY_READINGS_INTERVAL_SEC = 32.0   # Turbidity readings every 20 seconds
+# TURBIDITY2_READINGS_INTERVAL_SEC = 33.0  # Turbidity2 readings every 20 seconds
+# US_READINGS_INTERVAL_SEC = 61.0          # US Flow readings every 12 seconds
 OUTLETFLAP_READINGS_INTERVAL_SEC = 25.0  # OutletFlap readings every 30 seconds
 RADAR_READINGS_INTERVAL_SEC = 21.0       # Radar readings every 10 seconds
 PH_READINGS_INTERVAL_SEC = 22.0          # PH readings every 15 seconds
 TURBIDITY_READINGS_INTERVAL_SEC = 29.0   # Turbidity readings every 20 seconds
+TURBIDITY2_READINGS_INTERVAL_SEC = 28.0  # Turbidity2 readings every 20 seconds
 US_READINGS_INTERVAL_SEC = 23.0          # US Flow readings every 12 seconds
 
 from periphery import GPIO
@@ -53,12 +55,14 @@ dev_manager.add_device(device_id=0x01)
 dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
 dev_manager.add_device(device_id=0x0a)  # Vincer Valve
+dev_manager.add_device(device_id=0x0c)  # Turbidity Sensor 2
 dev_manager.add_device(device_id=0x28)  # Neuer US Flow Sensor
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x01)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 Ph_Sensor = dev_manager.get_device(device_id=0x03)
 OutletFlap_Sensor = dev_manager.get_device(device_id=0x0a)  # Vincer Valve
+Trub_Sensor2 = dev_manager.get_device(device_id=0x0c)  # Turbidity Sensor 2
 Us_Sensor = dev_manager.get_device(device_id=0x28)  # Neuer US Flow Sensor
 #logging.basicConfig(level=logging.DEBUG)
 client = None
@@ -222,7 +226,8 @@ class RuntimeTracker:
         return self.total_runtime / 3600  # Rückgabe in Stunden
 
 class GpsHandler:
-    def __init__(self, update_interval=60):
+    def __init__(self, deviceName, update_interval=60):
+        self.deviceName = deviceName
         self.update_interval = update_interval
         self.callGpsSwitch = False
         self.latest_gps_data = (None, None, None, None)
@@ -294,26 +299,24 @@ class GpsHandler:
         return self.latest_gps_data
         
 class TurbidityHandler:
-    def __init__(self, sensor):
+    def __init__(self, deviceName, sensor):
+        self.deviceName = deviceName
         self.sensor = sensor  # Hier übergeben Sie die Trub_Sensor-Instanz
 
-    def fetch_and_display_data(self, turbiditySensorActive):
-        if turbiditySensorActive:
-            measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
-            tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
-            
-            if measuredTurbidity_telem is not None and tempTruebSens is not None:
-                printTs(f'✅ Turbidity: {measuredTurbidity_telem}, Turbidity Temp Sens: {tempTruebSens}')
-                return measuredTurbidity_telem, tempTruebSens
-            else:
-                printTs(f"❌ Turbidity-Sensor: Lesung fehlgeschlagen")
-                return None, None
+    def fetch_and_display_data(self):
+        measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
+        tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
+        
+        if measuredTurbidity_telem is not None and tempTruebSens is not None:
+            printTs(f'✅ {self.deviceName}: {measuredTurbidity_telem}, {self.deviceName} Temp Sens: {tempTruebSens}')
+            return measuredTurbidity_telem, tempTruebSens
         else:
-            # printTs(f"Turbidity-Sensor deaktiviert")
-            return None, None      
+            printTs(f"❌ {self.deviceName}: Lesung fehlgeschlagen")
+            return None, None
 
 class PhHandler:
-    def __init__(self, sensor):
+    def __init__(self, deviceName, sensor):
+        self.deviceName = deviceName
         self.sensor = sensor  # Übergeben Sie die Ph_Sensor-Instanz
         self.slope = 1  # Anfangswert, wird durch Kalibrierung aktualisiert
         self.intercept = 0  # Anfangswert, wird durch Kalibrierung aktualisiert
@@ -372,7 +375,8 @@ class PhHandler:
             print("Kalibrierungswerte geladen oder auf Standardwerte zurückgesetzt.")
 
 class RadarHandler:
-    def __init__(self, radar_sensor):
+    def __init__(self, deviceName, radar_sensor):
+        self.deviceName = deviceName
         self.radar_sensor = radar_sensor
         
         # Pfad zur Kalibrierungsdatei aktualisieren
@@ -478,7 +482,8 @@ class RadarTotalFlowManager:
         threading.Thread(target=save_periodically, daemon=True).start()
 
 class UsHandler:
-    def __init__(self, sensor):
+    def __init__(self, deviceName, sensor):
+        self.deviceName = deviceName
         self.sensor = sensor 
         self.last_successful_flow_rate = 0.0
         self.last_successful_total_flow = 0.0
@@ -529,9 +534,9 @@ class UsHandler:
             return None, None
 
 class OutletFlapHandler:
-    def __init__(self, sensor):
+    def __init__(self, deviceName, sensor):
+        self.deviceName = deviceName
         self.sensor = sensor  # Übergeben Sie die OutletFlap-Instanz
-        self.name = "OutletFlap"
 
         # FC11R Register Definitions (from valve_actuator.py pattern)
         self.REMOTE_LOCAL_REG = 0x0000      # Remote/Local Control (0=Local, 1=Remote)
@@ -554,13 +559,13 @@ class OutletFlapHandler:
             
             # Check if all values are None (failed reading)
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
-                printTs(f'❌ {self.name} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                printTs(f'❌ {self.deviceName} - All readings failed: Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return None, None, None, None, None
             else:
-                printTs(f'✅ {self.name} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
+                printTs(f'✅ {self.deviceName} - Remote/Local: {remote_local}, Position: {valve_position}, Setpoint: {setpoint}, Error: {error_code}, Test: {test_register}')
                 return remote_local, valve_position, setpoint, error_code, test_register
         except Exception as e:
-            printTs(f"❌ {self.name}: ERROR - {e}")
+            printTs(f"❌ {self.deviceName}: ERROR - {e}")
             return None, None, None, None, None
 
     def read_valve_data(self):
@@ -581,7 +586,7 @@ class OutletFlapHandler:
             error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
             
             # Aktuelle Uhrzeit für die Ausgabe
-            printTs(f'✅ {self.name} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
+            printTs(f'✅ {self.deviceName} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
             
             return {
                 'current_position': round(current_position, 1),      # Konvertierte aktuelle Position
@@ -596,14 +601,14 @@ class OutletFlapHandler:
             }
             
         except Exception as e:
-            printTs(f"❌ {self.name} read_valve_data Error: {e}")
+            printTs(f"❌ {self.deviceName} read_valve_data Error: {e}")
             return None
 
     def set_valve_position(self, target_position):
         """Set valve position mit FC11R-Konvertierung (0-100%)"""
         try:
             if not (0 <= target_position <= 100):
-                printTs(f"❌ {self.name}: Position muss zwischen 0 und 100% liegen")
+                printTs(f"❌ {self.deviceName}: Position muss zwischen 0 und 100% liegen")
                 return False
             
             # FC11R Konvertierung: percentage * 10 + 1999
@@ -614,14 +619,14 @@ class OutletFlapHandler:
             success = self.sensor.write_VincerValve(start_address=self.POSITION_SETPOINT_REG, register_count=1, value=raw_value)
             
             if success:
-                printTs(f'✅ {self.name}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
+                printTs(f'✅ {self.deviceName}: Sollposition {target_position}% (raw: {raw_value}) gesetzt')
                 return True
             else:
-                printTs(f'❌ {self.name}: Fehler beim Setzen der Position {target_position}%')
+                printTs(f'❌ {self.deviceName}: Fehler beim Setzen der Position {target_position}%')
                 return False
                 
         except Exception as e:
-            printTs(f"❌ {self.name}: Fehler beim Setzen der Position: {e}")
+            printTs(f"❌ {self.deviceName}: Fehler beim Setzen der Position: {e}")
             return False
 
     def set_remote_mode(self):
@@ -629,13 +634,13 @@ class OutletFlapHandler:
         try:
             success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
             if success:
-                printTs(f'✅ {self.name}: REMOTE-Modus (AUTO) aktiviert')
+                printTs(f'✅ {self.deviceName}: REMOTE-Modus (AUTO) aktiviert')
                 return True
             else:
-                printTs(f'❌ {self.name}: Fehler beim Setzen des REMOTE-Modus')
+                printTs(f'❌ {self.deviceName}: Fehler beim Setzen des REMOTE-Modus')
                 return False
         except Exception as e:
-            printTs(f"❌ {self.name}: Fehler beim Setzen des REMOTE-Modus: {e}")
+            printTs(f"❌ {self.deviceName}: Fehler beim Setzen des REMOTE-Modus: {e}")
             return False
 
     def set_local_mode(self):
@@ -643,13 +648,13 @@ class OutletFlapHandler:
         try:
             success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
             if success:
-                printTs(f'✅ {self.name}: LOCAL-Modus (MANUAL) aktiviert')
+                printTs(f'✅ {self.deviceName}: LOCAL-Modus (MANUAL) aktiviert')
                 return True
             else:
-                printTs(f'❌ {self.name}: Fehler beim Setzen des LOCAL-Modus')
+                printTs(f'❌ {self.deviceName}: Fehler beim Setzen des LOCAL-Modus')
                 return False
         except Exception as e:
-            printTs(f"❌ {self.name}: Fehler beim Setzen des LOCAL-Modus: {e}")
+            printTs(f"❌ {self.deviceName}: Fehler beim Setzen des LOCAL-Modus: {e}")
             return False
 
     def write_setpoint(self, setpoint_value):
@@ -660,7 +665,7 @@ class OutletFlapHandler:
             printTs(f'OutletFlap Setpoint geschrieben: {setpoint_value}')
             return True
         except Exception as e:
-            printTs(f"❌ {self.name}: Fehler beim Schreiben des Setpoints: {e}")
+            printTs(f"❌ {self.deviceName}: Fehler beim Schreiben des Setpoints: {e}")
             return False
 
     def write_remote_local(self, remote_local_value):
@@ -671,7 +676,7 @@ class OutletFlapHandler:
             printTs(f'OutletFlap Remote/Local geschrieben: {remote_local_value}')
             return True
         except Exception as e:
-            printTs(f"❌ {self.name}: Fehler beim Schreiben von Remote/Local: {e}")
+            printTs(f"❌ {self.deviceName}: Fehler beim Schreiben von Remote/Local: {e}")
             return False
 
 def signal_handler(sig, frame):
@@ -698,10 +703,11 @@ minimumPHValStop = 5
 gpsEnabled = False  # Globale Initialisierung der GPS-Aktivierung
 
 runtime_tracker = RuntimeTracker()
-ph_handler = PhHandler(Ph_Sensor)
-turbidity_handler = TurbidityHandler(Trub_Sensor)
-gps_handler = GpsHandler()
-outlet_flap_handler = OutletFlapHandler(OutletFlap_Sensor)
+ph_handler = PhHandler("Ph", Ph_Sensor)
+turbidity_handler = TurbidityHandler("Turbidity", Trub_Sensor)
+turbidity_handler2 = TurbidityHandler("Turbidity2", Trub_Sensor2)
+gps_handler = GpsHandler("Gps")
+outlet_flap_handler = OutletFlapHandler("OutletFlap", OutletFlap_Sensor)
 ph_handler.load_calibration()
 
 # Vor der main-Funktion:
@@ -713,6 +719,7 @@ last_outletflap_reading_time = 0  # Initialize to 0 to ensure first reading happ
 last_radar_reading_time = 0       # Initialize to 0 to ensure first reading happens immediately
 last_ph_reading_time = 0          # Initialize to 0 to ensure first reading happens immediately
 last_turbidity_reading_time = 0   # Initialize to 0 to ensure first reading happens immediately
+last_turbidity2_reading_time = 0  # Initialize to 0 to ensure first reading happens immediately
 last_us_reading_time = 0          # Initialize to 0 to ensure first reading happens immediately
         
 isVersionSent = False
@@ -763,8 +770,9 @@ def check_initial_outletflap_position():
 
 def main():
     #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
+    global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_turbidity2_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, turbidity_handler2, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, tempTruebSens2, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
     global outlet_flap_handler, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError, outletFlapTargetPosition
+    global turbiditySensorActive, turbidity2SensorActive, maximumTurbidity, maximumTurbidity2, turbidityOffset, turbidity2Offset
 
     print("=" * 25)
     print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
@@ -777,6 +785,7 @@ def main():
     print(f"  US Flow Sensor:         {US_READINGS_INTERVAL_SEC} s")
     print(f"  PH Sensor:              {PH_READINGS_INTERVAL_SEC} s")
     print(f"  Turbidity Sensor:       {TURBIDITY_READINGS_INTERVAL_SEC} s")
+    print(f"  Turbidity2 Sensor:      {TURBIDITY2_READINGS_INTERVAL_SEC} s")
     print(f"  OutletFlap Valve:       {OUTLETFLAP_READINGS_INTERVAL_SEC} s")
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
     print("")
@@ -808,7 +817,7 @@ def main():
     radarTotalFlowManager.start_periodic_save()
 
     # Initialisierung des GpsHandlers
-    gps_handler = GpsHandler(update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
+    gps_handler = GpsHandler("Gps", update_interval=60)  # GPS-Daten alle 60 Sekunden aktualisieren
     
     # Nur GPS starten, wenn es aktiviert ist
     if gpsEnabled:
@@ -880,7 +889,7 @@ def main():
                 # Update the last reading time
                 last_radar_reading_time = device_check_time
                 
-                radar_rate_Handler = RadarHandler(Radar_Sensor)
+                radar_rate_Handler = RadarHandler("Radar", Radar_Sensor)
                 radar_flow_data = radar_rate_Handler.fetch_and_calculate()
 
                 if radar_flow_data:
@@ -901,7 +910,7 @@ def main():
                 # print(f"UsFlowSensor ist aktiv. Versuche Daten zu lesen...")
                 try:
                     # print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
-                    us_flow_handler = UsHandler(Us_Sensor)
+                    us_flow_handler = UsHandler("Us", Us_Sensor)
                     usFlowRate, usFlowTotal, wasOk = us_flow_handler.fetchViaDeviceManager()
                     
                     if wasOk and usFlowRate is not None and usFlowTotal is not None:
@@ -935,19 +944,34 @@ def main():
                 else:
                     printTs("❌ PH-Sensor: Lesung fehlgeschlagen")
             
-            # Check if enough time has passed since last Turbidity reading
-            if device_check_time - last_turbidity_reading_time >= TURBIDITY_READINGS_INTERVAL_SEC:
-                # Update the last reading time
-                last_turbidity_reading_time = device_check_time
+        # Check if enough time has passed since last Turbidity reading
+        if turbiditySensorActive:
+            if not calibratePH:
+                if device_check_time - last_turbidity_reading_time >= TURBIDITY_READINGS_INTERVAL_SEC:
+                    # Update the last reading time
+                    last_turbidity_reading_time = device_check_time
                 
-                measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data(turbiditySensorActive)
+                    measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data()
                 
-                if turbiditySensorActive:
                     if measuredTurbidity_telem is not None and tempTruebSens is not None:
                         # printTs("✅ Turbidity-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity-Wert-Ausgabe angezeigt
                         pass
                     else:
                         printTs("❌ Turbidity-Sensor: Lesung fehlgeschlagen")
+
+        if turbidity2SensorActive:
+            if not calibratePH:
+                if device_check_time - last_turbidity2_reading_time >= TURBIDITY2_READINGS_INTERVAL_SEC:
+                    # Update the last reading time
+                    last_turbidity2_reading_time = device_check_time
+                
+                    measuredTurbidity2_telem, tempTruebSens2 = turbidity_handler2.fetch_and_display_data()
+                
+                    if measuredTurbidity2_telem is not None and tempTruebSens2 is not None:
+                        # printTs("✅ Turbidity2-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity2-Wert-Ausgabe angezeigt
+                        pass
+                    else:
+                        printTs("❌ Turbidity2-Sensor: Lesung fehlgeschlagen")
 
         if outletFlapActive:
             # Check if enough time has passed since last OutletFlap reading

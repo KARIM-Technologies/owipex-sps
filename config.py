@@ -49,6 +49,14 @@ turbidityOffset = 0
 measuredTurbidity_telem = 0
 tempTruebSens = 0.00
 
+# Turbidity2 Configuration
+measuredTurbidity2 = 0
+maximumTurbidity2 = 0
+turbidity2SensorActive = False
+turbidity2Offset = 0
+measuredTurbidity2_telem = 0
+tempTruebSens2 = 0.00
+
 # Radar Configuration
 waterLevelHeight = 1.0
 waterLevelHeight_telem = 2.0
@@ -98,14 +106,14 @@ telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2Heating
                   'co2HeatingRelaySwSig', 'co2RelaisSw', 'co2RelaisSwSig', 'countdownPHHigh',
                   'countdownPHLow', 'flow_rate_l_h', 'flow_rate_l_min', 'flow_rate_m3_min',
                   'gpsEnabled', 'gpsHeight', 'gpsLatitude', 'gpsLongitude',
-                  'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'measuredPHValue_telem',
-                  'measuredTurbidity_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
+                  'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2', 'measuredPHValue_telem',
+                  'measuredTurbidity_telem', 'measuredTurbidity2_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
                   'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
                   'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetLocalMode', 'outletFlapSetpoint',
                   'outletFlapSetpointPosition', 'outletFlapSetRemoteMode', 'outletFlapTargetPosition', 'outletFlapTest',
                   'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'powerButton',
-                  'pumpRelaySw', 'pumpRelaySwSig', 'runtime_tracker_var', 'tempTruebSens',
-                  'temperaturPHSens_telem', 'total_flow', 'turbiditySensorActive', 'usFlowRate',
+                  'pumpRelaySw', 'pumpRelaySwSig', 'runtime_tracker_var', 'tempTruebSens', 'tempTruebSens2',
+                  'temperaturPHSens_telem', 'total_flow', 'turbiditySensorActive', 'turbidity2SensorActive', 'usFlowRate',
                   'usFlowTotal', 'usSensorActive', 'waterLevelHeight_telem']
 
 attributes_keys = ['ip_address', 'macaddress']
@@ -113,11 +121,11 @@ attributes_keys = ['ip_address', 'macaddress']
 # Lists for different groups of attributes
 shared_attributes_keys = ['autoSwitch', 'calibratePH', 'callGpsSwitch', 'co2RelaisSwSig',
                           'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'maximumPHVal',
-                          'maximumTurbidity', 'minimumPHVal', 'minimumPHValStop', 'outletFlapActive',
+                          'maximumTurbidity', 'maximumTurbidity2', 'minimumPHVal', 'minimumPHValStop', 'outletFlapActive',
                           'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode', 'outletFlapSetpoint',
                           'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'ph_intercept',
                           'ph_slope', 'PHValueOffset', 'powerButton', 'radarSensorActive',
-                          'targetPHtolerrance', 'targetPHValue', 'turbidityOffset', 'turbiditySensorActive',
+                          'targetPHtolerrance', 'targetPHValue', 'turbidityOffset', 'turbidity2Offset', 'turbiditySensorActive', 'turbidity2SensorActive',
                           'usSensorActive']
 
 
