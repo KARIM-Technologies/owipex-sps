@@ -135,6 +135,10 @@ def attribute_callback(result, _):
     if outletFlapActive:
         if 'outletFlapTargetPosition' in result:
             target_pos = result['outletFlapTargetPosition']
+            # TODO: RD: hier im callback dürfen keine Aktionen ausgeführt werden, 
+            # da dies gerade im main laufende Lesungen stören kann.
+            # Abhilfe: hier Variablen setzen, die beim nächsten Durchlauf der main loop 
+            # entsprechende Aktionen auslösen.
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
                 print(f"📍 OutletFlap Zielposition: {target_pos}%")
                 outlet_flap_handler.set_valve_position(target_pos)
