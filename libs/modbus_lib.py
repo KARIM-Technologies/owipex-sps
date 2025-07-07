@@ -145,7 +145,7 @@ class DeviceManager:
         return self.read_register(device_id, register_address, 1, data_format='>H')
 
     # DTI-1 Spezifische Methoden
-    def read_holding_raw(self, device_id, start_address, register_count):
+    def read_UsFlowSensor_holding_raw(self, device_id, start_address, register_count):
         """
         Liest Rohwerte aus Modbus-Holdings-Registern ohne Interpretation/Konvertierung.
         Gibt die Rohdaten zurück.
@@ -198,7 +198,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 1, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
                 printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
@@ -225,7 +225,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 113, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
                 printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
@@ -243,7 +243,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 221, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_id, 221, 2)
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
@@ -263,7 +263,7 @@ class DeviceManager:
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_holding_raw(device_id, 1442, 1)
+                data = self.read_UsFlowSensor_holding_raw(device_id, 1442, 1)
                 value = struct.unpack(">h", data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch

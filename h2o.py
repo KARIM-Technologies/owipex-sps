@@ -12,17 +12,22 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.55" # for internal use only
+DEVELOPMENT_VERSION = "2.56" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
 
 # Device reading interval configuration
-OUTLETFLAP_READINGS_INTERVAL_SEC = 30.0  # OutletFlap readings every 30 seconds
-RADAR_READINGS_INTERVAL_SEC = 10.0       # Radar readings every 10 seconds
-PH_READINGS_INTERVAL_SEC = 15.0          # PH readings every 15 seconds
-TURBIDITY_READINGS_INTERVAL_SEC = 20.0   # Turbidity readings every 20 seconds
-US_READINGS_INTERVAL_SEC = 12.0          # US Flow readings every 12 seconds
+# OUTLETFLAP_READINGS_INTERVAL_SEC = 30.0  # OutletFlap readings every 30 seconds
+# RADAR_READINGS_INTERVAL_SEC = 10.0       # Radar readings every 10 seconds
+# PH_READINGS_INTERVAL_SEC = 60.0          # PH readings every 15 seconds
+# TURBIDITY_READINGS_INTERVAL_SEC = 30.0   # Turbidity readings every 20 seconds
+# US_READINGS_INTERVAL_SEC = 60.0          # US Flow readings every 12 seconds
+OUTLETFLAP_READINGS_INTERVAL_SEC = 25.0  # OutletFlap readings every 30 seconds
+RADAR_READINGS_INTERVAL_SEC = 21.0       # Radar readings every 10 seconds
+PH_READINGS_INTERVAL_SEC = 22.0          # PH readings every 15 seconds
+TURBIDITY_READINGS_INTERVAL_SEC = 29.0   # Turbidity readings every 20 seconds
+US_READINGS_INTERVAL_SEC = 23.0          # US Flow readings every 12 seconds
 
 from periphery import GPIO
 from threading import Thread
@@ -122,7 +127,7 @@ def attribute_callback(result, _):
         outletFlapActive = result['outletFlapActive']
         print(f"OutletFlap Active-Status: {old_active} → {outletFlapActive}")
     
-    # OutletFlap Commands - NUR wenn powerButton=True UND beide Flags aktiv
+    # OutletFlap Commands
     if outletFlapActive:
         if 'outletFlapTargetPosition' in result:
             target_pos = result['outletFlapTargetPosition']
@@ -474,13 +479,14 @@ class RadarTotalFlowManager:
 
 class UsHandler:
     def __init__(self, sensor):
-        self.sensor = sensor  # DTI-1 Flow Sensor
+        self.sensor = sensor 
         self.last_successful_flow_rate = 0.0
         self.last_successful_total_flow = 0.0
         self.consecutive_errors = 0
         self.max_consecutive_errors = 5
 
     def fetchViaDeviceManager(self):
+        wasOk = False
         try:
             # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
             current_flow = self.sensor.read_flow_rate_m3ph()
@@ -492,7 +498,7 @@ class UsHandler:
             else:
                 self.consecutive_errors += 1
                 current_flow = self.last_successful_flow_rate
-                printTs(f"⚠️  DTI-1: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
+                printTs(f"⚠️ UsFlowSensor: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
                 
             if total_flow is not None:
                 self.consecutive_errors = 0
@@ -500,23 +506,24 @@ class UsHandler:
             else:
                 self.consecutive_errors += 1
                 total_flow = self.last_successful_total_flow
-                printTs(f"⚠️  DTI-1: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
+                printTs(f"⚠️ UsFlowSensor: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
             
             # Protokolliere die gelesenen Werte
             if current_flow is not None and total_flow is not None:
-                printTs(f"DTI-1 Flow Sensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
+                printTs(f"✅ UsFlowSensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
+                wasOk = True
             else:
-                printTs(f"❌ DTI-1 Flow Sensor: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
+                printTs(f"❌ UsFlowSensor: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
             
             # Überprüfe auf zu viele aufeinanderfolgende Fehler
             if self.consecutive_errors >= self.max_consecutive_errors:
-                printTs(f"⚠️  DTI-1: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
+                printTs(f"⚠️ UsFlowSensor: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
                 
-            return current_flow, total_flow
+            return current_flow, total_flow, wasOk
             
         except Exception as e:
             self.consecutive_errors += 1
-            printTs(f"❌ DTI-1: Exception beim Lesen: {e}")
+            printTs(f"❌ UsFlowSensor: Exception beim Lesen: {e}")
             import traceback
             traceback.print_exc()
             return None, None
@@ -767,7 +774,7 @@ def main():
     print("-" * 29)
     print(f"  Main Loop Sleep:        {MAINLOOP_SLEEP_SEC} s")
     print(f"  Radar Sensor:           {RADAR_READINGS_INTERVAL_SEC} s")
-    print(f"  DTI-1 Flow Sensor:      {US_READINGS_INTERVAL_SEC} s")
+    print(f"  US Flow Sensor:         {US_READINGS_INTERVAL_SEC} s")
     print(f"  PH Sensor:              {PH_READINGS_INTERVAL_SEC} s")
     print(f"  Turbidity Sensor:       {TURBIDITY_READINGS_INTERVAL_SEC} s")
     print(f"  OutletFlap Valve:       {OUTLETFLAP_READINGS_INTERVAL_SEC} s")
@@ -891,23 +898,23 @@ def main():
                 # Update the last reading time
                 last_us_reading_time = device_check_time
                 
-                print(f"DTI-1 Flow Sensor ist aktiv. Versuche Daten zu lesen...")
+                # print(f"UsFlowSensor ist aktiv. Versuche Daten zu lesen...")
                 try:
-                    print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
+                    # print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
                     us_flow_handler = UsHandler(Us_Sensor)
-                    usFlowRate, usFlowTotal = us_flow_handler.fetchViaDeviceManager()
+                    usFlowRate, usFlowTotal, wasOk = us_flow_handler.fetchViaDeviceManager()
                     
-                    if usFlowRate is not None and usFlowTotal is not None:
-                        printTs("✅ DTI-1 Flow Sensor: Lesung erfolgreich")
+                    if wasOk and usFlowRate is not None and usFlowTotal is not None:
+                        printTs("✅ UsFlowSensor: Lesung erfolgreich")
                     else:
-                        printTs("❌ DTI-1 Flow Sensor: Unvollständige Daten")
+                        printTs("❌ UsFlowSensor: Unvollständige Daten")
                         
                 except Exception as e:
-                    printTs(f"❌ DTI-1 Flow Sensor: Fehler beim Lesen: {e}")
+                    printTs(f"❌ UsFlowSensor: Fehler beim Lesen: {e}")
                     import traceback
                     traceback.print_exc()
         # else:
-        #     print("DTI-1 Flow Sensor ist deaktiviert (usSensorActive = False)")
+        #     print("UsFlowSensor ist deaktiviert (usSensorActive = False)")
  
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)
