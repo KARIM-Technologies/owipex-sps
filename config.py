@@ -76,7 +76,7 @@ usFlowRate = 0.0
 usFlowTotal = 0.0
 
 # OutletFlap Configuration
-outletFlapRemoteLocal = 0
+outletFlapIsInRemoteMode = 0
 outletFlapValvePosition = 0
 outletFlapSetpoint = 0
 outletFlapErrorCode = 0
@@ -92,8 +92,7 @@ outletFlapHasError = False            # Boolean: Fehler vorhanden
 # OutletFlap Command Variables (ThingsBoard controlled)
 outletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
 outletFlapTargetPosition = 0          # Command: Zielposition setzen (0-100%)
-outletFlapSetRemoteMode = False       # Command: auf Remote-Modus schalten
-outletFlapSetLocalMode = False        # Command: auf Local-Modus schalten
+outletFlapIsRemoteMode = False        # Command: Remote/Local Modus setzen (True=Remote, False=Local)
 
 # GPS Configuration
 gpsTimestamp = 1.0
@@ -109,8 +108,8 @@ telemetry_keys = ['autoSwitch', 'calculatedFlowRate', 'calibratePH', 'co2Heating
                   'gpsTimestamp', 'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2', 'measuredPHValue_telem',
                   'measuredTurbidity_telem', 'measuredTurbidity2_telem', 'messuredRadar_Air_telem', 'minimumPHVal', 'outletFlapActive',
                   'outletFlapCurrentPosition', 'outletFlapErrorCode', 'outletFlapHasError', 'outletFlapLocalMode',
-                  'outletFlapRemoteLocal', 'outletFlapRemoteMode', 'outletFlapSetLocalMode', 'outletFlapSetpoint',
-                  'outletFlapSetpointPosition', 'outletFlapSetRemoteMode', 'outletFlapTargetPosition', 'outletFlapTest',
+                  'outletFlapIsInRemoteMode', 'outletFlapRemoteMode', 'outletFlapSetpoint',
+                  'outletFlapSetpointPosition', 'outletFlapTargetPosition', 'outletFlapTest',
                   'outletFlapValvePosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'powerButton',
                   'pumpRelaySw', 'pumpRelaySwSig', 'runtime_tracker_var', 'tempTruebSens', 'tempTruebSens2',
                   'temperaturPHSens_telem', 'total_flow', 'turbiditySensorActive', 'turbidity2SensorActive', 'usFlowRate',
@@ -122,7 +121,7 @@ attributes_keys = ['ip_address', 'macaddress']
 shared_attributes_keys = ['autoSwitch', 'calibratePH', 'callGpsSwitch', 'co2RelaisSwSig',
                           'gemessener_high_wert', 'gemessener_low_wert', 'gpsEnabled', 'maximumPHVal',
                           'maximumTurbidity', 'maximumTurbidity2', 'minimumPHVal', 'minimumPHValStop', 'outletFlapActive',
-                          'outletFlapRemoteLocal', 'outletFlapSetLocalMode', 'outletFlapSetRemoteMode', 'outletFlapSetpoint',
+                          'outletFlapIsRemoteMode', 'outletFlapSetpoint',
                           'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_low_delay_start_time', 'ph_intercept',
                           'ph_slope', 'PHValueOffset', 'powerButton', 'radarSensorActive',
                           'targetPHtolerrance', 'targetPHValue', 'turbidityOffset', 'turbidity2Offset', 'turbiditySensorActive', 'turbidity2SensorActive',

@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.58" # for internal use only
+DEVELOPMENT_VERSION = "2.59" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -145,16 +145,18 @@ def attribute_callback(result, _):
             else:
                 print(f"❌ Ungültige OutletFlap Position: {target_pos}")
         
-        if 'outletFlapSetRemoteMode' in result and result['outletFlapSetRemoteMode']:
-            print("🔄 OutletFlap: Wechsle zu REMOTE-Modus (AUTO)")
-            outlet_flap_handler.set_remote_mode()
-        
-        if 'outletFlapSetLocalMode' in result and result['outletFlapSetLocalMode']:
-            print("🔄 OutletFlap: Wechsle zu LOCAL-Modus (MANUAL)")
-            outlet_flap_handler.set_local_mode()
+        if 'outletFlapIsRemoteMode' in result:
+            new_mode = result['outletFlapIsRemoteMode']
+            if isinstance(new_mode, bool):
+                mode_value = 1 if new_mode else 0
+                mode_name = "REMOTE-Modus (AUTO)" if new_mode else "LOCAL-Modus (MANUAL)"
+                print(f"🔄 OutletFlap: Wechsle zu {mode_name}")
+                outlet_flap_handler.setRemoteOrLocalMode(mode_value)
+            else:
+                print(f"❌ Ungültiger Wert für outletFlapIsRemoteMode: {new_mode} (erwartet: boolean)")
     else:
         # Log why commands are ignored
-        if 'outletFlapTargetPosition' in result or 'outletFlapSetRemoteMode' in result or 'outletFlapSetLocalMode' in result:
+        if 'outletFlapTargetPosition' in result or 'outletFlapIsRemoteMode' in result:
             print("⚠️ OutletFlap Commands ignoriert - outletFlapActive was not set")
 
     # Speichere den Zustand
@@ -633,32 +635,32 @@ class OutletFlapHandler:
             printTs(f"❌ {self.deviceName}: Fehler beim Setzen der Position: {e}")
             return False
 
-    def set_remote_mode(self):
-        """Switch to REMOTE mode (AUTO) - FC11R equivalent"""
+    def setRemoteOrLocalMode(self, newMode):
+        """Switch valve to REMOTE (1) or LOCAL (0) mode - FC11R equivalent
+        
+        Args:
+            newMode (int): 1 for REMOTE mode (AUTO), 0 for LOCAL mode (MANUAL)
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=1)
+            if newMode not in [0, 1]:
+                printTs(f"❌ {self.deviceName}: Ungültiger Modus {newMode}. Nur 0 (LOCAL) oder 1 (REMOTE) erlaubt")
+                return False
+                
+            mode_name = "REMOTE-Modus (AUTO)" if newMode == 1 else "LOCAL-Modus (MANUAL)"
+            
+            success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=newMode)
             if success:
-                printTs(f'✅ {self.deviceName}: REMOTE-Modus (AUTO) aktiviert')
+                printTs(f'✅ {self.deviceName}: {mode_name} aktiviert')
                 return True
             else:
-                printTs(f'❌ {self.deviceName}: Fehler beim Setzen des REMOTE-Modus')
+                printTs(f'❌ {self.deviceName}: Fehler beim Setzen des {mode_name}')
                 return False
         except Exception as e:
-            printTs(f"❌ {self.deviceName}: Fehler beim Setzen des REMOTE-Modus: {e}")
-            return False
-
-    def set_local_mode(self):
-        """Switch to LOCAL mode (MANUAL) - FC11R equivalent"""
-        try:
-            success = self.sensor.write_VincerValve(start_address=self.REMOTE_LOCAL_REG, register_count=1, value=0)
-            if success:
-                printTs(f'✅ {self.deviceName}: LOCAL-Modus (MANUAL) aktiviert')
-                return True
-            else:
-                printTs(f'❌ {self.deviceName}: Fehler beim Setzen des LOCAL-Modus')
-                return False
-        except Exception as e:
-            printTs(f"❌ {self.deviceName}: Fehler beim Setzen des LOCAL-Modus: {e}")
+            mode_name = "REMOTE-Modus (AUTO)" if newMode == 1 else "LOCAL-Modus (MANUAL)"
+            printTs(f"❌ {self.deviceName}: Fehler beim Setzen des {mode_name}: {e}")
             return False
 
     def write_setpoint(self, setpoint_value):
@@ -775,7 +777,7 @@ def check_initial_outletflap_position():
 def main():
     #def Global Variables for Main Funktion
     global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_turbidity2_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, turbidity_handler2, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, tempTruebSens2, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
-    global outlet_flap_handler, outletFlapRemoteLocal, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError, outletFlapTargetPosition
+    global outlet_flap_handler, outletFlapIsInRemoteMode, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError, outletFlapTargetPosition
     global turbiditySensorActive, turbidity2SensorActive, maximumTurbidity, maximumTurbidity2, turbidityOffset, turbidity2Offset
 
     print("=" * 25)
@@ -994,7 +996,7 @@ def main():
                     outletFlapHasError = enhanced_valve_data['has_error']
                     
                     # Map enhanced data to old variable names for compatibility
-                    outletFlapRemoteLocal = enhanced_valve_data['remote_local_status']
+                    outletFlapIsInRemoteMode = enhanced_valve_data['remote_local_status']
                     outletFlapValvePosition = enhanced_valve_data['raw_position_value']
                     outletFlapSetpoint = enhanced_valve_data['raw_setpoint_value']
                     outletFlapErrorCode = enhanced_valve_data['error_code']
@@ -1007,7 +1009,7 @@ def main():
                     outletFlapLocalMode = True
                     outletFlapHasError = True
                     # Old variable fallbacks
-                    outletFlapRemoteLocal = None
+                    outletFlapIsInRemoteMode = None
                     outletFlapValvePosition = None
                     outletFlapSetpoint = None
                     outletFlapErrorCode = None

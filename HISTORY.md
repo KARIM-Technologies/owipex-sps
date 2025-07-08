@@ -18,4 +18,7 @@
 
 ## Chronik
 
-- [Datum eintragen] Neue Regel zur Synchronisation bei "sync" ergänzt. 
+- [Datum eintragen] Neue Regel zur Synchronisation bei "sync" ergänzt.
+- [2024-12-19] Neustart der AI-Sitzung: RULES.md Datei erstellt mit allen wichtigen Entwicklungsregeln. Orientierung am Projekt: IoT-Steuerungssystem mit ThingsBoard Edge Server für Sensorikdaten über RS485 und GPS. Aktueller Code ist `h2o.py` (Version 2.58).
+- [2024-12-19] OutletFlap Variable Refactoring: `outletFlapRemoteLocal` umbenannt zu `outletFlapIsInRemoteMode`. Variable aus `shared_attributes_keys` entfernt (nur noch read-only), bleibt aber in `telemetry_keys` für Datenübertragung an ThingsBoard.
+- [2024-12-19] OutletFlap Command Vereinfachung: Development Version erhöht auf 2.59. `set_remote_mode()` und `set_local_mode()` zu einer einzigen Funktion `setRemoteOrLocalMode(newMode)` zusammengefasst. Shared Attributes `outletFlapSetRemoteMode` und `outletFlapSetLocalMode` ersetzt durch ein einzelnes `outletFlapIsRemoteMode` (boolean). 
