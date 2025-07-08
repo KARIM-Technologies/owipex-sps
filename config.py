@@ -15,12 +15,12 @@ co2HeatingRelaySwSig = False
 co2RelaisSw = False
 co2RelaisSwSig = False
 gpsEnabled = False  # GPS-Funktionalität standardmäßig deaktivieren
-IsDebugMode = False
+isDebugMode = False
 powerButton = False
 pumpRelaySw = False
 pumpRelaySwSig = False
 runtime_tracker_var = 0.0
-UseDebugReadingsIntervalls = False
+useDebugReadingsIntervalls = False
 
 # PH Configuration
 calibratePH = False
@@ -133,13 +133,13 @@ attributes_keys = ['ip_address', 'macaddress']
 shared_attributes_keys = [
     'autoSwitch', 'calibratePH', 'callGpsSwitch',
     'co2RelaisSwSig', 'gemessener_high_wert', 'gemessener_low_wert',
-    'gpsEnabled', 'IsDebugMode', 'maximumPHVal',
+    'gpsEnabled', 'isDebugMode', 'maximumPHVal',
     'maximumTurbidity', 'maximumTurbidity2', 'minimumPHVal',
     'minimumPHValStop', 'outletFlapActive', 'outletFlapIsRemoteMode',
     'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_intercept',
     'ph_low_delay_start_time', 'ph_slope', 'PHValueOffset',
     'powerButton', 'radarSensorActive', 'targetPHtolerrance',
     'targetPHValue', 'turbidity2Offset', 'turbidity2SensorActive',
-    'turbidityOffset', 'turbiditySensorActive', 'UseDebugReadingsIntervalls',
+    'turbidityOffset', 'turbiditySensorActive', 'useDebugReadingsIntervalls',
     'usSensorActive'
 ]

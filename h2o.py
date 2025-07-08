@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.67" # for internal use only
+DEVELOPMENT_VERSION = "2.68" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -111,12 +111,12 @@ def get_timestamp():
     return time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
 
 def update_reading_intervals():
-    """Update reading interval variables based on UseDebugReadingsIntervalls setting"""
+    """Update reading interval variables based on useDebugReadingsIntervalls setting"""
     global outletFlapReadingsIntervalSec, radarReadingsIntervalSec, phReadingsIntervalSec
     global turbidityReadingsIntervalSec, turbidity2ReadingsIntervalSec, usReadingsIntervalSec
-    global UseDebugReadingsIntervalls
+    global useDebugReadingsIntervalls
     
-    if UseDebugReadingsIntervalls:
+    if useDebugReadingsIntervalls:
         outletFlapReadingsIntervalSec = DEBUG_OUTLETFLAP_READINGS_INTERVAL_SEC
         radarReadingsIntervalSec = DEBUG_RADAR_READINGS_INTERVAL_SEC
         phReadingsIntervalSec = DEBUG_PH_READINGS_INTERVAL_SEC
@@ -159,17 +159,17 @@ def attribute_callback(result, _):
             gps_handler.stop_gps_updates()
             print("GPS-Funktionalität deaktiviert")
 
-    # Überprüfe UseDebugReadingsIntervalls Änderung
-    if 'UseDebugReadingsIntervalls' in result:
-        UseDebugReadingsIntervalls = result['UseDebugReadingsIntervalls']
-        mode_text = "Debug-Intervalle" if UseDebugReadingsIntervalls else "Produktions-Intervalle"
+    # Überprüfe useDebugReadingsIntervalls Änderung
+    if 'useDebugReadingsIntervalls' in result:
+        useDebugReadingsIntervalls = result['useDebugReadingsIntervalls']
+        mode_text = "Debug-Intervalle" if useDebugReadingsIntervalls else "Produktions-Intervalle"
         printTs(f"🔄 Leseintervall-Modus geändert auf: {mode_text}")
         update_reading_intervals()
     
-    # Überprüfe IsDebugMode Änderung
-    if 'IsDebugMode' in result:
-        IsDebugMode = result['IsDebugMode']
-        debug_status = "AKTIVIERT" if IsDebugMode else "DEAKTIVIERT"
+    # Überprüfe isDebugMode Änderung
+    if 'isDebugMode' in result:
+        isDebugMode = result['isDebugMode']
+        debug_status = "AKTIVIERT" if isDebugMode else "DEAKTIVIERT"
         printTs(f"🐛 Debug-Modus {debug_status}")
 
     if 'outletFlapActive' in result:
@@ -827,7 +827,7 @@ def main():
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
-    global gpsTimestamp, IsDebugMode, isVersionSent, last_outletflap_reading_time
+    global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem
@@ -842,7 +842,7 @@ def main():
     global telemetryTestNone, tempTruebSens, tempTruebSens2, temperaturPHSens_telem
     global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2ReadingsIntervalSec
     global turbidity2SensorActive, turbidityOffset, turbidityReadingsIntervalSec, turbiditySensorActive
-    global UseDebugReadingsIntervalls, usFlowRate, usFlowTotal, usReadingsIntervalSec
+    global useDebugReadingsIntervalls, usFlowRate, usFlowTotal, usReadingsIntervalSec
     global usSensorActive, waterLevelHeight_telem
 
     print("=" * 25)
@@ -860,8 +860,8 @@ def main():
     print(f"  OutletFlap Valve:       {outletFlapReadingsIntervalSec} s")
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
     print("")
-    print(f"Intervall-Modus: {'DEBUG' if UseDebugReadingsIntervalls else 'PRODUKTION'}")
-    print(f"Debug-Modus: {'AKTIVIERT' if IsDebugMode else 'DEAKTIVIERT'}")
+    print(f"Intervall-Modus: {'DEBUG' if useDebugReadingsIntervalls else 'PRODUKTION'}")
+    print(f"Debug-Modus: {'AKTIVIERT' if isDebugMode else 'DEAKTIVIERT'}")
     print("")
 
     # Initialisiere gpsEnabled mit Standardwert
