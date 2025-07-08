@@ -12,24 +12,34 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.64" # for internal use only
+DEVELOPMENT_VERSION = "2.67" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
 
-# Device reading interval configuration
-# OUTLETFLAP_READINGS_INTERVAL_SEC = 31.0  # OutletFlap readings every 30 seconds
-# RADAR_READINGS_INTERVAL_SEC = 10.0       # Radar readings every 10 seconds
-# PH_READINGS_INTERVAL_SEC = 59.0          # PH readings every 15 seconds
-# TURBIDITY_READINGS_INTERVAL_SEC = 32.0   # Turbidity readings every 20 seconds
-# TURBIDITY2_READINGS_INTERVAL_SEC = 33.0  # Turbidity2 readings every 20 seconds
-# US_READINGS_INTERVAL_SEC = 61.0          # US Flow readings every 12 seconds
-OUTLETFLAP_READINGS_INTERVAL_SEC = 25.0  # OutletFlap readings every 30 seconds
-RADAR_READINGS_INTERVAL_SEC = 21.0       # Radar readings every 10 seconds
-PH_READINGS_INTERVAL_SEC = 22.0          # PH readings every 15 seconds
-TURBIDITY_READINGS_INTERVAL_SEC = 29.0   # Turbidity readings every 20 seconds
-TURBIDITY2_READINGS_INTERVAL_SEC = 28.0  # Turbidity2 readings every 20 seconds
-US_READINGS_INTERVAL_SEC = 23.0          # US Flow readings every 12 seconds
+# Device reading interval configuration - Production intervals
+OUTLETFLAP_READINGS_INTERVAL_SEC = 30.0  # OutletFlap readings
+RADAR_READINGS_INTERVAL_SEC = 41.0       # Radar readings
+PH_READINGS_INTERVAL_SEC = 42.0          # PH readings
+TURBIDITY_READINGS_INTERVAL_SEC = 29.0   # Turbidity readings
+TURBIDITY2_READINGS_INTERVAL_SEC = 28.0  # Turbidity2 readings
+US_READINGS_INTERVAL_SEC = 39.0          # US Flow readings
+
+# Device reading interval configuration - Debug intervals
+DEBUG_OUTLETFLAP_READINGS_INTERVAL_SEC = 31.0  # OutletFlap readings
+DEBUG_RADAR_READINGS_INTERVAL_SEC = 20.0       # Radar readings
+DEBUG_PH_READINGS_INTERVAL_SEC = 22.0          # PH readings
+DEBUG_TURBIDITY_READINGS_INTERVAL_SEC = 32.0   # Turbidity readings
+DEBUG_TURBIDITY2_READINGS_INTERVAL_SEC = 33.0  # Turbidity2 readings
+DEBUG_US_READINGS_INTERVAL_SEC = 28.0          # US Flow readings
+
+# Dynamic interval variables (switchable via UseDebugReadingsIntervalls)
+outletFlapReadingsIntervalSec = OUTLETFLAP_READINGS_INTERVAL_SEC
+radarReadingsIntervalSec = RADAR_READINGS_INTERVAL_SEC
+phReadingsIntervalSec = PH_READINGS_INTERVAL_SEC
+turbidityReadingsIntervalSec = TURBIDITY_READINGS_INTERVAL_SEC
+turbidity2ReadingsIntervalSec = TURBIDITY2_READINGS_INTERVAL_SEC
+usReadingsIntervalSec = US_READINGS_INTERVAL_SEC
 
 from periphery import GPIO
 from threading import Thread
@@ -100,6 +110,29 @@ def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
     return time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
 
+def update_reading_intervals():
+    """Update reading interval variables based on UseDebugReadingsIntervalls setting"""
+    global outletFlapReadingsIntervalSec, radarReadingsIntervalSec, phReadingsIntervalSec
+    global turbidityReadingsIntervalSec, turbidity2ReadingsIntervalSec, usReadingsIntervalSec
+    global UseDebugReadingsIntervalls
+    
+    if UseDebugReadingsIntervalls:
+        outletFlapReadingsIntervalSec = DEBUG_OUTLETFLAP_READINGS_INTERVAL_SEC
+        radarReadingsIntervalSec = DEBUG_RADAR_READINGS_INTERVAL_SEC
+        phReadingsIntervalSec = DEBUG_PH_READINGS_INTERVAL_SEC
+        turbidityReadingsIntervalSec = DEBUG_TURBIDITY_READINGS_INTERVAL_SEC
+        turbidity2ReadingsIntervalSec = DEBUG_TURBIDITY2_READINGS_INTERVAL_SEC
+        usReadingsIntervalSec = DEBUG_US_READINGS_INTERVAL_SEC
+        printTs("🔧 Debug-Leseintervalle aktiviert")
+    else:
+        outletFlapReadingsIntervalSec = OUTLETFLAP_READINGS_INTERVAL_SEC
+        radarReadingsIntervalSec = RADAR_READINGS_INTERVAL_SEC
+        phReadingsIntervalSec = PH_READINGS_INTERVAL_SEC
+        turbidityReadingsIntervalSec = TURBIDITY_READINGS_INTERVAL_SEC
+        turbidity2ReadingsIntervalSec = TURBIDITY2_READINGS_INTERVAL_SEC
+        usReadingsIntervalSec = US_READINGS_INTERVAL_SEC
+        printTs("⚡ Produktions-Leseintervalle aktiviert")
+
  #that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
     global gps_handler, gpsEnabled, outletFlapActive
@@ -125,6 +158,19 @@ def attribute_callback(result, _):
             gps_handler.gps_enabled = False
             gps_handler.stop_gps_updates()
             print("GPS-Funktionalität deaktiviert")
+
+    # Überprüfe UseDebugReadingsIntervalls Änderung
+    if 'UseDebugReadingsIntervalls' in result:
+        UseDebugReadingsIntervalls = result['UseDebugReadingsIntervalls']
+        mode_text = "Debug-Intervalle" if UseDebugReadingsIntervalls else "Produktions-Intervalle"
+        printTs(f"🔄 Leseintervall-Modus geändert auf: {mode_text}")
+        update_reading_intervals()
+    
+    # Überprüfe IsDebugMode Änderung
+    if 'IsDebugMode' in result:
+        IsDebugMode = result['IsDebugMode']
+        debug_status = "AKTIVIERT" if IsDebugMode else "DEAKTIVIERT"
+        printTs(f"🐛 Debug-Modus {debug_status}")
 
     if 'outletFlapActive' in result:
         old_active = outletFlapActive
@@ -781,20 +827,22 @@ def main():
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
-    global gpsTimestamp, isVersionSent, last_outletflap_reading_time, last_ph_reading_time
-    global last_radar_reading_time, last_send_time, last_turbidity_reading_time, last_turbidity2_reading_time
-    global last_us_reading_time, maximumPHVal, maximumTurbidity, maximumTurbidity2
-    global measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, messuredRadar_Air_telem
-    global minimumPHVal, minimumPHValStop, outlet_flap_handler, outletFlapActive
-    global outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode, outletFlapRegisterHasError, outletFlapRegisterIsLocalMode
-    global outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue, outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterSetpointPosition
-    global outletFlapRegisterSetpointValue, outletFlapTargetPosition, ph_handler, ph_high_delay_start_time
-    global ph_low_delay_start_time, powerButton, pumpRelaySw, pumpRelaySwSig
-    global radar_flow_rate_l_min, radar_rate_Handler, radar_total_flow, runtime_tracker
+    global gpsTimestamp, IsDebugMode, isVersionSent, last_outletflap_reading_time
+    global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
+    global last_turbidity2_reading_time, last_us_reading_time, maximumPHVal, maximumTurbidity
+    global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem
+    global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler
+    global outletFlapActive, outletFlapReadingsIntervalSec, outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode
+    global outletFlapRegisterHasError, outletFlapRegisterIsLocalMode, outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue
+    global outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterSetpointPosition, outletFlapRegisterSetpointValue, outletFlapTargetPosition
+    global ph_handler, ph_high_delay_start_time, ph_low_delay_start_time, phReadingsIntervalSec
+    global powerButton, pumpRelaySw, pumpRelaySwSig, radar_flow_rate_l_min
+    global radar_rate_Handler, radar_total_flow, radarReadingsIntervalSec, runtime_tracker
     global runtime_tracker_var, targetPHtolerrance, targetPHValue, telemetryTest420
     global telemetryTestNone, tempTruebSens, tempTruebSens2, temperaturPHSens_telem
-    global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2SensorActive
-    global turbidityOffset, turbiditySensorActive, usFlowRate, usFlowTotal
+    global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2ReadingsIntervalSec
+    global turbidity2SensorActive, turbidityOffset, turbidityReadingsIntervalSec, turbiditySensorActive
+    global UseDebugReadingsIntervalls, usFlowRate, usFlowTotal, usReadingsIntervalSec
     global usSensorActive, waterLevelHeight_telem
 
     print("=" * 25)
@@ -804,13 +852,16 @@ def main():
     print("Konfigurierte Leseintervalle:")
     print("-" * 29)
     print(f"  Main Loop Sleep:        {MAINLOOP_SLEEP_SEC} s")
-    print(f"  Radar Sensor:           {RADAR_READINGS_INTERVAL_SEC} s")
-    print(f"  US Flow Sensor:         {US_READINGS_INTERVAL_SEC} s")
-    print(f"  PH Sensor:              {PH_READINGS_INTERVAL_SEC} s")
-    print(f"  Turbidity Sensor:       {TURBIDITY_READINGS_INTERVAL_SEC} s")
-    print(f"  Turbidity2 Sensor:      {TURBIDITY2_READINGS_INTERVAL_SEC} s")
-    print(f"  OutletFlap Valve:       {OUTLETFLAP_READINGS_INTERVAL_SEC} s")
+    print(f"  Radar Sensor:           {radarReadingsIntervalSec} s")
+    print(f"  US Flow Sensor:         {usReadingsIntervalSec} s")
+    print(f"  PH Sensor:              {phReadingsIntervalSec} s")
+    print(f"  Turbidity Sensor:       {turbidityReadingsIntervalSec} s")
+    print(f"  Turbidity2 Sensor:      {turbidity2ReadingsIntervalSec} s")
+    print(f"  OutletFlap Valve:       {outletFlapReadingsIntervalSec} s")
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
+    print("")
+    print(f"Intervall-Modus: {'DEBUG' if UseDebugReadingsIntervalls else 'PRODUKTION'}")
+    print(f"Debug-Modus: {'AKTIVIERT' if IsDebugMode else 'DEAKTIVIERT'}")
     print("")
 
     # Initialisiere gpsEnabled mit Standardwert
@@ -818,6 +869,9 @@ def main():
     
     saved_state = load_state()
     globals().update(saved_state)
+    
+    # Update reading intervals based on current UseDebugReadingsIntervalls setting
+    update_reading_intervals()
 
     # Initialisiere Countdown-Werte, falls sie nicht gesetzt sind
     if countdownPHHigh is None:
@@ -854,7 +908,7 @@ def main():
         print("GPS ist deaktiviert. Keine GPS-Updates werden gestartet.")
         gps_handler.gps_enabled = False  # Stelle sicher, dass auch der Handler weiß, dass GPS deaktiviert ist
 
-    #Laden der alten werte
+    #Laden der alten werte (zweiter Durchlauf)
     saved_state = load_state()
     globals().update(saved_state)
 
@@ -908,7 +962,7 @@ def main():
         
         if (radarSensorActive):
             # Check if enough time has passed since last Radar reading
-            if device_check_time - last_radar_reading_time >= RADAR_READINGS_INTERVAL_SEC:
+            if device_check_time - last_radar_reading_time >= radarReadingsIntervalSec:
                 # Update the last reading time
                 last_radar_reading_time = device_check_time
                 
@@ -926,7 +980,7 @@ def main():
 
         if usSensorActive:
             # Check if enough time has passed since last US reading
-            if device_check_time - last_us_reading_time >= US_READINGS_INTERVAL_SEC:
+            if device_check_time - last_us_reading_time >= usReadingsIntervalSec:
                 # Update the last reading time
                 last_us_reading_time = device_check_time
                 
@@ -955,7 +1009,7 @@ def main():
 
         else:
             # Check if enough time has passed since last PH reading
-            if device_check_time - last_ph_reading_time >= PH_READINGS_INTERVAL_SEC:
+            if device_check_time - last_ph_reading_time >= phReadingsIntervalSec:
                 # Update the last reading time
                 last_ph_reading_time = device_check_time
                 
@@ -970,7 +1024,7 @@ def main():
         # Check if enough time has passed since last Turbidity reading
         if turbiditySensorActive:
             if not calibratePH:
-                if device_check_time - last_turbidity_reading_time >= TURBIDITY_READINGS_INTERVAL_SEC:
+                if device_check_time - last_turbidity_reading_time >= turbidityReadingsIntervalSec:
                     # Update the last reading time
                     last_turbidity_reading_time = device_check_time
                 
@@ -984,7 +1038,7 @@ def main():
 
         if turbidity2SensorActive:
             if not calibratePH:
-                if device_check_time - last_turbidity2_reading_time >= TURBIDITY2_READINGS_INTERVAL_SEC:
+                if device_check_time - last_turbidity2_reading_time >= turbidity2ReadingsIntervalSec:
                     # Update the last reading time
                     last_turbidity2_reading_time = device_check_time
                 
@@ -998,7 +1052,7 @@ def main():
 
         if outletFlapActive:
             # Check if enough time has passed since last OutletFlap reading
-            if device_check_time - last_outletflap_reading_time >= OUTLETFLAP_READINGS_INTERVAL_SEC:
+            if device_check_time - last_outletflap_reading_time >= outletFlapReadingsIntervalSec:
                 # Update the last reading time
                 last_outletflap_reading_time = device_check_time
                 

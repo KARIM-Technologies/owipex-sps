@@ -15,10 +15,12 @@ co2HeatingRelaySwSig = False
 co2RelaisSw = False
 co2RelaisSwSig = False
 gpsEnabled = False  # GPS-Funktionalität standardmäßig deaktivieren
+IsDebugMode = False
 powerButton = False
 pumpRelaySw = False
 pumpRelaySwSig = False
 runtime_tracker_var = 0.0
+UseDebugReadingsIntervalls = False
 
 # PH Configuration
 calibratePH = False
@@ -94,7 +96,7 @@ telemetryTestNone = None              # Python None value
 
 # OutletFlap Command Variables (ThingsBoard controlled)
 outletFlapActive = False            # Sub-control flag (subordinate to isOutletFlapEnabled)
-outletFlapIsRemoteMode = False        # Command: Remote/Local Modus setzen (True=Remote, False=Local)
+outletFlapIsRemoteMode = True        # Command: Remote/Local Modus setzen (True=Remote, False=Local)
 outletFlapTargetPosition = 0          # Command: Zielposition setzen (0-100%)
 
 # GPS Configuration
@@ -131,12 +133,13 @@ attributes_keys = ['ip_address', 'macaddress']
 shared_attributes_keys = [
     'autoSwitch', 'calibratePH', 'callGpsSwitch',
     'co2RelaisSwSig', 'gemessener_high_wert', 'gemessener_low_wert',
-    'gpsEnabled', 'maximumPHVal', 'maximumTurbidity',
-    'maximumTurbidity2', 'minimumPHVal', 'minimumPHValStop',
-    'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapTargetPosition',
-    'ph_high_delay_duration', 'ph_intercept', 'ph_low_delay_start_time',
-    'ph_slope', 'PHValueOffset', 'powerButton',
-    'radarSensorActive', 'targetPHtolerrance', 'targetPHValue',
-    'turbidity2Offset', 'turbidity2SensorActive', 'turbidityOffset',
-    'turbiditySensorActive', 'usSensorActive'
+    'gpsEnabled', 'IsDebugMode', 'maximumPHVal',
+    'maximumTurbidity', 'maximumTurbidity2', 'minimumPHVal',
+    'minimumPHValStop', 'outletFlapActive', 'outletFlapIsRemoteMode',
+    'outletFlapTargetPosition', 'ph_high_delay_duration', 'ph_intercept',
+    'ph_low_delay_start_time', 'ph_slope', 'PHValueOffset',
+    'powerButton', 'radarSensorActive', 'targetPHtolerrance',
+    'targetPHValue', 'turbidity2Offset', 'turbidity2SensorActive',
+    'turbidityOffset', 'turbiditySensorActive', 'UseDebugReadingsIntervalls',
+    'usSensorActive'
 ]
