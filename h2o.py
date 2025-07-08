@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.63" # for internal use only
+DEVELOPMENT_VERSION = "2.64" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -775,10 +775,27 @@ def check_initial_outletflap_position():
         print(f"❌ OutletFlap Startup: Fehler bei Positionsprüfung: {e}")
 
 def main():
-    #def Global Variables for Main Funktion
-    global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_turbidity2_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, turbidity_handler2, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, tempTruebSens2, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
-    global outlet_flap_handler, outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterPositionValue, outletFlapRegisterSetpointValue, outletFlapRegisterErrorCode, telemetryTest420, outletFlapActive, outletFlapRegisterCurrentPosition, outletFlapRegisterSetpointPosition, outletFlapRegisterIsRemoteMode, outletFlapRegisterIsLocalMode, outletFlapRegisterHasError, outletFlapTargetPosition
-    global turbiditySensorActive, turbidity2SensorActive, maximumTurbidity, maximumTurbidity2, turbidityOffset, turbidity2Offset, telemetryTestNone
+    # Global Variables for Main Function (alphabetically sorted, max 4 per line)
+    global autoSwitch, calculatedFlowRate, calibratePH, client
+    global co2HeatingRelaySw, co2HeatingRelaySwSig, co2RelaisSw, co2RelaisSwSig
+    global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
+    global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
+    global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
+    global gpsTimestamp, isVersionSent, last_outletflap_reading_time, last_ph_reading_time
+    global last_radar_reading_time, last_send_time, last_turbidity_reading_time, last_turbidity2_reading_time
+    global last_us_reading_time, maximumPHVal, maximumTurbidity, maximumTurbidity2
+    global measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, messuredRadar_Air_telem
+    global minimumPHVal, minimumPHValStop, outlet_flap_handler, outletFlapActive
+    global outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode, outletFlapRegisterHasError, outletFlapRegisterIsLocalMode
+    global outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue, outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterSetpointPosition
+    global outletFlapRegisterSetpointValue, outletFlapTargetPosition, ph_handler, ph_high_delay_start_time
+    global ph_low_delay_start_time, powerButton, pumpRelaySw, pumpRelaySwSig
+    global radar_flow_rate_l_min, radar_rate_Handler, radar_total_flow, runtime_tracker
+    global runtime_tracker_var, targetPHtolerrance, targetPHValue, telemetryTest420
+    global telemetryTestNone, tempTruebSens, tempTruebSens2, temperaturPHSens_telem
+    global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2SensorActive
+    global turbidityOffset, turbiditySensorActive, usFlowRate, usFlowTotal
+    global usSensorActive, waterLevelHeight_telem
 
     print("=" * 25)
     print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
