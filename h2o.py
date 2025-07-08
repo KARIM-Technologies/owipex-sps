@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.59" # for internal use only
+DEVELOPMENT_VERSION = "2.63" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -777,8 +777,8 @@ def check_initial_outletflap_position():
 def main():
     #def Global Variables for Main Funktion
     global isVersionSent, last_send_time, last_outletflap_reading_time, last_radar_reading_time, last_ph_reading_time, last_turbidity_reading_time, last_turbidity2_reading_time, last_us_reading_time, radar_total_flow, ph_low_delay_start_time,ph_high_delay_start_time, runtime_tracker_var, minimumPHValStop, maximumPHVal, minimumPHVal, ph_handler, turbidity_handler, turbidity_handler2, gps_handler, runtime_tracker, client, countdownPHLow, powerButton, tempTruebSens, tempTruebSens2, countdownPHHigh, targetPHtolerrance, targetPHValue, calibratePH, gemessener_low_wert, gemessener_high_wert, autoSwitch, temperaturPHSens_telem, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, waterLevelHeight_telem, calculatedFlowRate, messuredRadar_Air_telem, radar_flow_rate_l_min, flow_rate_l_h, flow_rate_m3_min, co2RelaisSwSig, co2HeatingRelaySwSig, usSensorActive, pumpRelaySwSig, co2RelaisSw, co2HeatingRelaySw, pumpRelaySw, radar_rate_Handler, gpsEnabled, usFlowRate, usFlowTotal
-    global outlet_flap_handler, outletFlapIsInRemoteMode, outletFlapValvePosition, outletFlapSetpoint, outletFlapErrorCode, outletFlapTest, outletFlapActive, outletFlapCurrentPosition, outletFlapSetpointPosition, outletFlapRemoteMode, outletFlapLocalMode, outletFlapHasError, outletFlapTargetPosition
-    global turbiditySensorActive, turbidity2SensorActive, maximumTurbidity, maximumTurbidity2, turbidityOffset, turbidity2Offset
+    global outlet_flap_handler, outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterPositionValue, outletFlapRegisterSetpointValue, outletFlapRegisterErrorCode, telemetryTest420, outletFlapActive, outletFlapRegisterCurrentPosition, outletFlapRegisterSetpointPosition, outletFlapRegisterIsRemoteMode, outletFlapRegisterIsLocalMode, outletFlapRegisterHasError, outletFlapTargetPosition
+    global turbiditySensorActive, turbidity2SensorActive, maximumTurbidity, maximumTurbidity2, turbidityOffset, turbidity2Offset, telemetryTestNone
 
     print("=" * 25)
     print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
@@ -989,31 +989,29 @@ def main():
                 
                 if enhanced_valve_data:
                     # Update enhanced telemetry variables
-                    outletFlapCurrentPosition = enhanced_valve_data['current_position']
-                    outletFlapSetpointPosition = enhanced_valve_data['setpoint_position']
-                    outletFlapRemoteMode = enhanced_valve_data['is_remote_mode']
-                    outletFlapLocalMode = enhanced_valve_data['is_local_mode']
-                    outletFlapHasError = enhanced_valve_data['has_error']
+                    outletFlapRegisterCurrentPosition = enhanced_valve_data['current_position']
+                    outletFlapRegisterSetpointPosition = enhanced_valve_data['setpoint_position']
+                    outletFlapRegisterIsRemoteMode = enhanced_valve_data['is_remote_mode']
+                    outletFlapRegisterIsLocalMode = enhanced_valve_data['is_local_mode']
+                    outletFlapRegisterHasError = enhanced_valve_data['has_error']
                     
-                    # Map enhanced data to old variable names for compatibility
-                    outletFlapIsInRemoteMode = enhanced_valve_data['remote_local_status']
-                    outletFlapValvePosition = enhanced_valve_data['raw_position_value']
-                    outletFlapSetpoint = enhanced_valve_data['raw_setpoint_value']
-                    outletFlapErrorCode = enhanced_valve_data['error_code']
-                    outletFlapTest = 0  # Test register not available in enhanced method
+                    # Map enhanced data to register variable names
+                    outletFlapRegisterRemoteOrLocalStatus = enhanced_valve_data['remote_local_status']
+                    outletFlapRegisterPositionValue = enhanced_valve_data['raw_position_value']
+                    outletFlapRegisterSetpointValue = enhanced_valve_data['raw_setpoint_value']
+                    outletFlapRegisterErrorCode = enhanced_valve_data['error_code']
                 else:
                     # Fallback values if enhanced reading fails
-                    outletFlapCurrentPosition = None
-                    outletFlapSetpointPosition = None
-                    outletFlapRemoteMode = False
-                    outletFlapLocalMode = True
-                    outletFlapHasError = True
-                    # Old variable fallbacks
-                    outletFlapIsInRemoteMode = None
-                    outletFlapValvePosition = None
-                    outletFlapSetpoint = None
-                    outletFlapErrorCode = None
-                    outletFlapTest = None
+                    outletFlapRegisterCurrentPosition = None
+                    outletFlapRegisterSetpointPosition = None
+                    outletFlapRegisterIsRemoteMode = None
+                    outletFlapRegisterIsLocalMode = None
+                    outletFlapRegisterHasError = None
+                    # Register variable fallbacks
+                    outletFlapRegisterRemoteOrLocalStatus = None
+                    outletFlapRegisterPositionValue = None
+                    outletFlapRegisterSetpointValue = None
+                    outletFlapRegisterErrorCode = None
 
         if powerButton:
             runtime_tracker.start()
