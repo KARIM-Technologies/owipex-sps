@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 dotenv_path = '/etc/owipex/.env'
 load_dotenv(dotenv_path=dotenv_path)
 SPS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
-Toekn = 'WbXwatch924' + str(SPS_TOKEN[-4:])
+Token = 'WbXwatch924' + str(SPS_TOKEN[-4:])
 ACCESS_TOKEN = Token
 
 DATA_SEND_INTERVAL = 15  # Data send interval in seconds
