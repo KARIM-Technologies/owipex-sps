@@ -18,8 +18,17 @@ LED_PINS = {'R': 5, 'G': 6, 'B': 26}  # Angenommene Pins für die LEDs
 CHECK_INTERVAL = 10
 THINGSBOARD_SERVER = 'localhost'
 THINGSBOARD_PORT = 1883  # Ensure the port is an integer
-ACCESS_TOKEN = '3VuMh3c5TfbpagAO4Ndr'
-DATA_SEND_INTERVAL = 10  # Data send interval in seconds
+
+# Fetch the Access Token from ENV and use for the Watchdog
+CONFIG_PATH = "/etc/owipex/"
+from dotenv import load_dotenv
+dotenv_path = '/etc/owipex/.env'
+load_dotenv(dotenv_path=dotenv_path)
+SPS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
+Toekn = 'WbXwatch924' + str(SPS_TOKEN[-4:])
+ACCESS_TOKEN = Token
+
+DATA_SEND_INTERVAL = 15  # Data send interval in seconds
 
 # Initialisierung
 try:
