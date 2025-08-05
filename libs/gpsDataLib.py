@@ -39,6 +39,7 @@ def fetch_and_process_gps_data(timeout=10):
         latitude, longitude = packet.position()  # Breiten- und Längengrad
         altitude = packet.alt if packet.mode == 3 else None  # Höhe (wenn verfügbar)
     # Verarbeiten der Satellitendaten
-    nbOfSatellites = [s for s in satelliteData if s.used]
+    if satelliteData is not None:
+        nbOfSatellites = [s for s in satelliteData if s.used]
 
     return timestamp, latitude, longitude, altitude, nbOfSatellites
