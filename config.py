@@ -104,7 +104,6 @@ gpsHeight = 1.0
 gpsLatitude = 1.0
 gpsLongitude = 1.0
 gpsTimestamp = 1.0
-gpsNbOfSatellites = 0
 
 # Telemetry and Attribute Variables
 telemetry_keys = [
@@ -114,7 +113,7 @@ telemetry_keys = [
     'countdownPHLow', 'flow_rate_l_h', 'flow_rate_l_min',
     'flow_rate_m3_min', 'gemessener_high_wert', 'gemessener_low_wert',
     'gpsEnabled', 'gpsHeight', 'gpsLatitude',
-    'gpsLongitude', 'gpsNbOfSatellites', 'gpsTimestamp', 'isDebugMode',
+    'gpsLongitude', 'gpsTimestamp', 'isDebugMode',
     'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2',
     'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem',
     'messuredRadar_Air_telem', 'minimumPHVal', 'minimumPHValStop',
