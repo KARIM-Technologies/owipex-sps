@@ -282,7 +282,7 @@ class GpsHandler:
         self.deviceName = deviceName
         self.update_interval = update_interval
         self.callGpsSwitch = False
-        self.latest_gps_data = (None, None, None, None)
+        self.latest_gps_data = (None, None, None, None, None)
         self.thread = None
         self.gps_enabled = True
         self.error_count = 0
@@ -311,18 +311,19 @@ class GpsHandler:
         while self.callGpsSwitch:
             try:
                 # Versuche, GPS-Daten zu holen
-                new_timestamp, new_latitude, new_longitude, new_altitude = gpsDataLib.fetch_and_process_gps_data(timeout=5)
+                new_timestamp, new_latitude, new_longitude, new_altitude, new_NbOfSatellites = gpsDataLib.fetch_and_process_gps_data(timeout=5)
                 
                 # Überprüfe, ob neue Daten verfügbar sind (basierend auf dem Vorhandensein eines Timestamps)
                 if new_timestamp is not None:
                     # Aktualisiere die gespeicherten GPS-Daten nur, wenn neue Daten empfangen wurden
-                    self.latest_gps_data = (new_timestamp, new_latitude, new_longitude, new_altitude)
+                    self.latest_gps_data = (new_timestamp, new_latitude, new_longitude, new_altitude, new_NbOfSatellites)
                     self.error_count = 0  # Zurücksetzen des Fehlerzählers bei erfolgreicher Abfrage
                     
                     # Ausgabe der neuen GPS-Daten für Debugging-Zwecke
                     print(f"Zeitstempel: {new_timestamp}")
                     print(f"Breitengrad: {new_latitude}")
                     print(f"Längengrad: {new_longitude}")
+                    print(f"# Satelliten: {new_NbOfSatellites}")
                     print(f"Höhe: {new_altitude if new_altitude is not None else 'nicht verfügbar'}")
                 else:
                     # Wenn keine neuen Daten verfügbar sind, behalte den letzten gültigen Eintrag
@@ -826,7 +827,7 @@ def main():
     global co2HeatingRelaySw, co2HeatingRelaySwSig, co2RelaisSw, co2RelaisSwSig
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
-    global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
+    global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude, gpsNbOfSatellites
     global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, maximumPHVal, maximumTurbidity
@@ -941,13 +942,13 @@ def main():
         # Sichere Abfrage der GPS-Daten
         try:
             if gpsEnabled and gps_handler.gps_enabled:
-                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = gps_handler.get_latest_gps_data()
+                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, gpsNbOfSatellites = gps_handler.get_latest_gps_data()
             else:
                 # Wenn GPS deaktiviert ist, setze Standardwerte
-                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
+                gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, gpsNbOfSatellites = None, 0.0, 0.0, 0.0, 0
         except Exception as e:
             print(f"Fehler beim Abrufen der GPS-Daten: {e}")
-            gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight = None, 0.0, 0.0, 0.0
+            gpsTimestamp, gpsLatitude, gpsLongitude, gpsHeight, gpsNbOfSatellites = None, 0.0, 0.0, 0.0, 0
             
         # client.send_attributes(attributes)
 

@@ -33,7 +33,8 @@ def process_gps_data(packet):
         timestamp = packet.time  # Zeitstempel der GPS-Daten
         latitude, longitude = packet.position()  # Breiten- und Längengrad
         altitude = packet.alt if packet.mode == 3 else None  # Höhe (wenn verfügbar)
-        return timestamp, latitude, longitude, altitude
+        nbOfSatellites = packet.satellites
+        return timestamp, latitude, longitude, altitude, nbOfSatellites
     else:
         return None, None, None, None
 
