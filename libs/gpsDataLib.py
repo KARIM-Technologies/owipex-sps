@@ -22,16 +22,14 @@ def get_gps_data(timeout=10):
             packet = gpsd.get_current()
             # Mode 2 bedeutet 2D-Fix, was mindestens Längen- und Breitengrad bedeutet.
             if packet.mode >= 2:
-
+                nbOfSatellites = 0
                 for p in packet.json['raw']:
-                if p.get('class') == 'SKY':
-                    sats = p.get('satellites', [])
-                    if sats is not None:
-                        used = [s for s in sats if s.get('used')]
-                        nbOfSatellites = len(used)
-                        print(f"get_gps_data(): Verwendete Satelliten: {nbOfSatellites}")
-                    else:
-                        nbOfSatellites = 0
+                    if p.get('class') == 'SKY':
+                        sats = p.get('satellites', [])
+                        if sats is not None:
+                            used = [s for s in sats if s.get('used')]
+                            nbOfSatellites = len(used)
+                            print(f"get_gps_data(): Verwendete Satelliten: {nbOfSatellites}")
                 return packet, nbOfSatellites
         except Exception as e:
             print(f"Fehler beim Abrufen der GPS-Daten: {e}")
