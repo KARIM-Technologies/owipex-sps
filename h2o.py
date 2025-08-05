@@ -145,7 +145,6 @@ def attribute_callback(result, _):
     # Überprüfe, ob sich gpsEnabled geändert hat
     if 'gpsEnabled' in result:
         gpsEnabled = result['gpsEnabled']
-        gpsEnabled = False # TODO: remove
         if gpsEnabled:
             try:
                 gps_handler.gps_enabled = True
