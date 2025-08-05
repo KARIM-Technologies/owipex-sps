@@ -30,7 +30,7 @@ def get_gps_data(timeout=10):
                         used = [s for s in sats if s.get('used')]
                         nbOfSatellites = len(used)
                         print(f"get_gps_data(): Verwendete Satelliten: {nbOfSatellites}")
-                    else
+                    else:
                         nbOfSatellites = 0
                 return packet, nbOfSatellites
         except Exception as e:
