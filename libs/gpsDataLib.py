@@ -22,25 +22,23 @@ def get_gps_data(timeout=10):
             packet = gpsd.get_current()
             # Mode 2 bedeutet 2D-Fix, was mindestens Längen- und Breitengrad bedeutet.
             if packet.mode >= 2:
-                return packet
+                return packet, gpsd.get_satellites()
         except Exception as e:
             print(f"Fehler beim Abrufen der GPS-Daten: {e}")
             time.sleep(1)  # Kurze Pause, um eine Endlosschleife bei sofortigem Fehler zu vermeiden
-    return None
+    return None, None
 
-def process_gps_data(packet):
-    if packet is not None:
+def fetch_and_process_gps_data(timeout=10):
+    timestamp, latitude, longitude, height, nbOfSatellites = None, 0.0, 0.0, 0.0, 0
+    
+    # Abrufen der GPS-Daten
+    gps_packet, satelliteData = get_gps_data(timeout)
+    # Verarbeiten der abgerufenen GPS-Daten und Speichern der Ergebnisse in Variablen
+    if gps_packet is not None:
         timestamp = packet.time  # Zeitstempel der GPS-Daten
         latitude, longitude = packet.position()  # Breiten- und Längengrad
         altitude = packet.alt if packet.mode == 3 else None  # Höhe (wenn verfügbar)
-        nbOfSatellites = packet.satellites()
-        return timestamp, latitude, longitude, altitude, nbOfSatellites
-    else:
-        return None, None, None, None
+    # Verarbeiten der Satellitendaten
+    nbOfSatellites = [s for s in satelliteData if s.used]
 
-def fetch_and_process_gps_data(timeout=10):
-    # Abrufen der GPS-Daten
-    gps_packet = get_gps_data(timeout)
-    # Verarbeiten der abgerufenen GPS-Daten und Speichern der Ergebnisse in Variablen
-    return process_gps_data(gps_packet)
-
+    return timestamp, latitude, longitude, altitude, nbOfSatellites
