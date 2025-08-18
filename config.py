@@ -45,7 +45,6 @@ temperaturPHSens_telem = 0.0
 
 # Turbidity Configuration
 maximumTurbidity = 0
-measuredTurbidity = 0
 measuredTurbidity_telem = 0
 tempTruebSens = 0.00
 turbidityOffset = 0
@@ -53,7 +52,6 @@ turbiditySensorActive = False
 
 # Turbidity2 Configuration
 maximumTurbidity2 = 0
-measuredTurbidity2 = 0
 measuredTurbidity2_telem = 0
 tempTruebSens2 = 0.00
 turbidity2Offset = 0
@@ -63,7 +61,6 @@ turbidity2SensorActive = False
 messuredRadar_Air_telem = 1 
 radarSensorActive = False
 radarSensorOffset = 0.0
-waterLevelHeight = 1.0
 waterLevelHeight_telem = 2.0
 
 # Radar Flow Configuration
@@ -72,7 +69,7 @@ flow_rate_l_min = 20.0
 flow_rate_m3_min = 20.0
 total_flow = 0.0
 
-# US Configuration
+# US Configuration 
 usFlowRate = 0.0
 usFlowTotal = 0.0
 usSensorActive = False
