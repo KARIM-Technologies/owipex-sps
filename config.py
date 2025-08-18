@@ -77,6 +77,16 @@ usFlowRate = 0.0
 usFlowTotal = 0.0
 usSensorActive = False
 
+# US2 Configuration
+us2FlowRate = 0.0
+us2FlowTotal = 0.0
+usSensor2Active = False
+
+# US3 Configuration
+us3FlowRate = 0.0
+us3FlowTotal = 0.0
+usSensor3Active = False
+
 # OutletFlap Configuration
 outletFlapRegisterErrorCode = 0
 outletFlapRegisterPositionValue = 0
@@ -114,8 +124,8 @@ telemetry_keys = [
     'flow_rate_m3_min', 'gemessener_high_wert', 'gemessener_low_wert',
     'gpsEnabled', 'gpsHeight', 'gpsLatitude',
     'gpsLongitude', 'gpsTimestamp', 'isDebugMode',
-    'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2',
-    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem',
+    'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2'
+    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem'
     'messuredRadar_Air_telem', 'minimumPHVal', 'minimumPHValStop',
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition',
     'outletFlapRegisterErrorCode', 'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode',
@@ -128,8 +138,11 @@ telemetry_keys = [
     'telemetryTest420', 'telemetryTestNone', 'tempTruebSens',
     'tempTruebSens2', 'temperaturPHSens_telem', 'total_flow',
     'turbidity2Offset', 'turbidity2SensorActive', 'turbidityOffset',
-    'turbiditySensorActive', 'usFlowRate', 'usFlowTotal',
-    'useDebugReadingsIntervalls', 'usSensorActive', 'waterLevelHeight_telem'
+    'turbiditySensorActive', 
+    'usFlowRate', 'usFlowTotal',
+    'us2FlowRate', 'us2FlowTotal',
+    'us3FlowRate', 'us3FlowTotal',
+    'useDebugReadingsIntervalls', 'usSensorActive', 'usSensor2Active', 'usSensor3Active', 'waterLevelHeight_telem'
 ]
 
 attributes_keys = ['ip_address', 'macaddress']
@@ -146,5 +159,5 @@ shared_attributes_keys = [
     'powerButton', 'radarSensorActive', 'targetPHtolerrance',
     'targetPHValue', 'turbidity2Offset', 'turbidity2SensorActive',
     'turbidityOffset', 'turbiditySensorActive', 'useDebugReadingsIntervalls',
-    'usSensorActive'
+    'usSensorActive', 'usSensor2Active', 'usSensor3Active'
 ]

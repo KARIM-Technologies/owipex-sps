@@ -24,6 +24,8 @@ PH_READINGS_INTERVAL_SEC = 42.0          # PH readings
 TURBIDITY_READINGS_INTERVAL_SEC = 29.0   # Turbidity readings
 TURBIDITY2_READINGS_INTERVAL_SEC = 28.0  # Turbidity2 readings
 US_READINGS_INTERVAL_SEC = 39.0          # US Flow readings
+US2_READINGS_INTERVAL_SEC = 38.0          # US 2 Flow readings
+US3_READINGS_INTERVAL_SEC = 37.0          # US 3 Flow readings
 
 # Device reading interval configuration - Debug intervals
 DEBUG_OUTLETFLAP_READINGS_INTERVAL_SEC = 31.0  # OutletFlap readings
@@ -32,6 +34,8 @@ DEBUG_PH_READINGS_INTERVAL_SEC = 22.0          # PH readings
 DEBUG_TURBIDITY_READINGS_INTERVAL_SEC = 32.0   # Turbidity readings
 DEBUG_TURBIDITY2_READINGS_INTERVAL_SEC = 33.0  # Turbidity2 readings
 DEBUG_US_READINGS_INTERVAL_SEC = 28.0          # US Flow readings
+DEBUG_US2_READINGS_INTERVAL_SEC = 27.0          # US 2 Flow readings
+DEBUG_US3_READINGS_INTERVAL_SEC = 26.0          # US 3 Flow readings
 
 # Dynamic interval variables (switchable via UseDebugReadingsIntervalls)
 outletFlapReadingsIntervalSec = OUTLETFLAP_READINGS_INTERVAL_SEC
@@ -40,6 +44,8 @@ phReadingsIntervalSec = PH_READINGS_INTERVAL_SEC
 turbidityReadingsIntervalSec = TURBIDITY_READINGS_INTERVAL_SEC
 turbidity2ReadingsIntervalSec = TURBIDITY2_READINGS_INTERVAL_SEC
 usReadingsIntervalSec = US_READINGS_INTERVAL_SEC
+us2ReadingsIntervalSec = US2_READINGS_INTERVAL_SEC
+us3ReadingsIntervalSec = US3_READINGS_INTERVAL_SEC
 
 from periphery import GPIO
 from threading import Thread
@@ -66,14 +72,18 @@ dev_manager.add_device(device_id=0x02)
 dev_manager.add_device(device_id=0x03)
 dev_manager.add_device(device_id=0x0a)  # Vincer Valve
 dev_manager.add_device(device_id=0x0c)  # Turbidity Sensor 2
-dev_manager.add_device(device_id=0x28)  # Neuer US Flow Sensor
+dev_manager.add_device(device_id=0x28)  # US Flow Sensor 1
+dev_manager.add_device(device_id=0x29)  # US Flow Sensor 2
+dev_manager.add_device(device_id=0x2a)  # US Flow Sensor 3
 # Get devices and read their registers
 Radar_Sensor = dev_manager.get_device(device_id=0x01)
 Trub_Sensor = dev_manager.get_device(device_id=0x02)
 Ph_Sensor = dev_manager.get_device(device_id=0x03)
 OutletFlap_Sensor = dev_manager.get_device(device_id=0x0a)  # Vincer Valve
 Trub_Sensor2 = dev_manager.get_device(device_id=0x0c)  # Turbidity Sensor 2
-Us_Sensor = dev_manager.get_device(device_id=0x28)  # Neuer US Flow Sensor
+Us_Sensor = dev_manager.get_device(device_id=0x28)  # US Flow Sensor 1
+Us_Sensor2 = dev_manager.get_device(device_id=0x29)  # US Flow Sensor 2
+Us_Sensor3 = dev_manager.get_device(device_id=0x2a)  # US Flow Sensor 3
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
@@ -113,7 +123,8 @@ def get_timestamp():
 def update_reading_intervals():
     """Update reading interval variables based on useDebugReadingsIntervalls setting"""
     global outletFlapReadingsIntervalSec, radarReadingsIntervalSec, phReadingsIntervalSec
-    global turbidityReadingsIntervalSec, turbidity2ReadingsIntervalSec, usReadingsIntervalSec
+    global turbidityReadingsIntervalSec, turbidity2ReadingsIntervalSec
+    global usReadingsIntervalSec, us2ReadingsIntervalSec, us3ReadingsIntervalSec
     global useDebugReadingsIntervalls
     
     if useDebugReadingsIntervalls:
@@ -123,6 +134,8 @@ def update_reading_intervals():
         turbidityReadingsIntervalSec = DEBUG_TURBIDITY_READINGS_INTERVAL_SEC
         turbidity2ReadingsIntervalSec = DEBUG_TURBIDITY2_READINGS_INTERVAL_SEC
         usReadingsIntervalSec = DEBUG_US_READINGS_INTERVAL_SEC
+        us2ReadingsIntervalSec = DEBUG_US2_READINGS_INTERVAL_SEC
+        us3ReadingsIntervalSec = DEBUG_US3_READINGS_INTERVAL_SEC
         printTs("🔧 Debug-Leseintervalle aktiviert")
     else:
         outletFlapReadingsIntervalSec = OUTLETFLAP_READINGS_INTERVAL_SEC
@@ -131,6 +144,8 @@ def update_reading_intervals():
         turbidityReadingsIntervalSec = TURBIDITY_READINGS_INTERVAL_SEC
         turbidity2ReadingsIntervalSec = TURBIDITY2_READINGS_INTERVAL_SEC
         usReadingsIntervalSec = US_READINGS_INTERVAL_SEC
+        us2ReadingsIntervalSec = US2_READINGS_INTERVAL_SEC
+        us3ReadingsIntervalSec = US3_READINGS_INTERVAL_SEC
         printTs("⚡ Produktions-Leseintervalle aktiviert")
 
  #that will be called when the value of our Shared Attribute changes
@@ -772,6 +787,8 @@ last_ph_reading_time = 0          # Initialize to 0 to ensure first reading happ
 last_turbidity_reading_time = 0   # Initialize to 0 to ensure first reading happens immediately
 last_turbidity2_reading_time = 0  # Initialize to 0 to ensure first reading happens immediately
 last_us_reading_time = 0          # Initialize to 0 to ensure first reading happens immediately
+last_us2_reading_time = 0          # Initialize to 0 to ensure first reading happens immediately
+last_us3_reading_time = 0          # Initialize to 0 to ensure first reading happens immediately
         
 isVersionSent = False
 
@@ -828,7 +845,7 @@ def main():
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
     global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
-    global last_turbidity2_reading_time, last_us_reading_time, maximumPHVal, maximumTurbidity
+    global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem
     global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler
     global outletFlapActive, outletFlapReadingsIntervalSec, outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode
@@ -841,8 +858,11 @@ def main():
     global telemetryTestNone, tempTruebSens, tempTruebSens2, temperaturPHSens_telem
     global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2ReadingsIntervalSec
     global turbidity2SensorActive, turbidityOffset, turbidityReadingsIntervalSec, turbiditySensorActive
-    global useDebugReadingsIntervalls, usFlowRate, usFlowTotal, usReadingsIntervalSec
-    global usSensorActive, waterLevelHeight_telem
+    global useDebugReadingsIntervalls
+    global usFlowRate, usFlowTotal, usReadingsIntervalSec
+    global us2FlowRate, us2FlowTotal, us2ReadingsIntervalSec
+    global us3FlowRate, us3FlowTotal, us3ReadingsIntervalSec
+    global usSensorActive, usSensor2Active, usSensor3Active, waterLevelHeight_telem
 
     print("=" * 25)
     print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
@@ -852,7 +872,9 @@ def main():
     print("-" * 29)
     print(f"  Main Loop Sleep:        {MAINLOOP_SLEEP_SEC} s")
     print(f"  Radar Sensor:           {radarReadingsIntervalSec} s")
-    print(f"  US Flow Sensor:         {usReadingsIntervalSec} s")
+    print(f"  US Flow Sensor 1:       {usReadingsIntervalSec} s")
+    print(f"  US Flow Sensor 2:       {us2ReadingsIntervalSec} s")
+    print(f"  US Flow Sensor 3:       {us3ReadingsIntervalSec} s")
     print(f"  PH Sensor:              {phReadingsIntervalSec} s")
     print(f"  Turbidity Sensor:       {turbidityReadingsIntervalSec} s")
     print(f"  Turbidity2 Sensor:      {turbidity2ReadingsIntervalSec} s")
@@ -1000,6 +1022,54 @@ def main():
                     traceback.print_exc()
         # else:
         #     print("UsFlowSensor ist deaktiviert (usSensorActive = False)")
+
+        if usSensor2Active:
+            # Check if enough time has passed since last US reading
+            if device_check_time - last_us2_reading_time >= us2ReadingsIntervalSec:
+                # Update the last reading time
+                last_us2_reading_time = device_check_time
+                
+                # print(f"UsFlowSensor 2 ist aktiv. Versuche Daten zu lesen...")
+                try:
+                    # print(f"Initialisiere UsFlowHandler 2 mit Sensor ID: {Us_Sensor2.device_id}")
+                    us2_flow_handler = UsHandler("Us2", Us_Sensor2)
+                    us2FlowRate, us2FlowTotal, wasOk2 = us2_flow_handler.fetchViaDeviceManager()
+                    
+                    if wasOk2 and us2FlowRate is not None and us2FlowTotal is not None:
+                        printTs("✅ UsFlowSensor2: Lesung erfolgreich")
+                    else:
+                        printTs("❌ UsFlowSensor2: Unvollständige Daten")
+                        
+                except Exception as e:
+                    printTs(f"❌ UsFlowSensor:2 Fehler beim Lesen: {e}")
+                    import traceback
+                    traceback.print_exc()
+        # else:
+        #     print("UsFlowSensor2 ist deaktiviert (usSensor2Active = False)")
+
+        if usSensor3Active:
+            # Check if enough time has passed since last US reading
+            if device_check_time - last_us3_reading_time >= us3ReadingsIntervalSec:
+                # Update the last reading time
+                last_us3_reading_time = device_check_time
+                
+                # print(f"UsFlowSensor 3 ist aktiv. Versuche Daten zu lesen...")
+                try:
+                    # print(f"Initialisiere UsFlowHandler 3 mit Sensor ID: {Us_Sensor3.device_id}")
+                    us3_flow_handler = UsHandler("Us3", Us_Sensor3)
+                    us3FlowRate, us3FlowTotal, wasOk3 = us3_flow_handler.fetchViaDeviceManager()
+                    
+                    if wasOk3 and us3FlowRate is not None and us3FlowTotal is not None:
+                        printTs("✅ UsFlowSensor3: Lesung erfolgreich")
+                    else:
+                        printTs("❌ UsFlowSensor3: Unvollständige Daten")
+                        
+                except Exception as e:
+                    printTs(f"❌ UsFlowSensor:3 Fehler beim Lesen: {e}")
+                    import traceback
+                    traceback.print_exc()
+        # else:
+        #     print("UsFlowSensor3 ist deaktiviert (usSensor3Active = False)")
  
         if calibratePH:
             ph_handler.calibrate(high_ph_value=10, low_ph_value=7, measured_high=gemessener_high_wert, measured_low=gemessener_low_wert)

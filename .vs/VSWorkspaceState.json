@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\libs"
   ],
-  "SelectedNode": "\\powerWatchdog.py",
+  "SelectedNode": "\\h2o.py",
   "PreviewInSolutionExplorer": false
 }

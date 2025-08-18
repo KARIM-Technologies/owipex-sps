@@ -1,17 +1,25 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\owipex\\owipex-sps\\",
+  "WorkspaceRootPath": "Z:\\Documents\\D\\owipex\\owipex-sps\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\owipex\\owipex-sps\\powerWatchdog.py||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:powerWatchdog.py||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\owipex\\owipex-sps\\h2o.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|Z:\\Documents\\D\\owipex\\owipex-sps\\h2o.py||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:h2o.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|Z:\\Documents\\D\\owipex\\owipex-sps\\config.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:config.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|Z:\\Documents\\D\\owipex\\owipex-sps\\libs\\gpsDataLib.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:libs\\gpsDataLib.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|Z:\\Documents\\D\\owipex\\owipex-sps\\powerWatchdog.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:powerWatchdog.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|Z:\\Documents\\D\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:installer\\initial\\adaptSkript.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
@@ -22,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 14,
+          "SelectedChildIndex": 12,
           "Children": [
             {
               "$type": "Bookmark",
@@ -74,40 +82,65 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "adaptSkript.txt",
-              "DocumentMoniker": "C:\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt",
-              "RelativeDocumentMoniker": "installer\\initial\\adaptSkript.txt",
-              "ToolTip": "C:\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt",
-              "RelativeToolTip": "installer\\initial\\adaptSkript.txt",
-              "ViewState": "AgIAAGcAAAAAAAAAAAAAAIIAAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-06-11T07:20:28.786Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "h2o.py",
-              "DocumentMoniker": "C:\\owipex\\owipex-sps\\h2o.py",
+              "DocumentMoniker": "Z:\\Documents\\D\\owipex\\owipex-sps\\h2o.py",
               "RelativeDocumentMoniker": "h2o.py",
-              "ToolTip": "C:\\owipex\\owipex-sps\\h2o.py",
+              "ToolTip": "Z:\\Documents\\D\\owipex\\owipex-sps\\h2o.py",
               "RelativeToolTip": "h2o.py",
-              "ViewState": "AgIAADAAAAAAAAAAAAAAADoAAAA5AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "ViewState": "AgIAADQBAAAAAAAAAAAUwEEBAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-06-11T07:20:11.441Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
+              "Title": "gpsDataLib.py",
+              "DocumentMoniker": "Z:\\Documents\\D\\owipex\\owipex-sps\\libs\\gpsDataLib.py",
+              "RelativeDocumentMoniker": "libs\\gpsDataLib.py",
+              "ToolTip": "Z:\\Documents\\D\\owipex\\owipex-sps\\libs\\gpsDataLib.py",
+              "RelativeToolTip": "libs\\gpsDataLib.py",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAkwBEAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-08-05T13:55:34.635Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "config.py",
+              "DocumentMoniker": "Z:\\Documents\\D\\owipex\\owipex-sps\\config.py",
+              "RelativeDocumentMoniker": "config.py",
+              "ToolTip": "Z:\\Documents\\D\\owipex\\owipex-sps\\config.py",
+              "RelativeToolTip": "config.py",
+              "ViewState": "AgIAAFoAAAAAAgAAAIAcwHMAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-08-05T13:43:53.615Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "adaptSkript.txt",
+              "DocumentMoniker": "Z:\\Documents\\D\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt",
+              "RelativeDocumentMoniker": "installer\\initial\\adaptSkript.txt",
+              "ToolTip": "Z:\\Documents\\D\\owipex\\owipex-sps\\installer\\initial\\adaptSkript.txt",
+              "RelativeToolTip": "installer\\initial\\adaptSkript.txt",
+              "ViewState": "AgIAAGcAAAAAAAAAAAAAAIIAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-06-11T07:20:28.786Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "powerWatchdog.py",
-              "DocumentMoniker": "C:\\owipex\\owipex-sps\\powerWatchdog.py",
+              "DocumentMoniker": "Z:\\Documents\\D\\owipex\\owipex-sps\\powerWatchdog.py",
               "RelativeDocumentMoniker": "powerWatchdog.py",
-              "ToolTip": "C:\\owipex\\owipex-sps\\powerWatchdog.py",
+              "ToolTip": "Z:\\Documents\\D\\owipex\\owipex-sps\\powerWatchdog.py",
               "RelativeToolTip": "powerWatchdog.py",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-06-11T07:19:51.504Z",
               "EditorCaption": ""
             }
