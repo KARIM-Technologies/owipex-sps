@@ -12,7 +12,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.69" # for internal use only
+DEVELOPMENT_VERSION = "2.72" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -569,7 +569,7 @@ class UsHandler:
             else:
                 self.consecutive_errors += 1
                 current_flow = self.last_successful_flow_rate
-                printTs(f"⚠️ UsFlowSensor: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
+                printTs(f"⚠️ {self.deviceName}: Verwende letzten erfolgreichen Durchflusswert: {current_flow:.3f} m³/h")
                 
             if total_flow is not None:
                 self.consecutive_errors = 0
@@ -577,24 +577,24 @@ class UsHandler:
             else:
                 self.consecutive_errors += 1
                 total_flow = self.last_successful_total_flow
-                printTs(f"⚠️ UsFlowSensor: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
+                printTs(f"⚠️ {self.deviceName}: Verwende letzte erfolgreiche Gesamtmenge: {total_flow:.3f} m³")
             
             # Protokolliere die gelesenen Werte
             if current_flow is not None and total_flow is not None:
-                printTs(f"✅ UsFlowSensor: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
+                printTs(f"✅ {self.deviceName}: Aktueller Durchfluss = {current_flow:.3f} m³/h, Gesamtmenge = {total_flow:.3f} m³")
                 wasOk = True
             else:
-                printTs(f"❌ UsFlowSensor: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
+                printTs(f"❌ {self.deviceName}: Teilweise Daten - Durchfluss = {current_flow}, Gesamtmenge = {total_flow}")
             
             # Überprüfe auf zu viele aufeinanderfolgende Fehler
             if self.consecutive_errors >= self.max_consecutive_errors:
-                printTs(f"⚠️ UsFlowSensor: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
+                printTs(f"⚠️ {self.deviceName}: {self.consecutive_errors} aufeinanderfolgende Fehler. Überprüfen Sie die Verbindung!")
                 
             return current_flow, total_flow, wasOk
             
         except Exception as e:
             self.consecutive_errors += 1
-            printTs(f"❌ UsFlowSensor: Exception beim Lesen: {e}")
+            printTs(f"❌ UsFlowSensor ({self.deviceName}): Exception beim Lesen: {e}")
             import traceback
             traceback.print_exc()
             return None, None
