@@ -121,8 +121,8 @@ telemetry_keys = [
     'flow_rate_m3_min', 'gemessener_high_wert', 'gemessener_low_wert',
     'gpsEnabled', 'gpsHeight', 'gpsLatitude',
     'gpsLongitude', 'gpsTimestamp', 'isDebugMode',
-    'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2'
-    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem'
+    'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2',
+    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem',
     'messuredRadar_Air_telem', 'minimumPHVal', 'minimumPHValStop',
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition',
     'outletFlapRegisterErrorCode', 'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode',
