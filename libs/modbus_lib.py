@@ -91,7 +91,7 @@ class DeviceManager:
         device_info_lines.append("-------------")
 
         if self.devices:
-            for device in self.devices.items():
+            for device_id, device in self.devices.items():
                 device_info_lines.append(device.getDeviceInfo())
         else:
             device_info_lines.append("(no devices registered)")
