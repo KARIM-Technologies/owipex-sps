@@ -10,7 +10,7 @@ import sys
 import os
 import re
 
-POWERWATCHDOG_VERSION = "2.01" # for internal use only
+POWERWATCHDOG_VERSION = "2.02" # for internal use only
 
 # Configuration
 SERVER_URL = 'http://localhost:8080'
@@ -39,6 +39,7 @@ dotenv_path = '/etc/owipex/.envPowerWatchdog'
 tokenKey = 'POWERWATCHDOG_ACCESS_TOKEN'
 load_dotenv(dotenv_path=dotenv_path)
 accessToken = os.environ.get(tokenKey)
+print(f"TEST, REMOVE THIS MESSAGE: {THINGSBOARD_SERVER} / {POWERWATCHDOG_VERSION} / {accessToken}...")
 if not accessToken:
     msg = f"ERROR: Access Token not found.\nThe Access Token has to be in {dotenv_path}\nExample file content:\n{tokenKey}=WbXwatch9249999\n(replace the 9999 with the box number)"
     print(msg)
