@@ -25,9 +25,10 @@ def printTs(message):
     print(f"[{get_timestamp()}] {message}")
 
 class ModbusClient:
-    def __init__(self, device_manager, device_id):
+    def __init__(self, device_manager, device_id, device_name):
         self.device_manager = device_manager
-        self.device_id = device_id 
+        self.device_id = device_id
+        self.device_name = device_name
         self.auto_read_enabled = False
 
     def read_register(self, start_address, register_count, data_format='>f'):
@@ -79,8 +80,11 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
 
-    def add_device(self, device_id) -> ModbusClient:
-        self.devices[device_id] = ModbusClient(self, device_id)
+    def getDevicesInfo(self) -> str:
+        return "XXX";
+
+    def add_device(self, device_id, device_name) -> ModbusClient:
+        self.devices[device_id] = ModbusClient(self, device_id, device_name)
         return self.devices.get(device_id)
 
     def get_device(self, device_id) -> ModbusClient:
