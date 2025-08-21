@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.75" # for internal use only
+DEVELOPMENT_VERSION = "2.77" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -64,17 +64,33 @@ iTest = 0
 isTestFinished = False
 
 #RS485 Comunication and Devices
+DEFAULTID_RADAR_SENSOR = 1
+DEFAULTID_TRUB_SENSOR = 2
+DEFAULTID_PH_SENSOR = 3
+DEFAULTID_OUTLETFLAP_SENSOR = 10
+DEFAULTID_TRUB_SENSOR2 = 12
+DEFAULTID_US_SENSOR = 40
+DEFAULTID_US_SENSOR2 = 41
+DEFAULTID_US_SENSOR3 = 42
+
+def getIdHelper(key: str, defaultId: int) -> int:
+    valueFromEnv = os.environ.get(key)
+    if key is not none:
+        return os.environ.get(key)
+    else:
+        return defaultId
+
 # Create DeviceManager and devices
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
 # ACHTUNG!!! wenn hier etwas hinzugefügt wird, muss das auch in main zu den globals hinzugefügt werden!!!
-Radar_Sensor = dev_manager.add_device(device_id=0x01, device_name="Radar_Sensor")
-Trub_Sensor = dev_manager.add_device(device_id=0x02, device_name="Trub_Sensor")
-Ph_Sensor = dev_manager.add_device(device_id=0x03, device_name="Ph_Sensor")
-OutletFlap_Sensor = dev_manager.add_device(device_id=0x0a, device_name="OutletFlap_Sensor")
-Trub_Sensor2 = dev_manager.add_device(device_id=0x0c, device_name="Trub_Sensor2")
-Us_Sensor = dev_manager.add_device(device_id=0x28, device_name="Us_Sensor")
-Us_Sensor2 = dev_manager.add_device(device_id=0x29, device_name="Us_Sensor2")
-Us_Sensor3 = dev_manager.add_device(device_id=0x2a, device_name="Us_Sensor3")
+Radar_Sensor = dev_manager.add_device(getIdHelper("Radar_Sensor_Id", DEFAULTID_RADAR_SENSOR), "Radar_Sensor")
+Trub_Sensor = dev_manager.add_device(getIdHelper("Trub_Sensor_Id", DEFAULTID_TRUB_SENSOR), "Trub_Sensor")
+Ph_Sensor = dev_manager.add_device(getIdHelper("Ph_Sensor_Id", DEFAULTID_PH_SENSOR), "Ph_Sensor")
+OutletFlap_Sensor = dev_manager.add_device(getIdHelper("OutletFlap_Sensor_Id", DEFAULTID_OUTLETFLAP_SENSOR), "OutletFlap_Sensor")
+Trub_Sensor2 = dev_manager.add_device(getIdHelper("Trub_Sensor2_Id", DEFAULTID_TRUB_SENSOR2), "Trub_Sensor2")
+Us_Sensor = dev_manager.add_device(getIdHelper("Us_Sensor_Id", DEFAULTID_US_SENSOR), "Us_Sensor")
+Us_Sensor2 = dev_manager.add_device(getIdHelper("Us_Sensor2_Id", DEFAULTID_US_SENSOR2), "Us_Sensor2")
+Us_Sensor3 = dev_manager.add_device(getIdHelper("Us_Sensor3_Id", DEFAULTID_US_SENSOR3), "Us_Sensor3")
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
