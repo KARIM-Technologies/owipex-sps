@@ -84,12 +84,17 @@ class DeviceManager:
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
 
     def getDevicesInfo(self) -> str:
-        if not self.devices:
-            return "No devices registered"
         
         device_info_lines = []
-        for device_id, device in self.devices.items():
-            device_info_lines.append(device.getDeviceInfo())
+        device_info_lines.append("")
+        device_info_lines.append("Known devices")
+        device_info_lines.append("-------------")
+
+        if self.devices:
+            device_info_lines.append("(no devices registered)")
+        else:
+            for device in self.devices.items():
+                device_info_lines.append(device.getDeviceInfo())
         
         return "\n".join(device_info_lines)
     
