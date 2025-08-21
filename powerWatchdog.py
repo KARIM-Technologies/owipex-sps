@@ -10,6 +10,8 @@ import sys
 import os
 import re
 
+POWERWATCHDOG_VERSION = "2.01" # for internal use only
+
 # Configuration
 SERVER_URL = 'http://localhost:8080'
 MAIN_SCRIPT_PATH = '/home/owipex_adm/owipex-sps/h2o.py'
@@ -21,6 +23,7 @@ THINGSBOARD_PORT = 1883  # Ensure the port is an integer
 DATA_SEND_INTERVAL = 10  # Data send interval in seconds
 
 # Initialisierung
+print(f"powerWatchdog, internal version: {POWERWATCHDOG_VERSION}")
 try:
     button_gpio = GPIO(BUTTON_PIN, "in")
     leds = {color: GPIO(pin, "out") for color, pin in LED_PINS.items()}
@@ -37,7 +40,7 @@ tokenKey = 'POWERWATCHDOG_ACCESS_TOKEN'
 load_dotenv(dotenv_path=dotenv_path)
 accessToken = os.environ.get(tokenKey)
 if not accessToken:
-    msg = f"ERROR: Access Token not found.\nThe Access Token has to be in {dotenv_path}\nExample file content:\n{tokenKey}=MyToken5TfbpagAO4Ndr"
+    msg = f"ERROR: Access Token not found.\nThe Access Token has to be in {dotenv_path}\nExample file content:\n{tokenKey}=WbXwatch9249999\n(replace the 9999 with the box number)"
     print(msg)
     raise ValueError(msg)
 
