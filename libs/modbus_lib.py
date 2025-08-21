@@ -104,7 +104,10 @@ class DeviceManager:
         print(self.getDevicesInfo())
 
     def add_device(self, device_id, device_name) -> ModbusClient:
+        print(f"in add_device 1, device_id={device_id}, device_name={device_name}")
         self.devices[device_id] = ModbusClient(self, device_id, device_name)
+        print(f"in add_device 2, device_id={self.devices[device_id].device_id}, device_name={self.devices[device_id].device_name}")
+        print(f"in add_device 2, device_id={self.devices.get(device_id).device_id}, device_name={self.devices.get(device_id).device_name}")
         return self.devices.get(device_id)
 
     def get_device(self, device_id) -> ModbusClient:
