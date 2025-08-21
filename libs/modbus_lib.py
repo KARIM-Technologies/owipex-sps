@@ -31,6 +31,9 @@ class ModbusClient:
         self.device_name = device_name
         self.auto_read_enabled = False
 
+    def getDeviceInfo(self) -> str:
+        return f"{self.device_name}({self.device_id})";
+
     def read_register(self, start_address, register_count, data_format='>f'):
         return self.device_manager.read_register(self.device_id, start_address, register_count, data_format)
     
@@ -81,7 +84,18 @@ class DeviceManager:
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
 
     def getDevicesInfo(self) -> str:
-        return "XXX";
+        if not self.devices:
+            return "No devices registered"
+        
+        device_info_lines = []
+        for device_id, device in self.devices.items():
+            device_info_lines.append(device.getDeviceInfo())
+        
+        return "\n".join(device_info_lines)
+    
+    def printDevicesInfo(self):
+        """Print information about all registered devices"""
+        print(self.getDevicesInfo())
 
     def add_device(self, device_id, device_name) -> ModbusClient:
         self.devices[device_id] = ModbusClient(self, device_id, device_name)

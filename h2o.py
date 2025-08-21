@@ -69,11 +69,11 @@ dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbi
 Radar_Sensor = dev_manager.add_device(device_id=0x01, device_name="Radar_Sensor")
 Trub_Sensor = dev_manager.add_device(device_id=0x02, device_name="Trub_Sensor")
 Ph_Sensor = dev_manager.add_device(device_id=0x03, device_name="Ph_Sensor")
-OutletFlap_Sensor = dev_manager.add_device(device_id=0x0a, device_name="OutletFlap_Sensor")  # Vincer Valve
-Trub_Sensor2 = dev_manager.add_device(device_id=0x0c, device_name="Trub_Sensor2")  # Turbidity Sensor 2
-Us_Sensor = dev_manager.add_device(device_id=0x28, device_name="Us_Sensor")  # US Flow Sensor 1
-Us_Sensor2 = dev_manager.add_device(device_id=0x29, device_name="Us_Sensor2")  # US Flow Sensor 2
-Us_Sensor3 = dev_manager.add_device(device_id=0x2a, device_name="Us_Sensor3")  # US Flow Sensor 3
+OutletFlap_Sensor = dev_manager.add_device(device_id=0x0a, device_name="OutletFlap_Sensor")
+Trub_Sensor2 = dev_manager.add_device(device_id=0x0c, device_name="Trub_Sensor2")
+Us_Sensor = dev_manager.add_device(device_id=0x28, device_name="Us_Sensor")
+Us_Sensor2 = dev_manager.add_device(device_id=0x29, device_name="Us_Sensor2")
+Us_Sensor3 = dev_manager.add_device(device_id=0x2a, device_name="Us_Sensor3")
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
