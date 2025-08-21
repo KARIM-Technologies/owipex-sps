@@ -64,25 +64,16 @@ iTest = 0
 isTestFinished = False
 
 #RS485 Comunication and Devices
-# Create DeviceManager
+# Create DeviceManager and devices
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
-dev_manager.add_device(device_id=0x01)
-dev_manager.add_device(device_id=0x02)
-dev_manager.add_device(device_id=0x03)
-dev_manager.add_device(device_id=0x0a)  # Vincer Valve
-dev_manager.add_device(device_id=0x0c)  # Turbidity Sensor 2
-dev_manager.add_device(device_id=0x28)  # US Flow Sensor 1
-dev_manager.add_device(device_id=0x29)  # US Flow Sensor 2
-dev_manager.add_device(device_id=0x2a)  # US Flow Sensor 3
-# Get devices and read their registers
-Radar_Sensor = dev_manager.get_device(device_id=0x01)
-Trub_Sensor = dev_manager.get_device(device_id=0x02)
-Ph_Sensor = dev_manager.get_device(device_id=0x03)
-OutletFlap_Sensor = dev_manager.get_device(device_id=0x0a)  # Vincer Valve
-Trub_Sensor2 = dev_manager.get_device(device_id=0x0c)  # Turbidity Sensor 2
-Us_Sensor = dev_manager.get_device(device_id=0x28)  # US Flow Sensor 1
-Us_Sensor2 = dev_manager.get_device(device_id=0x29)  # US Flow Sensor 2
-Us_Sensor3 = dev_manager.get_device(device_id=0x2a)  # US Flow Sensor 3
+Radar_Sensor = dev_manager.add_device(device_id=0x01)
+Trub_Sensor = dev_manager.add_device(device_id=0x02)
+Ph_Sensor = dev_manager.add_device(device_id=0x03)
+OutletFlap_Sensor = dev_manager.add_device(device_id=0x0a)  # Vincer Valve
+Trub_Sensor2 = dev_manager.add_device(device_id=0x0c)  # Turbidity Sensor 2
+Us_Sensor = dev_manager.add_device(device_id=0x28)  # US Flow Sensor 1
+Us_Sensor2 = dev_manager.add_device(device_id=0x29)  # US Flow Sensor 2
+Us_Sensor3 = dev_manager.add_device(device_id=0x2a)  # US Flow Sensor 3
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 

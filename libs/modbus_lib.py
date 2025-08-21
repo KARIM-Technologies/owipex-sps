@@ -79,10 +79,11 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
 
-    def add_device(self, device_id):
+    def add_device(self, device_id) -> ModbusClient:
         self.devices[device_id] = ModbusClient(self, device_id)
+        return self.devices.get(device_id)
 
-    def get_device(self, device_id):
+    def get_device(self, device_id) -> ModbusClient:
         return self.devices.get(device_id)
 
     def read_register(self, device_id, start_address, register_count, data_format):
