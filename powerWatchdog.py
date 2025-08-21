@@ -44,6 +44,7 @@ if not accessToken:
     print(msg)
     raise ValueError(msg)
 
+print(f"Trying to connect TB with {THINGSBOARD_SERVER} / {accessToken}...")
 tb_client = TBDeviceMqttClient(THINGSBOARD_SERVER, username=accessToken)
 
 # Status variables
