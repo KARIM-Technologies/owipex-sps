@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.74" # for internal use only
+DEVELOPMENT_VERSION = "2.75" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -66,6 +66,7 @@ isTestFinished = False
 #RS485 Comunication and Devices
 # Create DeviceManager and devices
 dev_manager = DeviceManager(port='/dev/ttyS0', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=1)
+# ACHTUNG!!! wenn hier etwas hinzugefügt wird, muss das auch in main zu den globals hinzugefügt werden!!!
 Radar_Sensor = dev_manager.add_device(device_id=0x01, device_name="Radar_Sensor")
 Trub_Sensor = dev_manager.add_device(device_id=0x02, device_name="Trub_Sensor")
 Ph_Sensor = dev_manager.add_device(device_id=0x03, device_name="Ph_Sensor")
@@ -853,6 +854,8 @@ def main():
     global us2FlowRate, us2FlowTotal, us2ReadingsIntervalSec
     global us3FlowRate, us3FlowTotal, us3ReadingsIntervalSec
     global usSensorActive, usSensor2Active, usSensor3Active, waterLevelHeight_telem
+    global dev_manager
+    global Radar_Sensor, Trub_Sensor, Ph_Sensor, OutletFlap_Sensor, Trub_Sensor2, Us_Sensor, Us_Sensor2, Us_Sensor3
 
     print("=" * 25)
     print(f"OWIPEX-SPS, Version: {DEVELOPMENT_VERSION}")
