@@ -18,7 +18,6 @@ LED_PINS = {'R': 5, 'G': 6, 'B': 26}  # Angenommene Pins für die LEDs
 CHECK_INTERVAL = 10
 THINGSBOARD_SERVER = 'localhost'
 THINGSBOARD_PORT = 1883  # Ensure the port is an integer
-# ACCESS_TOKEN = '3VuMh3c5TfbpagAO4Ndr'
 DATA_SEND_INTERVAL = 10  # Data send interval in seconds
 
 # Initialisierung
@@ -38,11 +37,11 @@ tokenKey = 'POWERWATCHDOG_ACCESS_TOKEN'
 load_dotenv(dotenv_path=dotenv_path)
 accessToken = os.environ.get(tokenKey)
 if not accessToken:
-    msg = f"ERROR: Access Token not found.\nThe Access Token has to be in {dotenv_path}\nExample: {dotenv_path}=MyToken5TfbpagAO4Ndr"
+    msg = f"ERROR: Access Token not found.\nThe Access Token has to be in {dotenv_path}\nExample file content:\n{tokenKey}=MyToken5TfbpagAO4Ndr"
     print(msg)
     raise ValueError(msg)
 
-tb_client = TBDeviceMqttClient(THINGSBOARD_SERVER, username=ACCESS_TOKEN)
+tb_client = TBDeviceMqttClient(THINGSBOARD_SERVER, username=accessToken)
 
 # Status variables
 is_main_script_running = False  # Statusvariable für den Hauptskript-Zustand
