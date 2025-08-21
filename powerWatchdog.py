@@ -10,7 +10,7 @@ import sys
 import os
 import re
 
-POWERWATCHDOG_VERSION = "2.03" # for internal use only
+POWERWATCHDOG_VERSION = "2.04" # for internal use only
 
 # Configuration
 SERVER_URL = 'http://localhost:8080'
