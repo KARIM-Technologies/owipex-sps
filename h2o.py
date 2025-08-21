@@ -77,6 +77,8 @@ Us_Sensor3 = dev_manager.add_device(device_id=0x2a, device_name="Us_Sensor3")
 #logging.basicConfig(level=logging.DEBUG)
 client = None
 
+dev_manager.printDevicesInfo()
+
 #Import Global vars
 from config import *
 shared_attributes_keys
