@@ -92,6 +92,7 @@ class DeviceManager:
 
         if self.devices:
             for device_id, device in self.devices.items():
+                print(f"in getDevicesInfo: device_id={device_id}, info={devive.getDeviceInfo()}")
                 device_info_lines.append(device.getDeviceInfo())
         else:
             device_info_lines.append("(no devices registered)")
