@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.86" # for internal use only
+DEVELOPMENT_VERSION = "2.87" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -376,13 +376,13 @@ class TurbidityHandler:
         self.deviceName = deviceName
         self.sensor = sensor  # Hier übergeben Sie die Trub_Sensor-Instanz
 
-    def fetch_and_display_data(self):
+    def fetch_and_display_data(self, normalizer):
         measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
-        measuredTurbidityNormalized_telem = measuredTurbidity_telem * turbidityNormalizer
+        measuredTurbidityNormalized_telem = measuredTurbidity_telem * normalizer
         tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         if measuredTurbidity_telem is not None and tempTruebSens is not None:
-            printTs(f'✅ {self.deviceName}: Measured: {measuredTurbidity_telem}, Normalized: {measuredTurbidityNormalized_telem}, Temp Sens: {tempTruebSens}')
+            printTs(f'✅ {self.deviceName}: Measured: {measuredTurbidity_telem}, Normalized: {measuredTurbidityNormalized_telem}, Temp Sens: {tempTruebSens}, Normalizer: {normalizer}')
             return measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem
         else:
             printTs(f"❌ {self.deviceName}: Lesung fehlgeschlagen")
@@ -1109,7 +1109,7 @@ def main():
                     # Update the last reading time
                     last_turbidity_reading_time = device_check_time
                 
-                    measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem = turbidity_handler.fetch_and_display_data()
+                    measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem = turbidity_handler.fetch_and_display_data(turbidityNormalizer)
                 
                     if measuredTurbidity_telem is not None and tempTruebSens is not None:
                         # printTs("✅ Turbidity-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity-Wert-Ausgabe angezeigt
@@ -1123,7 +1123,7 @@ def main():
                     # Update the last reading time
                     last_turbidity2_reading_time = device_check_time
                 
-                    measuredTurbidity2_telem, tempTruebSens2, measuredTurbidity2Normalized_telem = turbidity_handler2.fetch_and_display_data()
+                    measuredTurbidity2_telem, tempTruebSens2, measuredTurbidity2Normalized_telem = turbidity_handler2.fetch_and_display_data(turbidity2Normalizer)
                 
                     if measuredTurbidity2_telem is not None and tempTruebSens2 is not None:
                         # printTs("✅ Turbidity2-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity2-Wert-Ausgabe angezeigt
