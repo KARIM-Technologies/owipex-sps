@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.81" # for internal use only
+DEVELOPMENT_VERSION = "2.84" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -76,7 +76,7 @@ DEFAULTID_US_SENSOR3 = 42
 def getIdHelper(key: str, defaultId: int) -> int:
     valueFromEnv = os.environ.get(key)
     if valueFromEnv is not None:
-        return valueFromEnv
+        return int(valueFromEnv)
     else:
         return defaultId
 
