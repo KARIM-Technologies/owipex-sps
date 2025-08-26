@@ -854,7 +854,7 @@ def main():
     global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
-    global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
+    global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
     global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler
     global outletFlapActive, outletFlapReadingsIntervalSec, outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode
     global outletFlapRegisterHasError, outletFlapRegisterIsLocalMode, outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue
