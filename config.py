@@ -46,16 +46,20 @@ temperaturPHSens_telem = 0.0
 # Turbidity Configuration
 maximumTurbidity = 0
 measuredTurbidity_telem = 0
+measuredTurbidityNormalized_telem = 0
 tempTruebSens = 0.00
 turbidityOffset = 0
 turbiditySensorActive = False
+turbidityNormalizer = 1.00
 
 # Turbidity2 Configuration
 maximumTurbidity2 = 0
 measuredTurbidity2_telem = 0
+measuredTurbidity2Normalized_telem = 0
 tempTruebSens2 = 0.00
 turbidity2Offset = 0
 turbidity2SensorActive = False
+turbidity2Normalizer = 1.00
 
 # Radar Configuration
 messuredRadar_Air_telem = 1 
@@ -122,7 +126,7 @@ telemetry_keys = [
     'gpsEnabled', 'gpsHeight', 'gpsLatitude',
     'gpsLongitude', 'gpsTimestamp', 'isDebugMode',
     'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2',
-    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidity2_telem',
+    'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidityNormalized_telem', 'measuredTurbidity2_telem', 'measuredTurbidity2Normalized_telem',
     'messuredRadar_Air_telem', 'minimumPHVal', 'minimumPHValStop',
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition',
     'outletFlapRegisterErrorCode', 'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode',
@@ -135,7 +139,7 @@ telemetry_keys = [
     'telemetryTest420', 'telemetryTestNone', 'tempTruebSens',
     'tempTruebSens2', 'temperaturPHSens_telem', 'total_flow',
     'turbidity2Offset', 'turbidity2SensorActive', 'turbidityOffset',
-    'turbiditySensorActive', 
+    'turbiditySensorActive', 'turbidityNormalizer', 'turbidity2Normalizer',
     'usFlowRate', 'usFlowTotal',
     'us2FlowRate', 'us2FlowTotal',
     'us3FlowRate', 'us3FlowTotal',
@@ -155,6 +159,7 @@ shared_attributes_keys = [
     'ph_low_delay_start_time', 'ph_slope', 'PHValueOffset',
     'powerButton', 'radarSensorActive', 'targetPHtolerrance',
     'targetPHValue', 'turbidity2Offset', 'turbidity2SensorActive',
+    'turbidityNormalizer', 'turbidity2Normalizer',
     'turbidityOffset', 'turbiditySensorActive', 'useDebugReadingsIntervalls',
     'usSensorActive', 'usSensor2Active', 'usSensor3Active'
 ]

@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.84" # for internal use only
+DEVELOPMENT_VERSION = "2.85" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -378,14 +378,15 @@ class TurbidityHandler:
 
     def fetch_and_display_data(self):
         measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
+        measuredTurbidityNormalized_telem = measuredTurbidity_telem * turbidityNormalizer
         tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         if measuredTurbidity_telem is not None and tempTruebSens is not None:
             printTs(f'✅ {self.deviceName}: {measuredTurbidity_telem}, {self.deviceName} Temp Sens: {tempTruebSens}')
-            return measuredTurbidity_telem, tempTruebSens
+            return measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem
         else:
             printTs(f"❌ {self.deviceName}: Lesung fehlgeschlagen")
-            return None, None
+            return None, None, None
 
 class PhHandler:
     def __init__(self, deviceName, sensor):
@@ -853,7 +854,7 @@ def main():
     global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
-    global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem
+    global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
     global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler
     global outletFlapActive, outletFlapReadingsIntervalSec, outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode
     global outletFlapRegisterHasError, outletFlapRegisterIsLocalMode, outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue
@@ -865,6 +866,7 @@ def main():
     global telemetryTestNone, tempTruebSens, tempTruebSens2, temperaturPHSens_telem
     global turbidity_handler, turbidity_handler2, turbidity2Offset, turbidity2ReadingsIntervalSec
     global turbidity2SensorActive, turbidityOffset, turbidityReadingsIntervalSec, turbiditySensorActive
+    global turbidityNormalizer, turbidity2Normalizer
     global useDebugReadingsIntervalls
     global usFlowRate, usFlowTotal, usReadingsIntervalSec
     global us2FlowRate, us2FlowTotal, us2ReadingsIntervalSec
@@ -1107,7 +1109,7 @@ def main():
                     # Update the last reading time
                     last_turbidity_reading_time = device_check_time
                 
-                    measuredTurbidity_telem, tempTruebSens = turbidity_handler.fetch_and_display_data()
+                    measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem = turbidity_handler.fetch_and_display_data()
                 
                     if measuredTurbidity_telem is not None and tempTruebSens is not None:
                         # printTs("✅ Turbidity-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity-Wert-Ausgabe angezeigt
@@ -1121,7 +1123,7 @@ def main():
                     # Update the last reading time
                     last_turbidity2_reading_time = device_check_time
                 
-                    measuredTurbidity2_telem, tempTruebSens2 = turbidity_handler2.fetch_and_display_data()
+                    measuredTurbidity2_telem, tempTruebSens2, measuredTurbidity2Normalized_telem = turbidity_handler2.fetch_and_display_data()
                 
                     if measuredTurbidity2_telem is not None and tempTruebSens2 is not None:
                         # printTs("✅ Turbidity2-Sensor: Lesung erfolgreich")  # Entfernt - wird bereits bei der Turbidity2-Wert-Ausgabe angezeigt
