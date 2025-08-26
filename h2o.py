@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.85" # for internal use only
+DEVELOPMENT_VERSION = "2.86" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -382,7 +382,7 @@ class TurbidityHandler:
         tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         if measuredTurbidity_telem is not None and tempTruebSens is not None:
-            printTs(f'✅ {self.deviceName}: {measuredTurbidity_telem}, {self.deviceName} Temp Sens: {tempTruebSens}')
+            printTs(f'✅ {self.deviceName}: Measured: {measuredTurbidity_telem}, Normalized: {measuredTurbidityNormalized_telem}, Temp Sens: {tempTruebSens}')
             return measuredTurbidity_telem, tempTruebSens, measuredTurbidityNormalized_telem
         else:
             printTs(f"❌ {self.deviceName}: Lesung fehlgeschlagen")
