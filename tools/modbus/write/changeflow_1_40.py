@@ -14,6 +14,8 @@ import struct
 import crcmod.predefined
 
 def write_device_id(old_device_id, new_device_id, port='/dev/ttyS0'):
+    print("Version 3")
+    
     function_code = 0x06  # Function code for Write Single Register
     register_address = 0x0011  # Address for the device id register
     crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')
@@ -39,4 +41,4 @@ def write_device_id(old_device_id, new_device_id, port='/dev/ttyS0'):
     print(f'CRC: 0x{received_crc:04x}')
 
 # Usage:
-write_device_id(0x01, 0x22) # Ändere Geräte Adresse id from 1 (0x01 in hex) to 2 (0x02 in hex)
+write_device_id(0x01, 0x22) # Ändere Geräte Adresse id from 1 (0x01 in hex) to x (0xxx in hex)
