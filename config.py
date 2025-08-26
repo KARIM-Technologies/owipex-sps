@@ -62,7 +62,8 @@ turbidity2SensorActive = False
 turbidity2Normalizer = 1.00
 
 # Radar Configuration
-messuredRadar_Air_telem = 1 
+messuredRadar_Air_telem = 1
+radar_1_actual_water_level = 0
 radarSensorActive = False
 radarSensorOffset = 0.0
 waterLevelHeight_telem = 2.0
@@ -128,6 +129,7 @@ telemetry_keys = [
     'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2',
     'measuredPHValue_telem', 'measuredTurbidity_telem', 'measuredTurbidityNormalized_telem', 'measuredTurbidity2_telem', 'measuredTurbidity2Normalized_telem',
     'messuredRadar_Air_telem', 'minimumPHVal', 'minimumPHValStop',
+    'radar_1_actual_water_level',
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition',
     'outletFlapRegisterErrorCode', 'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode',
     'outletFlapRegisterIsRemoteMode', 'outletFlapRegisterPositionValue', 'outletFlapRegisterRemoteOrLocalStatus',

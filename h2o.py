@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.88" # for internal use only
+DEVELOPMENT_VERSION = "2.89" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -855,7 +855,7 @@ def main():
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
-    global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler
+    global messuredRadar_Air_telem, minimumPHVal, minimumPHValStop, outlet_flap_handler, radar_1_actual_water_level
     global outletFlapActive, outletFlapReadingsIntervalSec, outletFlapRegisterCurrentPosition, outletFlapRegisterErrorCode
     global outletFlapRegisterHasError, outletFlapRegisterIsLocalMode, outletFlapRegisterIsRemoteMode, outletFlapRegisterPositionValue
     global outletFlapRegisterRemoteOrLocalStatus, outletFlapRegisterSetpointPosition, outletFlapRegisterSetpointValue, outletFlapTargetPosition
@@ -1008,6 +1008,7 @@ def main():
                     radarTotalFlowManager.update_flow_rate(radar_flow_data['flow_rate_l_min'])
                     radar_total_flow = radarTotalFlowManager.total_flow
                     radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
+                    radar_1_actual_water_level = radar_flow_data['water_level_mm']
                 else:
                     printTs("❌ Radar-Sensor: Lesung fehlgeschlagen")
 
