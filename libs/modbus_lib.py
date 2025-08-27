@@ -216,6 +216,7 @@ class DeviceManager:
         return data
 
     def read_flow_rate_m3ph(self, device_id):
+        global isDebugMode
         """
         Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
         """
@@ -224,7 +225,8 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
+                if isDebugMode:
+                    printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -243,6 +245,7 @@ class DeviceManager:
         return gallons * 0.003785411784
 
     def read_totalizer_m3(self, device_id):
+        global isDebugMode
         """
         Liest die gesamterfasste Menge in m³ aus dem Register 113
         """
@@ -251,7 +254,8 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
+                if isDebugMode:
+                    printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
             except Exception as e:
