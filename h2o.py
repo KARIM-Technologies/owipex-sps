@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.90" # for internal use only
+DEVELOPMENT_VERSION = "2.91" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -62,7 +62,11 @@ def modbus_transaction(blocking=True, timeout=2.0, name="Unknown"):
     """Context Manager für sichere Modbus-Transaktionen"""
     acquired = False
     try:
-        acquired = modbus_lock.acquire(blocking=blocking, timeout=timeout if blocking else 0)
+        if blocking:
+            acquired = modbus_lock.acquire(blocking=True, timeout=timeout)
+        else:
+            acquired = modbus_lock.acquire(blocking=False)
+        
         if not acquired:
             if blocking:
                 printTs(f"⚠️ {name}: Modbus timeout nach {timeout}s")
