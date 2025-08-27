@@ -52,6 +52,26 @@ from tb_gateway_mqtt import TBDeviceMqttClient
 from libs.modbus_lib import DeviceManager
 from time import sleep
 from libs.RadarFlowCalculation import RadarFlowCalculation
+from contextlib import contextmanager
+
+# Modbus Thread-Safety Lock
+modbus_lock = threading.Lock()
+
+@contextmanager
+def modbus_transaction(blocking=True, timeout=2.0, name="Unknown"):
+    """Context Manager für sichere Modbus-Transaktionen"""
+    acquired = False
+    try:
+        acquired = modbus_lock.acquire(blocking=blocking, timeout=timeout if blocking else 0)
+        if not acquired:
+            if blocking:
+                printTs(f"⚠️ {name}: Modbus timeout nach {timeout}s")
+            # Bei non-blocking kein print, da das normal ist
+            raise TimeoutError(f"Modbus lock timeout for {name}")
+        yield acquired
+    finally:
+        if acquired:
+            modbus_lock.release()
 
 from dotenv import load_dotenv
 dotenv_path = '/etc/owipex/.env'
@@ -208,7 +228,11 @@ def attribute_callback(result, _):
             # entsprechende Aktionen auslösen.
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
                 print(f"📍 OutletFlap Zielposition: {target_pos}%")
-                outlet_flap_handler.set_valve_position(target_pos)
+                try:
+                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetPosition"):
+                        outlet_flap_handler.set_valve_position(target_pos)
+                except TimeoutError:
+                    print(f"⚠️ OutletFlap Position konnte nicht gesetzt werden - Timeout nach 10s")
             else:
                 print(f"❌ Ungültige OutletFlap Position: {target_pos}")
         
@@ -218,7 +242,11 @@ def attribute_callback(result, _):
                 mode_value = 1 if new_mode else 0
                 mode_name = "REMOTE-Modus (AUTO)" if new_mode else "LOCAL-Modus (MANUAL)"
                 print(f"🔄 OutletFlap: Wechsle zu {mode_name}")
-                outlet_flap_handler.setRemoteOrLocalMode(mode_value)
+                try:
+                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetMode"):
+                        outlet_flap_handler.setRemoteOrLocalMode(mode_value)
+                except TimeoutError:
+                    print(f"⚠️ OutletFlap Modus konnte nicht gesetzt werden - Timeout nach 10s")
             else:
                 print(f"❌ Ungültiger Wert für outletFlapIsRemoteMode: {new_mode} (erwartet: boolean)")
     else:
@@ -815,7 +843,13 @@ def check_initial_outletflap_position():
             return
         
         # Read current valve position
-        valve_data = outlet_flap_handler.read_valve_data()
+        try:
+            with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-Startup-Read"):
+                valve_data = outlet_flap_handler.read_valve_data()
+        except TimeoutError:
+            print("❌ OutletFlap Startup: Timeout beim Lesen der Position")
+            return
+            
         if not valve_data:
             print("❌ OutletFlap Startup: Fehler beim Lesen der aktuellen Position")
             return
@@ -833,7 +867,13 @@ def check_initial_outletflap_position():
             print(f"📍 OutletFlap Startup: Setze Position auf {outletFlapTargetPosition}%")
             
             # Set valve to desired position
-            success = outlet_flap_handler.set_valve_position(outletFlapTargetPosition)
+            try:
+                with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-Startup-Write"):
+                    success = outlet_flap_handler.set_valve_position(outletFlapTargetPosition)
+            except TimeoutError:
+                print(f"❌ OutletFlap Startup: Timeout beim Setzen der Position")
+                return
+            
             if success:
                 print(f"✅ OutletFlap Startup: Position erfolgreich gesetzt")
             else:
@@ -996,67 +1036,79 @@ def main():
         if (radarSensorActive):
             # Check if enough time has passed since last Radar reading
             if device_check_time - last_radar_reading_time >= radarReadingsIntervalSec:
-                # Update the last reading time
-                last_radar_reading_time = device_check_time
-                
-                radar_rate_Handler = RadarHandler("Radar", Radar_Sensor)
-                radar_flow_data = radar_rate_Handler.fetch_and_calculate()
+                try:
+                    with modbus_transaction(blocking=False, name="Radar-Sensor"):
+                        # Update the last reading time
+                        last_radar_reading_time = device_check_time
+                        
+                        radar_rate_Handler = RadarHandler("Radar", Radar_Sensor)
+                        radar_flow_data = radar_rate_Handler.fetch_and_calculate()
 
-                if radar_flow_data:
-                    printTs("✅ Radar-Sensor: Lesung erfolgreich")
-                    # Update the total flow using the calculated flow rate
-                    radarTotalFlowManager.update_flow_rate(radar_flow_data['flow_rate_l_min'])
-                    radar_total_flow = radarTotalFlowManager.total_flow
-                    radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
-                    radar_1_actual_water_level = radar_flow_data['water_level_mm']
-                else:
-                    printTs("❌ Radar-Sensor: Lesung fehlgeschlagen")
+                        if radar_flow_data:
+                            printTs("✅ Radar-Sensor: Lesung erfolgreich")
+                            # Update the total flow using the calculated flow rate
+                            radarTotalFlowManager.update_flow_rate(radar_flow_data['flow_rate_l_min'])
+                            radar_total_flow = radarTotalFlowManager.total_flow
+                            radar_flow_rate_l_min = radar_flow_data['flow_rate_m3_min']
+                            radar_1_actual_water_level = radar_flow_data['water_level_mm']
+                        else:
+                            printTs("❌ Radar-Sensor: Lesung fehlgeschlagen")
+                except TimeoutError:
+                    pass  # Wird übersprungen - kein Print nötig da non-blocking
 
         if usSensorActive:
             # Check if enough time has passed since last US reading
             if device_check_time - last_us_reading_time >= usReadingsIntervalSec:
-                # Update the last reading time
-                last_us_reading_time = device_check_time
-                
-                # print(f"UsFlowSensor ist aktiv. Versuche Daten zu lesen...")
                 try:
-                    # print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
-                    us_flow_handler = UsHandler("Us", Us_Sensor)
-                    usFlowRate, usFlowTotal, wasOk = us_flow_handler.fetchViaDeviceManager()
-                    
-                    if wasOk and usFlowRate is not None and usFlowTotal is not None:
-                        printTs("✅ UsFlowSensor: Lesung erfolgreich")
-                    else:
-                        printTs("❌ UsFlowSensor: Unvollständige Daten")
+                    with modbus_transaction(blocking=False, name="UsFlowSensor"):
+                        # Update the last reading time
+                        last_us_reading_time = device_check_time
                         
-                except Exception as e:
-                    printTs(f"❌ UsFlowSensor: Fehler beim Lesen: {e}")
-                    import traceback
-                    traceback.print_exc()
+                        # print(f"UsFlowSensor ist aktiv. Versuche Daten zu lesen...")
+                        try:
+                            # print(f"Initialisiere UsFlowHandler mit Sensor ID: {Us_Sensor.device_id}")
+                            us_flow_handler = UsHandler("Us", Us_Sensor)
+                            usFlowRate, usFlowTotal, wasOk = us_flow_handler.fetchViaDeviceManager()
+                            
+                            if wasOk and usFlowRate is not None and usFlowTotal is not None:
+                                printTs("✅ UsFlowSensor: Lesung erfolgreich")
+                            else:
+                                printTs("❌ UsFlowSensor: Unvollständige Daten")
+                                
+                        except Exception as e:
+                            printTs(f"❌ UsFlowSensor: Fehler beim Lesen: {e}")
+                            import traceback
+                            traceback.print_exc()
+                except TimeoutError:
+                    pass  # Wird übersprungen - kein Print nötig da non-blocking
         # else:
         #     print("UsFlowSensor ist deaktiviert (usSensorActive = False)")
 
         if usSensor2Active:
             # Check if enough time has passed since last US reading
             if device_check_time - last_us2_reading_time >= us2ReadingsIntervalSec:
-                # Update the last reading time
-                last_us2_reading_time = device_check_time
-                
-                # print(f"UsFlowSensor 2 ist aktiv. Versuche Daten zu lesen...")
                 try:
-                    # print(f"Initialisiere UsFlowHandler 2 mit Sensor ID: {Us_Sensor2.device_id}")
-                    us2_flow_handler = UsHandler("Us2", Us_Sensor2)
-                    us2FlowRate, us2FlowTotal, wasOk2 = us2_flow_handler.fetchViaDeviceManager()
-                    
-                    if wasOk2 and us2FlowRate is not None and us2FlowTotal is not None:
-                        printTs("✅ UsFlowSensor2: Lesung erfolgreich")
-                    else:
-                        printTs("❌ UsFlowSensor2: Unvollständige Daten")
+                    with modbus_transaction(blocking=False, name="UsFlowSensor2"):
+                        # Update the last reading time
+                        last_us2_reading_time = device_check_time
                         
-                except Exception as e:
-                    printTs(f"❌ UsFlowSensor:2 Fehler beim Lesen: {e}")
-                    import traceback
-                    traceback.print_exc()
+                        # print(f"UsFlowSensor 2 ist aktiv. Versuche Daten zu lesen...")
+                        try:
+                            # print(f"Initialisiere UsFlowHandler 2 mit Sensor ID: {Us_Sensor2.device_id}")
+                            us2_flow_handler = UsHandler("Us2", Us_Sensor2)
+                            us2FlowRate, us2FlowTotal, wasOk2 = us2_flow_handler.fetchViaDeviceManager()
+                            
+                            if wasOk2 and us2FlowRate is not None and us2FlowTotal is not None:
+                                printTs("✅ UsFlowSensor2: Lesung erfolgreich")
+                            else:
+                                printTs("❌ UsFlowSensor2: Unvollständige Daten")
+                                
+                        except Exception as e:
+                            printTs(f"❌ UsFlowSensor:2 Fehler beim Lesen: {e}")
+                            import traceback
+                            traceback.print_exc()
+                except TimeoutError:
+                    pass  # Wird übersprungen - kein Print nötig da non-blocking
         # else:
         #     print("UsFlowSensor2 ist deaktiviert (usSensor2Active = False)")
 
@@ -1068,15 +1120,18 @@ def main():
                 
                 # print(f"UsFlowSensor 3 ist aktiv. Versuche Daten zu lesen...")
                 try:
-                    # print(f"Initialisiere UsFlowHandler 3 mit Sensor ID: {Us_Sensor3.device_id}")
-                    us3_flow_handler = UsHandler("Us3", Us_Sensor3)
-                    us3FlowRate, us3FlowTotal, wasOk3 = us3_flow_handler.fetchViaDeviceManager()
-                    
-                    if wasOk3 and us3FlowRate is not None and us3FlowTotal is not None:
-                        printTs("✅ UsFlowSensor3: Lesung erfolgreich")
-                    else:
-                        printTs("❌ UsFlowSensor3: Unvollständige Daten")
+                    with modbus_transaction(blocking=False, name="US-Flow Sensor 3"):
+                        # print(f"Initialisiere UsFlowHandler 3 mit Sensor ID: {Us_Sensor3.device_id}")
+                        us3_flow_handler = UsHandler("Us3", Us_Sensor3)
+                        us3FlowRate, us3FlowTotal, wasOk3 = us3_flow_handler.fetchViaDeviceManager()
                         
+                        if wasOk3 and us3FlowRate is not None and us3FlowTotal is not None:
+                            printTs("✅ UsFlowSensor3: Lesung erfolgreich")
+                        else:
+                            printTs("❌ UsFlowSensor3: Unvollständige Daten")
+                except TimeoutError:
+                    # Lock war busy, überspringe diese Runde
+                    pass
                 except Exception as e:
                     printTs(f"❌ UsFlowSensor:3 Fehler beim Lesen: {e}")
                     import traceback
