@@ -18,7 +18,7 @@ import time
 import sys
 import os
 sys.path.append('/home/owipex_adm/owipex-sps')
-from config import *
+from config import isDebugMode
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
