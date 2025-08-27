@@ -15,6 +15,10 @@ import crcmod.predefined
 from threading import Thread
 from time import sleep
 import time
+import sys
+import os
+sys.path.append('/home/owipex_adm/owipex-sps')
+from config import *
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
