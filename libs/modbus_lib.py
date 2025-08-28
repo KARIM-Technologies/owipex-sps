@@ -325,7 +325,7 @@ class DeviceManager:
                 
                 # Nachricht senden
                 self.ser.write(message)
-                time.sleep(0.1)  # Warten auf Antwort
+                time.sleep(1.0)  # Warten auf Antwort
                 
                 # Antwort lesen
                 response = self.ser.read(100)
