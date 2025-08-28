@@ -19,6 +19,8 @@ import sys
 import os
 sys.path.append('/home/owipex_adm/owipex-sps')
 
+MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
+
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
     return time.strftime("%H:%M:%S", time.localtime()) + f".{int(time.time() * 1000) % 1000:03d}"
@@ -85,6 +87,7 @@ class DeviceManager:
         )
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
+        self.last_modbus_access_time = 0  # Track last Modbus access for timing
 
     def getDevicesInfo(self) -> str:
         
@@ -112,7 +115,18 @@ class DeviceManager:
     def get_device(self, device_id) -> ModbusClient:
         return self.devices.get(device_id)
 
+    def _wait_for_modbus_access(self):
+        """Wartet die erforderliche Zeit seit dem letzten Modbus-Zugriff"""
+        current_time = time.time()
+        time_since_last_access = current_time - self.last_modbus_access_time
+        if time_since_last_access < MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS:
+            wait_time = MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS - time_since_last_access
+            time.sleep(wait_time)
+        self.last_modbus_access_time = time.time()
+
     def read_register(self, device_id, start_address, register_count, data_format):
+        self._wait_for_modbus_access()
+        
         function_code = 0x03
 
         message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
@@ -177,6 +191,8 @@ class DeviceManager:
         Liest Rohwerte aus Modbus-Holdings-Registern ohne Interpretation/Konvertierung.
         Gibt die Rohdaten zurück.
         """
+        self._wait_for_modbus_access()
+        
         # Puffer leeren vor der Anfrage
         self.ser.reset_input_buffer()
         time.sleep(0.05)  # Kurze Pause für Stabilität
@@ -310,6 +326,8 @@ class DeviceManager:
         Write to VincerValve register using Modbus Function Code 0x06 (Write Single Register)
         """
         try:
+            self._wait_for_modbus_access()
+            
             # Für einzelne Register verwenden wir Function Code 0x06
             if register_count == 1:
                 function_code = 0x06
