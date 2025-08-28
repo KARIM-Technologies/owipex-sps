@@ -600,8 +600,8 @@ class UsHandler:
         wasOk = False
         try:
             # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
-            current_flow = self.sensor.read_flow_rate_m3ph()
-            total_flow = self.sensor.read_totalizer_m3()
+            current_flow = self.sensor.read_flow_rate_m3ph(isDebugMode)
+            total_flow = self.sensor.read_totalizer_m3(isDebugMode)
             
             if current_flow is not None:
                 self.consecutive_errors = 0

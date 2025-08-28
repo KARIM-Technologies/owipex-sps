@@ -18,7 +18,6 @@ import time
 import sys
 import os
 sys.path.append('/home/owipex_adm/owipex-sps')
-from config import isDebugMode
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
@@ -219,8 +218,7 @@ class DeviceManager:
         data = response[3:-2]  # Slave-ID (1) + Func (1) + Byte count (1) + ... + CRC (2)
         return data
 
-    def read_flow_rate_m3ph(self, device_id):
-        global isDebugMode
+    def read_flow_rate_m3ph(self, device_id, isDebugMode):
         """
         Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
         """
@@ -248,8 +246,7 @@ class DeviceManager:
         # 1 US gallon = 0.003785411784 m³
         return gallons * 0.003785411784
 
-    def read_totalizer_m3(self, device_id):
-        global isDebugMode
+    def read_totalizer_m3(self, device_id, isDebugMode):
         """
         Liest die gesamterfasste Menge in m³ aus dem Register 113
         """
