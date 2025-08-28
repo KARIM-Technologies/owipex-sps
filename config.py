@@ -103,6 +103,10 @@ outletFlapRegisterIsLocalMode = False            # Boolean: Local-Modus aktiv
 outletFlapRegisterIsRemoteMode = False          # Boolean: Remote-Modus aktiv
 outletFlapRegisterSetpointPosition = 0.0      # Konvertierte Sollposition (%)
 
+# OutletFlap Turb Control
+outletFlapTurbControlActive = False
+outletFlapTurbControlCurrentTurbValue = 0.0
+
 # Telemetry Test Values
 telemetryTestNone = None              # Python None value
 
@@ -133,7 +137,8 @@ telemetry_keys = [
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition', 'outletFlapRegisterErrorCode',
     'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode', 'outletFlapRegisterIsRemoteMode', 'outletFlapRegisterPositionValue',
     'outletFlapRegisterRemoteOrLocalStatus', 'outletFlapRegisterSetpointPosition', 'outletFlapRegisterSetpointValue', 'outletFlapTargetPosition',
-    'outletFlapTurbControlActiveTelem', 'outletFlapTurbControlCurrentTurbValueTelem',
+    'outletFlapTurbControlActive', 'outletFlapTurbControlCurrentTurbValue',
+    # 'outletFlapTurbControlActiveTelem', 'outletFlapTurbControlCurrentTurbValueTelem',
     'ph_high_delay_duration', 'ph_intercept', 'ph_low_delay_start_time', 'ph_slope',
     'PHValueOffset', 'powerButton', 'pumpRelaySw', 'pumpRelaySwSig',
     'radar_1_actual_water_level', 'radarSensorActive', 'runtime_tracker_var',
