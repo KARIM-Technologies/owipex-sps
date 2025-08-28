@@ -257,7 +257,11 @@ def attribute_callback(result, _):
         # Log why commands are ignored
         if 'outletFlapTargetPosition' in result or 'outletFlapIsRemoteMode' in result:
             print("⚠️ OutletFlap Commands ignoriert - outletFlapActive was not set")
-
+    
+    # ValveControl
+    if 'outletFlapTurbControlActive' in result:
+        outletFlapTurbControlActive = 'outletFlapTurbControlActive'
+    
     # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
     save_state(state_to_save)

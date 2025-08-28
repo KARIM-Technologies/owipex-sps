@@ -133,7 +133,8 @@ telemetry_keys = [
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition', 'outletFlapRegisterErrorCode',
     'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode', 'outletFlapRegisterIsRemoteMode', 'outletFlapRegisterPositionValue',
     'outletFlapRegisterRemoteOrLocalStatus', 'outletFlapRegisterSetpointPosition', 'outletFlapRegisterSetpointValue', 'outletFlapTargetPosition',
-    'outletFlapTurbControlActive', 'outletFlapTurbControlCurrentTurbValue',
+    'outletFlapTurbControlActive', 'outletFlapTurbControlCurrentTurbValue', # TODO, eines von beiden
+    'outletFlapTurbControlActiveTelem', 'outletFlapTurbControlCurrentTurbValueTelem',
     'ph_high_delay_duration', 'ph_intercept', 'ph_low_delay_start_time', 'ph_slope',
     'PHValueOffset', 'powerButton', 'pumpRelaySw', 'pumpRelaySwSig',
     'radar_1_actual_water_level', 'radarSensorActive', 'runtime_tracker_var',
