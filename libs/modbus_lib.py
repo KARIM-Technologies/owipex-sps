@@ -57,11 +57,11 @@ class ModbusClient:
         self.auto_read_enabled = False
 
     # DTI-1 spezifische Methoden
-    def read_flow_rate_m3ph(self):
-        return self.device_manager.read_flow_rate_m3ph(self.device_id)
+    def read_flow_rate_m3ph(self, isDebugMode):
+        return self.device_manager.read_flow_rate_m3ph(self.device_id, isDebugMode)
 
-    def read_totalizer_m3(self):
-        return self.device_manager.read_totalizer_m3(self.device_id)
+    def read_totalizer_m3(self, isDebugMode):
+        return self.device_manager.read_totalizer_m3(self.device_id, isDebugMode)
 
     def read_pipediameter_mm(self):
         return self.device_manager.read_pipediameter_mm(self.device_id)
