@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.102" # for internal use only
+DEVELOPMENT_VERSION = "2.103" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -260,7 +260,8 @@ def attribute_callback(result, _):
     
     # ValveControl
     if 'outletFlapTurbControlActive' in result:
-        outletFlapTurbControlActive = 'outletFlapTurbControlActive'
+        outletFlapTurbControlActive = result['outletFlapTurbControlActive']
+        # outletFlapTurbControlActiveTelem = outletFlapTurbControlActive
     
     # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
