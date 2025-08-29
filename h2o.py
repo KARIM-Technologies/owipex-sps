@@ -16,7 +16,7 @@ import serial
 print(serial.__file__)
 print(getattr(serial, "__version__", "no __version__"))
 
-DEVELOPMENT_VERSION = "2.117" # for internal use only
+DEVELOPMENT_VERSION = "2.118" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -418,9 +418,9 @@ class TurbidityHandler:
         self.sensor = sensor  # Hier übergeben Sie die Trub_Sensor-Instanz
 
     def fetch_and_display_data(self, normalizer):
-        measuredTurbidity_telem = self.sensor.read_register(self.deviceName, start_address=0x0001, register_count=2)
+        measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
         time.sleep(ADDITIONAL_MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS)
-        tempTruebSens = self.sensor.read_register(self.deviceName, start_address=0x0003, register_count=2)
+        tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         if measuredTurbidity_telem is not None and tempTruebSens is not None:
             measuredTurbidityNormalized_telem = measuredTurbidity_telem * normalizer
@@ -440,13 +440,13 @@ class PhHandler:
 
     def fetch_and_display_data(self):
         try:
-            raw_ph_value = self.sensor.read_register(self.deviceName, start_address=0x0001, register_count=2)
+            raw_ph_value = self.sensor.read_register(start_address=0x0001, register_count=2)
             if raw_ph_value is None:
                 return None, None
             
             measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
             time.sleep(ADDITIONAL_MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS)
-            temperaturPHSens_telem = self.sensor.read_register(self.deviceName, start_address=0x0003, register_count=2)
+            temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
             
             if temperaturPHSens_telem is not None:
                 printTs(f'✅ PH: {measuredPHValue_telem}, Temperature PH Sens: {temperaturPHSens_telem}, RAW_PH: {raw_ph_value}')
@@ -668,11 +668,11 @@ class OutletFlapHandler:
     def read_outletflap_sensor_data(self):
         """Internal method for actual sensor reading - ALWAYS use with lock!"""
         try:
-            remote_local = self.sensor.read_register(self.deviceName, start_address=0x0000, register_count=1, data_format='>H')
-            valve_position = self.sensor.read_register(self.deviceName, start_address=0x0001, register_count=1, data_format='>H')
-            setpoint = self.sensor.read_register(self.deviceName, start_address=0x0002, register_count=1, data_format='>H')
-            error_code = self.sensor.read_register(self.deviceName, start_address=0x0003, register_count=1, data_format='>H')
-            test_register = self.sensor.read_register(self.deviceName, start_address=0x0004, register_count=1, data_format='>H')
+            remote_local = self.sensor.read_register(start_address=0x0000, register_count=1, data_format='>H')
+            valve_position = self.sensor.read_register(start_address=0x0001, register_count=1, data_format='>H')
+            setpoint = self.sensor.read_register(start_address=0x0002, register_count=1, data_format='>H')
+            error_code = self.sensor.read_register(start_address=0x0003, register_count=1, data_format='>H')
+            test_register = self.sensor.read_register(start_address=0x0004, register_count=1, data_format='>H')
             
             # Check if all values are None (failed reading)
             if all(value is None for value in [remote_local, valve_position, setpoint, error_code, test_register]):
@@ -689,18 +689,18 @@ class OutletFlapHandler:
         """NEUE Methode - Enhanced valve reading mit FC11R-spezifischer Datenkonvertierung"""
         try:
             # Istposition mit FC11R-Konvertierung: (raw_value - 1999) / 10.0
-            raw_position = self.sensor.read_register(self.deviceName, start_address=self.POSITION_FEEDBACK_REG, register_count=1, data_format='>H')
+            raw_position = self.sensor.read_register(start_address=self.POSITION_FEEDBACK_REG, register_count=1, data_format='>H')
             current_position = (raw_position - 1999) / 10.0 if raw_position is not None and raw_position >= 1999 else 0.0
             
             # Remote/Local Status (0=Local/Manual, 1=Remote/Auto)
-            remote_local = self.sensor.read_register(self.deviceName, start_address=self.REMOTE_LOCAL_REG, register_count=1, data_format='>H') or 0
+            remote_local = self.sensor.read_register(start_address=self.REMOTE_LOCAL_REG, register_count=1, data_format='>H') or 0
             
             # Sollposition mit FC11R-Konvertierung
-            setpoint_raw = self.sensor.read_register(self.deviceName, start_address=self.POSITION_SETPOINT_REG, register_count=1, data_format='>H')
+            setpoint_raw = self.sensor.read_register(start_address=self.POSITION_SETPOINT_REG, register_count=1, data_format='>H')
             setpoint_position = (setpoint_raw - 1999) / 10.0 if setpoint_raw is not None and setpoint_raw >= 1999 else 0.0
             
             # Fehlercode
-            error_code = self.sensor.read_register(self.deviceName, start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
+            error_code = self.sensor.read_register(start_address=self.ERROR_CODE_REG, register_count=1, data_format='>H') or 0
             
             # Aktuelle Uhrzeit für die Ausgabe
             printTs(f'✅ {self.deviceName} Enhanced - Current: {current_position}%, Setpoint: {setpoint_position}%, Mode: {"REMOTE" if remote_local == 1 else "LOCAL"}, Error: {error_code}')
