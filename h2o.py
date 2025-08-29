@@ -1,5 +1,8 @@
 from builtins import print
 import sys
+
+import config
+
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
@@ -11,7 +14,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.109" # for internal use only
+DEVELOPMENT_VERSION = "2.110" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -211,9 +214,11 @@ def attribute_callback(result, _):
         update_reading_intervals()
     
     # Überprüfe isDebugMode Änderung
+    # RD: please read the comments for isDebugMode and set_debug_mode() in config.py
     if 'isDebugMode' in result:
-        config.isDebugMode = result['isDebugMode']
-        debug_status = "AKTIVIERT" if config.isDebugMode else "DEAKTIVIERT"
+        isDebugMode = result['isDebugMode']
+        config.set_debug_mode(isDebugMode)
+        debug_status = "AKTIVIERT" if isDebugMode else "DEAKTIVIERT"
         printTs(f"🐛 Debug-Modus {debug_status}")
 
     if 'outletFlapActive' in result:
@@ -941,7 +946,7 @@ def main():
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
     print("")
     print(f"Intervall-Modus: {'DEBUG' if useDebugReadingsIntervalls else 'PRODUKTION'}")
-    print(f"Debug-Modus: {'AKTIVIERT' if config.isDebugMode else 'DEAKTIVIERT'}")
+    print(f"Debug-Modus: {'AKTIVIERT' if isDebugMode else 'DEAKTIVIERT'}")
     print("")
 
     # Initialisiere gpsEnabled mit Standardwert

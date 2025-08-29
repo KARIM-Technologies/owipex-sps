@@ -121,6 +121,13 @@ gpsLatitude = 1.0
 gpsLongitude = 1.0
 gpsTimestamp = 1.0
 
+# IMPORTANT: RD: don't remove this function, it is necessary to set config.isDebugMode from h2o.py
+# this workaround is necessary because in h2o.py global variables have been mismatched with variables from config
+# Hint: "import config" vs. "from config import *" makes a HUGE DIFFERENCE...
+def set_debug_mode(value):
+    global isDebugMode
+    isDebugMode = value
+
 # Telemetry and Attribute Variables
 telemetry_keys = [
     'autoSwitch',
