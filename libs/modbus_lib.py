@@ -143,7 +143,8 @@ class DeviceManager:
 
         printTsDebug("DeviceManager read_register, vor self.ser.write()")
         self.ser.write(message)
-        printTsDebug("DeviceManager read_register, nach self.ser.write() OHNE WARTEZEIT und vor self.ser.read()")
+        time.sleep(0.1)  # Warten auf vollständige Antwort
+        printTsDebug("DeviceManager read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
 
         response = self.ser.read(100)
         printTsDebug("DeviceManager read_register, nach self.ser.read()")
@@ -364,6 +365,7 @@ class DeviceManager:
                 
                 # Antwort lesen
                 response = self.ser.read(100)
+                time.sleep(0.1)  # Warten auf Antwort
                 printTsDebug("DeviceManager.write_VincerValve, nach self.ser.read()")
                 
                 # Minimale Antwortlänge prüfen
