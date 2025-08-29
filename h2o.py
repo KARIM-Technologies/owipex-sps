@@ -1,8 +1,5 @@
 from builtins import print
 import sys
-
-import config
-
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
@@ -14,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.110" # for internal use only
+DEVELOPMENT_VERSION = "2.101" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -123,6 +120,7 @@ client = None
 
 #Import Global vars
 from config import *
+shared_attributes_keys
 
 def save_state(state_dict):
     state_file_path = os.path.join(CONFIG_PATH, 'state.json')
@@ -214,10 +212,8 @@ def attribute_callback(result, _):
         update_reading_intervals()
     
     # Überprüfe isDebugMode Änderung
-    # RD: please read the comments for isDebugMode and set_debug_mode() in config.py
     if 'isDebugMode' in result:
         isDebugMode = result['isDebugMode']
-        config.set_debug_mode(isDebugMode)
         debug_status = "AKTIVIERT" if isDebugMode else "DEAKTIVIERT"
         printTs(f"🐛 Debug-Modus {debug_status}")
 
@@ -261,11 +257,7 @@ def attribute_callback(result, _):
         # Log why commands are ignored
         if 'outletFlapTargetPosition' in result or 'outletFlapIsRemoteMode' in result:
             print("⚠️ OutletFlap Commands ignoriert - outletFlapActive was not set")
-    
-    # ValveControl
-    if 'outletFlapTurbControlActive' in result:
-        outletFlapTurbControlActive = result['outletFlapTurbControlActive']
-    
+
     # Speichere den Zustand
     state_to_save = {key: globals()[key] for key in shared_attributes_keys if key in globals()}
     save_state(state_to_save)
@@ -608,8 +600,8 @@ class UsHandler:
         wasOk = False
         try:
             # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
-            current_flow = self.sensor.read_flow_rate_m3ph()
-            total_flow = self.sensor.read_totalizer_m3()
+            current_flow = self.sensor.read_flow_rate_m3ph(isDebugMode)
+            total_flow = self.sensor.read_totalizer_m3(isDebugMode)
             
             if current_flow is not None:
                 self.consecutive_errors = 0
@@ -903,7 +895,7 @@ def main():
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
-    global gpsTimestamp, isVersionSent, last_outletflap_reading_time
+    global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
