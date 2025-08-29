@@ -16,7 +16,7 @@ import serial
 print(serial.__file__)
 print(getattr(serial, "__version__", "no __version__"))
 
-DEVELOPMENT_VERSION = "2.112" # for internal use only
+DEVELOPMENT_VERSION = "2.114" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
