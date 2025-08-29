@@ -9,6 +9,8 @@
 # Description: Erweiterte Modbus-Kommunikation für alle Sensoren (Radar, PH, Trübe, DTI-1 Flow)
 # -----------------------------------------------------------------------------
 
+import commonvars
+
 import struct
 import serial
 import crcmod.predefined
@@ -21,6 +23,9 @@ import config # ACHTUNG: dies ist blöd gemacht in Python. Aufpassen dass keine 
 sys.path.append('/home/owipex_adm/owipex-sps')
 
 MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
+MODBUS_WAITTIME_AFTER_RESETBUFFERS = 0.2
+MODBUS_WAITTIME_AFTER_WRITE = 0.2
+MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET = 3.0
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
@@ -39,8 +44,8 @@ class ModbusClient:
         self.device_manager = device_manager
         self.device_id = device_id
         self.device_name = device_name
-        self.auto_read_enabled = False
-        if config.isDebugMode:
+        # self.auto_read_enabled = False # RD: commented out, seems not to be used
+        if commonvars.isDebugMode:
             printTsDebug("ModbusClient created")
 
     def getDeviceInfo(self) -> str:
@@ -52,18 +57,20 @@ class ModbusClient:
     def read_radar_sensor(self, register_address):
         return self.device_manager.read_radar_sensor(self.device_id, register_address)
 
-    def auto_read_registers(self, start_address, register_count, data_format='>f', interval=1):
-        self.auto_read_enabled = True
-        def read_loop():
-            while self.auto_read_enabled:
-                value = self.read_register(start_address, register_count, data_format)
-                printTs(f'Auto Read: {value}')
-                sleep(interval)
+    # RD: commented out, seems not to be used
+    # def auto_read_registers(self, start_address, register_count, data_format='>f', interval=1):
+    #     self.auto_read_enabled = True
+    #     def read_loop():
+    #         while self.auto_read_enabled:
+    #             value = self.read_register(start_address, register_count, data_format)
+    #             printTs(f'Auto Read: {value}')
+    #             sleep(interval)
+    # 
+    #     Thread(target=read_loop).start()
 
-        Thread(target=read_loop).start()
-
-    def stop_auto_read(self):
-        self.auto_read_enabled = False
+    # RD: commented out, seems not to be used
+    # def stop_auto_read(self):
+    #     self.auto_read_enabled = False
 
     # DTI-1 spezifische Methoden
     def read_flow_rate_m3ph(self):
@@ -95,7 +102,7 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
         self.last_modbus_access_time = 0  # Track last Modbus access for timing
-        if config.isDebugMode:
+        if commonvars.isDebugMode:
             printTsDebug("DeviceManager created")
 
     def getDevicesInfo(self) -> str:
@@ -119,8 +126,8 @@ class DeviceManager:
 
     def add_device(self, device_id, device_name) -> ModbusClient:
         self.devices[device_id] = ModbusClient(self, device_id, device_name)
-        if config.isDebugMode:
-            printTsDebug(f"Device {device_id}, {device_name} added")
+        if commonvars.isDebugMode:
+            printTsDebug(f"DeviceManager: Device {device_id}, {device_name} added")
         return self.devices.get(device_id)
 
     def get_device(self, device_id) -> ModbusClient:
@@ -145,16 +152,22 @@ class DeviceManager:
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
 
-        if config.isDebugMode:
-            ("DeviceManager read_register, vor self.ser.write()")
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, buffer resetted")
+        
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, vor self.ser.write()")
         self.ser.write(message)
-        time.sleep(0.1)  # Warten auf vollständige Antwort
-        if config.isDebugMode:
-            printTsDebug("DeviceManager read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
+        time.sleep(MODBUS_WAITTIME_AFTER_WRITE)
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
 
         response = self.ser.read(100)
-        if config.isDebugMode:
-            printTsDebug("DeviceManager read_register, nach self.ser.read()")
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, nach self.ser.read()")
         
         # Check if the response is at least 2 bytes long
         if len(response) < 2:
@@ -211,27 +224,28 @@ class DeviceManager:
         """
         self._wait_for_modbus_access()
         
-        # Puffer leeren vor der Anfrage
-        if config.isDebugMode:
-            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.reset_input_buffer()")
-        self.ser.reset_input_buffer()
-        time.sleep(0.05)  # Kurze Pause für Stabilität
-        
         function_code = 0x03
         message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
 
-        if config.isDebugMode:
+        # Puffer leeren vor der Anfrage
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, buffer resetted")
+
+        if commonvars.isDebugMode:
             printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.write()")
         self.ser.write(message)
-        time.sleep(0.1)  # Warten auf vollständige Antwort
-        if config.isDebugMode:
+        time.sleep(MODBUS_WAITTIME_AFTER_WRITE)
+        if commonvars.isDebugMode:
             printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.write() UND WARTEZEIT, vor self.ser.read()")
         
         # Mehr Bytes lesen als minimal notwendig, falls zusätzliche Bytes kommen
         response = self.ser.read(100)
-        if config.isDebugMode:
+        if commonvars.isDebugMode:
             printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.read()")
         
         # Prüfen, ob die Antwort minimal sinnvoll ist
@@ -269,7 +283,7 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                if config.isDebugMode:
+                if commonvars.isDebugMode:
                     printTsDebug(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
@@ -297,7 +311,7 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                if config.isDebugMode:
+                if commonvars.isDebugMode:
                     printTsDebug(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
@@ -365,22 +379,21 @@ class DeviceManager:
                 message += struct.pack('<H', crc16)
                 
                 # Puffer leeren vor dem Senden
-                if config.isDebugMode:
-                    printTsDebug("DeviceManager.write_VincerValve, vor self.ser.reset_input_buffer()")
                 self.ser.reset_input_buffer()
-                
+                self.ser.reset_output_buffer()
+                time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+                if commonvars.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, buffer resetted")
+
                 # Nachricht senden
-                if config.isDebugMode:
-                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.reset_input_buffer() und vor self.ser.write()")
                 self.ser.write(message)
-                time.sleep(6.0)  # Warten auf Antwort
-                if config.isDebugMode:
+                time.sleep(MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET)
+                if commonvars.isDebugMode:
                     printTsDebug("DeviceManager.write_VincerValve, nach self.ser.write() MIT LANGER WARTEZEIT und vor self.ser.read()")
                 
                 # Antwort lesen
                 response = self.ser.read(100)
-                time.sleep(0.1)  # Warten auf Antwort
-                if config.isDebugMode:
+                if commonvars.isDebugMode:
                     printTsDebug("DeviceManager.write_VincerValve, nach self.ser.read()")
                 
                 # Minimale Antwortlänge prüfen
