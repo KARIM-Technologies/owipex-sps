@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.108" # for internal use only
+DEVELOPMENT_VERSION = "2.109" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -120,7 +120,6 @@ client = None
 
 #Import Global vars
 from config import *
-shared_attributes_keys
 
 def save_state(state_dict):
     state_file_path = os.path.join(CONFIG_PATH, 'state.json')

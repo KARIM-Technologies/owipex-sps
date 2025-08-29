@@ -17,7 +17,7 @@ from time import sleep
 import time
 import sys
 import os
-from config import isDebugMode
+import config # ACHTUNG: dies ist blöd gemacht in Python. Aufpassen dass keine Namenskonflikte, immer config.(varname) verwenden!
 sys.path.append('/home/owipex_adm/owipex-sps')
 
 MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
@@ -40,7 +40,8 @@ class ModbusClient:
         self.device_id = device_id
         self.device_name = device_name
         self.auto_read_enabled = False
-        printTsDebug("ModbusClient created")
+        if config.isDebugMode:
+            printTsDebug("ModbusClient created")
 
     def getDeviceInfo(self) -> str:
         return f"{self.device_name}({self.device_id})";
@@ -94,7 +95,8 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
         self.last_modbus_access_time = 0  # Track last Modbus access for timing
-        printTsDebug("DeviceManager created")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager created")
 
     def getDevicesInfo(self) -> str:
         
@@ -117,7 +119,8 @@ class DeviceManager:
 
     def add_device(self, device_id, device_name) -> ModbusClient:
         self.devices[device_id] = ModbusClient(self, device_id, device_name)
-        printTsDebug(f"Device {device_id}, {device_name} added")
+        if config.isDebugMode:
+            printTsDebug(f"Device {device_id}, {device_name} added")
         return self.devices.get(device_id)
 
     def get_device(self, device_id) -> ModbusClient:
@@ -142,13 +145,16 @@ class DeviceManager:
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
 
-        printTsDebug("DeviceManager read_register, vor self.ser.write()")
+        if config.isDebugMode:
+            ("DeviceManager read_register, vor self.ser.write()")
         self.ser.write(message)
         time.sleep(0.1)  # Warten auf vollständige Antwort
-        printTsDebug("DeviceManager read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
 
         response = self.ser.read(100)
-        printTsDebug("DeviceManager read_register, nach self.ser.read()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager read_register, nach self.ser.read()")
         
         # Check if the response is at least 2 bytes long
         if len(response) < 2:
@@ -206,7 +212,8 @@ class DeviceManager:
         self._wait_for_modbus_access()
         
         # Puffer leeren vor der Anfrage
-        printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.reset_input_buffer()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.reset_input_buffer()")
         self.ser.reset_input_buffer()
         time.sleep(0.05)  # Kurze Pause für Stabilität
         
@@ -215,14 +222,17 @@ class DeviceManager:
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
 
-        printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.write()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.write()")
         self.ser.write(message)
         time.sleep(0.1)  # Warten auf vollständige Antwort
-        printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.write() UND WARTEZEIT, vor self.ser.read()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.write() UND WARTEZEIT, vor self.ser.read()")
         
         # Mehr Bytes lesen als minimal notwendig, falls zusätzliche Bytes kommen
         response = self.ser.read(100)
-        printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.read()")
+        if config.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.read()")
         
         # Prüfen, ob die Antwort minimal sinnvoll ist
         if len(response) < 5:
@@ -259,7 +269,8 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                printTsDebug(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
+                if config.isDebugMode:
+                    printTsDebug(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -286,7 +297,8 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                printTsDebu(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
+                if config.isDebugMode:
+                    printTsDebug(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
             except Exception as e:
@@ -353,19 +365,23 @@ class DeviceManager:
                 message += struct.pack('<H', crc16)
                 
                 # Puffer leeren vor dem Senden
-                printTsDebug("DeviceManager.write_VincerValve, vor self.ser.reset_input_buffer()")
+                if config.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, vor self.ser.reset_input_buffer()")
                 self.ser.reset_input_buffer()
                 
                 # Nachricht senden
-                printTsDebug("DeviceManager.write_VincerValve, nach self.ser.reset_input_buffer() und vor self.ser.write()")
+                if config.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.reset_input_buffer() und vor self.ser.write()")
                 self.ser.write(message)
                 time.sleep(6.0)  # Warten auf Antwort
-                printTsDebug("DeviceManager.write_VincerValve, nach self.ser.write() MIT LANGER WARTEZEIT und vor self.ser.read()")
+                if config.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.write() MIT LANGER WARTEZEIT und vor self.ser.read()")
                 
                 # Antwort lesen
                 response = self.ser.read(100)
                 time.sleep(0.1)  # Warten auf Antwort
-                printTsDebug("DeviceManager.write_VincerValve, nach self.ser.read()")
+                if config.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.read()")
                 
                 # Minimale Antwortlänge prüfen
                 if len(response) < 8:
