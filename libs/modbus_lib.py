@@ -25,7 +25,7 @@ sys.path.append('/home/owipex_adm/owipex-sps')
 MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
 MODBUS_WAITTIME_AFTER_RESETBUFFERS = 0.2
 MODBUS_WAITTIME_AFTER_WRITE = 0.2
-MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET = 3.0
+MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET = 8.0
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
@@ -37,7 +37,7 @@ def printTs(message):
 
 def printTsDebug(message):
     """Prints a message with a timestamp."""
-    print(f"[{get_timestamp()}]: 🪲🍄 {message}")
+    print(f"[{get_timestamp()}]: 🪲 {message}")
 
 class ModbusClient:
     def __init__(self, device_manager, device_id, device_name):

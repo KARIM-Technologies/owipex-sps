@@ -16,7 +16,7 @@ import serial
 print(serial.__file__)
 print(getattr(serial, "__version__", "no __version__"))
 
-DEVELOPMENT_VERSION = "2.114" # for internal use only
+DEVELOPMENT_VERSION = "2.116" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -241,7 +241,7 @@ def attribute_callback(result, _):
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
                 print(f"📍 OutletFlap Zielposition: {target_pos}%")
                 try:
-                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetPosition"):
+                    with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-SetPosition"):
                         outlet_flap_handler.set_valve_position(target_pos)
                 except TimeoutError:
                     print(f"⚠️ OutletFlap Position konnte nicht gesetzt werden - Timeout nach 10s")
@@ -255,7 +255,7 @@ def attribute_callback(result, _):
                 mode_name = "REMOTE-Modus (AUTO)" if new_mode else "LOCAL-Modus (MANUAL)"
                 print(f"🔄 OutletFlap: Wechsle zu {mode_name}")
                 try:
-                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetMode"):
+                    with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-SetMode"):
                         outlet_flap_handler.setRemoteOrLocalMode(mode_value)
                 except TimeoutError:
                     print(f"⚠️ OutletFlap Modus konnte nicht gesetzt werden - Timeout nach 10s")
@@ -880,7 +880,7 @@ def check_initial_outletflap_position():
             
             # Set valve to desired position
             try:
-                with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-Startup-Write"):
+                with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-Startup-Write"):
                     success = outlet_flap_handler.set_valve_position(outletFlapTargetPosition)
             except TimeoutError:
                 print(f"❌ OutletFlap Startup: Timeout beim Setzen der Position")
