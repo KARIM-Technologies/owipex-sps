@@ -11,7 +11,7 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.106" # for internal use only
+DEVELOPMENT_VERSION = "2.108" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
@@ -213,8 +213,8 @@ def attribute_callback(result, _):
     
     # Überprüfe isDebugMode Änderung
     if 'isDebugMode' in result:
-        isDebugMode = result['isDebugMode']
-        debug_status = "AKTIVIERT" if isDebugMode else "DEAKTIVIERT"
+        config.isDebugMode = result['isDebugMode']
+        debug_status = "AKTIVIERT" if config.isDebugMode else "DEAKTIVIERT"
         printTs(f"🐛 Debug-Modus {debug_status}")
 
     if 'outletFlapActive' in result:
@@ -604,8 +604,8 @@ class UsHandler:
         wasOk = False
         try:
             # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
-            current_flow = self.sensor.read_flow_rate_m3ph(isDebugMode)
-            total_flow = self.sensor.read_totalizer_m3(isDebugMode)
+            current_flow = self.sensor.read_flow_rate_m3ph()
+            total_flow = self.sensor.read_totalizer_m3()
             
             if current_flow is not None:
                 self.consecutive_errors = 0
@@ -899,7 +899,7 @@ def main():
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
-    global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
+    global gpsTimestamp, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
@@ -942,7 +942,7 @@ def main():
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
     print("")
     print(f"Intervall-Modus: {'DEBUG' if useDebugReadingsIntervalls else 'PRODUKTION'}")
-    print(f"Debug-Modus: {'AKTIVIERT' if isDebugMode else 'DEAKTIVIERT'}")
+    print(f"Debug-Modus: {'AKTIVIERT' if config.isDebugMode else 'DEAKTIVIERT'}")
     print("")
 
     # Initialisiere gpsEnabled mit Standardwert

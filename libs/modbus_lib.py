@@ -17,6 +17,7 @@ from time import sleep
 import time
 import sys
 import os
+from config import isDebugMode
 sys.path.append('/home/owipex_adm/owipex-sps')
 
 MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
@@ -31,7 +32,7 @@ def printTs(message):
 
 def printTsDebug(message):
     """Prints a message with a timestamp."""
-    print(f"[{get_timestamp()}] DDDDDDDDDDDDDDDDDDDDDDDDDDDDDD: {message}")
+    print(f"[{get_timestamp()}]: 🪲🍄 {message}")
 
 class ModbusClient:
     def __init__(self, device_manager, device_id, device_name):
@@ -64,11 +65,11 @@ class ModbusClient:
         self.auto_read_enabled = False
 
     # DTI-1 spezifische Methoden
-    def read_flow_rate_m3ph(self, isDebugMode):
-        return self.device_manager.read_flow_rate_m3ph(self.device_id, isDebugMode)
+    def read_flow_rate_m3ph(self):
+        return self.device_manager.read_flow_rate_m3ph(self.device_id)
 
-    def read_totalizer_m3(self, isDebugMode):
-        return self.device_manager.read_totalizer_m3(self.device_id, isDebugMode)
+    def read_totalizer_m3(self):
+        return self.device_manager.read_totalizer_m3(self.device_id)
 
     def read_pipediameter_mm(self):
         return self.device_manager.read_pipediameter_mm(self.device_id)
@@ -249,7 +250,7 @@ class DeviceManager:
         data = response[3:-2]  # Slave-ID (1) + Func (1) + Byte count (1) + ... + CRC (2)
         return data
 
-    def read_flow_rate_m3ph(self, device_id, isDebugMode):
+    def read_flow_rate_m3ph(self, device_id):
         """
         Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
         """
@@ -258,8 +259,7 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
                 value = struct.unpack('>f', data)[0]
-                if isDebugMode:
-                    printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
+                printTsDebug(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -277,7 +277,7 @@ class DeviceManager:
         # 1 US gallon = 0.003785411784 m³
         return gallons * 0.003785411784
 
-    def read_totalizer_m3(self, device_id, isDebugMode):
+    def read_totalizer_m3(self, device_id):
         """
         Liest die gesamterfasste Menge in m³ aus dem Register 113
         """
@@ -286,8 +286,7 @@ class DeviceManager:
             try:
                 data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
                 value = struct.unpack('>f', data)[0]
-                if isDebugMode:
-                    printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
+                printTsDebu(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
             except Exception as e:
