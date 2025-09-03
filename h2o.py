@@ -3,6 +3,7 @@ import sys
 sys.path.append('/home/owipex_adm/owipex-sps/libs')
 CONFIG_PATH = "/etc/owipex/"
 
+import commonvars
 import signal
 import logging.handlers
 import time
@@ -11,10 +12,15 @@ import libs.gpsDataLib as gpsDataLib
 import json
 import threading
 
-DEVELOPMENT_VERSION = "2.101" # for internal use only
+import serial
+print(serial.__file__)
+print(getattr(serial, "__version__", "no __version__"))
+
+DEVELOPMENT_VERSION = "2.118" # for internal use only
 
 # Main loop sleep configuration
 MAINLOOP_SLEEP_SEC = 0.1  # Sleep time in seconds at end of main loop (0 = no sleep)
+ADDITIONAL_MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
 
 # Device reading interval configuration - Production intervals
 OUTLETFLAP_READINGS_INTERVAL_SEC = 30.0  # OutletFlap readings
@@ -120,7 +126,6 @@ client = None
 
 #Import Global vars
 from config import *
-shared_attributes_keys
 
 def save_state(state_dict):
     state_file_path = os.path.join(CONFIG_PATH, 'state.json')
@@ -179,7 +184,11 @@ def update_reading_intervals():
         us3ReadingsIntervalSec = US3_READINGS_INTERVAL_SEC
         printTs("⚡ Produktions-Leseintervalle aktiviert")
 
- #that will be called when the value of our Shared Attribute changes
+def printDebugStatus():
+    debug_status = "AKTIVIERT" if commonvars.get_debug_mode() else "DEAKTIVIERT"
+    printTs(f"🐛 Debug-Modus {debug_status}")
+
+#that will be called when the value of our Shared Attribute changes
 def attribute_callback(result, _):
     global gps_handler, gpsEnabled, outletFlapActive
     
@@ -213,9 +222,9 @@ def attribute_callback(result, _):
     
     # Überprüfe isDebugMode Änderung
     if 'isDebugMode' in result:
-        isDebugMode = result['isDebugMode']
-        debug_status = "AKTIVIERT" if isDebugMode else "DEAKTIVIERT"
-        printTs(f"🐛 Debug-Modus {debug_status}")
+        wasDebugModeChanged = set_debug_mode(result['isDebugMode'])
+        if wasDebugModeChanged:
+            printDebugStatus()
 
     if 'outletFlapActive' in result:
         old_active = outletFlapActive
@@ -233,7 +242,7 @@ def attribute_callback(result, _):
             if isinstance(target_pos, (int, float)) and 0 <= target_pos <= 100:
                 print(f"📍 OutletFlap Zielposition: {target_pos}%")
                 try:
-                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetPosition"):
+                    with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-SetPosition"):
                         outlet_flap_handler.set_valve_position(target_pos)
                 except TimeoutError:
                     print(f"⚠️ OutletFlap Position konnte nicht gesetzt werden - Timeout nach 10s")
@@ -247,7 +256,7 @@ def attribute_callback(result, _):
                 mode_name = "REMOTE-Modus (AUTO)" if new_mode else "LOCAL-Modus (MANUAL)"
                 print(f"🔄 OutletFlap: Wechsle zu {mode_name}")
                 try:
-                    with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-SetMode"):
+                    with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-SetMode"):
                         outlet_flap_handler.setRemoteOrLocalMode(mode_value)
                 except TimeoutError:
                     print(f"⚠️ OutletFlap Modus konnte nicht gesetzt werden - Timeout nach 10s")
@@ -410,6 +419,7 @@ class TurbidityHandler:
 
     def fetch_and_display_data(self, normalizer):
         measuredTurbidity_telem = self.sensor.read_register(start_address=0x0001, register_count=2)
+        time.sleep(ADDITIONAL_MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS)
         tempTruebSens = self.sensor.read_register(start_address=0x0003, register_count=2)
         
         if measuredTurbidity_telem is not None and tempTruebSens is not None:
@@ -435,6 +445,7 @@ class PhHandler:
                 return None, None
             
             measuredPHValue_telem = self.correct_ph_value(raw_ph_value)
+            time.sleep(ADDITIONAL_MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS)
             temperaturPHSens_telem = self.sensor.read_register(start_address=0x0003, register_count=2)
             
             if temperaturPHSens_telem is not None:
@@ -600,8 +611,8 @@ class UsHandler:
         wasOk = False
         try:
             # Lese Durchfluss und Gesamtmenge mit Fehlerbehandlung
-            current_flow = self.sensor.read_flow_rate_m3ph(isDebugMode)
-            total_flow = self.sensor.read_totalizer_m3(isDebugMode)
+            current_flow = self.sensor.read_flow_rate_m3ph()
+            total_flow = self.sensor.read_totalizer_m3()
             
             if current_flow is not None:
                 self.consecutive_errors = 0
@@ -872,7 +883,7 @@ def check_initial_outletflap_position():
             
             # Set valve to desired position
             try:
-                with modbus_transaction(blocking=True, timeout=10.0, name="OutletFlap-Startup-Write"):
+                with modbus_transaction(blocking=True, timeout=15.0, name="OutletFlap-Startup-Write"):
                     success = outlet_flap_handler.set_valve_position(outletFlapTargetPosition)
             except TimeoutError:
                 print(f"❌ OutletFlap Startup: Timeout beim Setzen der Position")
@@ -888,6 +899,11 @@ def check_initial_outletflap_position():
     except Exception as e:
         print(f"❌ OutletFlap Startup: Fehler bei Positionsprüfung: {e}")
 
+def set_debug_mode(newValue: bool) -> bool:
+    global isDebugMode
+    isDebugMode = newValue
+    return commonvars.set_debug_mode(newValue)
+
 def main():
     # Global Variables for Main Function (alphabetically sorted, max 4 per line)
     global autoSwitch, calculatedFlowRate, calibratePH, client
@@ -895,7 +911,7 @@ def main():
     global countdownPHHigh, countdownPHLow, flow_rate_l_h, flow_rate_l_min
     global flow_rate_m3_min, gemessener_high_wert, gemessener_low_wert, gps_handler
     global gpsEnabled, gpsHeight, gpsLatitude, gpsLongitude
-    global gpsTimestamp, isDebugMode, isVersionSent, last_outletflap_reading_time
+    global gpsTimestamp, isVersionSent, last_outletflap_reading_time
     global last_ph_reading_time, last_radar_reading_time, last_send_time, last_turbidity_reading_time
     global last_turbidity2_reading_time, last_us_reading_time, last_us2_reading_time, last_us3_reading_time, maximumPHVal, maximumTurbidity
     global maximumTurbidity2, measuredPHValue_telem, measuredTurbidity_telem, measuredTurbidity2_telem, measuredTurbidityNormalized_telem, measuredTurbidity2Normalized_telem
@@ -938,7 +954,7 @@ def main():
     print(f"  Telemetry Send:         {DATA_SEND_INTERVAL} s")
     print("")
     print(f"Intervall-Modus: {'DEBUG' if useDebugReadingsIntervalls else 'PRODUKTION'}")
-    print(f"Debug-Modus: {'AKTIVIERT' if isDebugMode else 'DEAKTIVIERT'}")
+    print(f"Debug-Modus: {'AKTIVIERT' if commonvars.get_debug_mode() else 'DEAKTIVIERT'}")
     print("")
 
     # Initialisiere gpsEnabled mit Standardwert
@@ -988,6 +1004,8 @@ def main():
     #Laden der alten werte (zweiter Durchlauf)
     saved_state = load_state()
     globals().update(saved_state)
+    set_debug_mode(saved_state.get("isDebugMode", commonvars.get_debug_mode())) # evtl. update
+    printDebugStatus()
 
     last_send_time = time.time()
 

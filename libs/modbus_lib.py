@@ -9,6 +9,8 @@
 # Description: Erweiterte Modbus-Kommunikation für alle Sensoren (Radar, PH, Trübe, DTI-1 Flow)
 # -----------------------------------------------------------------------------
 
+import commonvars
+
 import struct
 import serial
 import crcmod.predefined
@@ -17,9 +19,13 @@ from time import sleep
 import time
 import sys
 import os
+import config # ACHTUNG: dies ist blöd gemacht in Python. Aufpassen dass keine Namenskonflikte, immer config.(varname) verwenden!
 sys.path.append('/home/owipex_adm/owipex-sps')
 
 MODBUS_WAITTIME_BETWEEN_READINGS_OR_WRITINGS = 0.5
+MODBUS_WAITTIME_AFTER_RESETBUFFERS = 0.2
+MODBUS_WAITTIME_AFTER_WRITE = 0.2
+MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET = 8.0
 
 def get_timestamp():
     """Generate timestamp string in format [HH:MM:SS.mmm]"""
@@ -29,51 +35,59 @@ def printTs(message):
     """Prints a message with a timestamp."""
     print(f"[{get_timestamp()}] {message}")
 
+def printTsDebug(message):
+    """Prints a message with a timestamp."""
+    print(f"[{get_timestamp()}]: 🪲 {message}")
+
 class ModbusClient:
     def __init__(self, device_manager, device_id, device_name):
         self.device_manager = device_manager
         self.device_id = device_id
         self.device_name = device_name
-        self.auto_read_enabled = False
+        # self.auto_read_enabled = False # RD: commented out, seems not to be used
+        if commonvars.isDebugMode:
+            printTsDebug("ModbusClient created")
 
     def getDeviceInfo(self) -> str:
         return f"{self.device_name}({self.device_id})";
 
     def read_register(self, start_address, register_count, data_format='>f'):
-        return self.device_manager.read_register(self.device_id, start_address, register_count, data_format)
+        return self.device_manager.read_register(device_name=self.device_name, device_id=self.device_id, start_address=start_address, register_count=register_count, data_format=data_format)
     
     def read_radar_sensor(self, register_address):
-        return self.device_manager.read_radar_sensor(self.device_id, register_address)
+        return self.device_manager.read_radar_sensor(device_name=self.device_name, device_id=self.device_id, register_address=register_address)
 
-    def auto_read_registers(self, start_address, register_count, data_format='>f', interval=1):
-        self.auto_read_enabled = True
-        def read_loop():
-            while self.auto_read_enabled:
-                value = self.read_register(start_address, register_count, data_format)
-                printTs(f'Auto Read: {value}')
-                sleep(interval)
+    # RD: commented out, seems not to be used
+    # def auto_read_registers(self, start_address, register_count, data_format='>f', interval=1):
+    #     self.auto_read_enabled = True
+    #     def read_loop():
+    #         while self.auto_read_enabled:
+    #             value = self.read_register(start_address, register_count, data_format)
+    #             printTs(f'Auto Read: {value}')
+    #             sleep(interval)
+    # 
+    #     Thread(target=read_loop).start()
 
-        Thread(target=read_loop).start()
-
-    def stop_auto_read(self):
-        self.auto_read_enabled = False
+    # RD: commented out, seems not to be used
+    # def stop_auto_read(self):
+    #     self.auto_read_enabled = False
 
     # DTI-1 spezifische Methoden
-    def read_flow_rate_m3ph(self, isDebugMode):
-        return self.device_manager.read_flow_rate_m3ph(self.device_id, isDebugMode)
+    def read_flow_rate_m3ph(self):
+        return self.device_manager.read_flow_rate_m3ph(device_name=self.device_name, device_id=self.device_id)
 
-    def read_totalizer_m3(self, isDebugMode):
-        return self.device_manager.read_totalizer_m3(self.device_id, isDebugMode)
+    def read_totalizer_m3(self):
+        return self.device_manager.read_totalizer_m3(device_name=self.device_name, device_id=self.device_id)
 
     def read_pipediameter_mm(self):
-        return self.device_manager.read_pipediameter_mm(self.device_id)
+        return self.device_manager.read_pipediameter_mm(device_name=self.device_name, device_id=self.device_id)
 
     def read_deviceid(self):
-        return self.device_manager.read_deviceid(self.device_id)
+        return self.device_manager.read_deviceid(device_name=self.device_name, device_id=self.device_id)
     
     def write_VincerValve(self, start_address, register_count, value):
         """Write to VincerValve register - forwards to DeviceManager"""
-        return self.device_manager.write_VincerValve(self.device_id, start_address, register_count, value)
+        return self.device_manager.write_VincerValve(device_name=self.device_name, device_id=self.device_id, start_address=start_address, register_count=register_count, value=value)
 
 class DeviceManager:
     def __init__(self, port, baudrate, parity, stopbits, bytesize, timeout):
@@ -88,6 +102,8 @@ class DeviceManager:
         self.devices = {}
         self.last_read_values = {}  # Dictionary to store last read values for each device and register
         self.last_modbus_access_time = 0  # Track last Modbus access for timing
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager created")
 
     def getDevicesInfo(self) -> str:
         
@@ -110,6 +126,8 @@ class DeviceManager:
 
     def add_device(self, device_id, device_name) -> ModbusClient:
         self.devices[device_id] = ModbusClient(self, device_id, device_name)
+        if commonvars.isDebugMode:
+            printTsDebug(f"DeviceManager: Device {device_id}, {device_name} added")
         return self.devices.get(device_id)
 
     def get_device(self, device_id) -> ModbusClient:
@@ -124,7 +142,7 @@ class DeviceManager:
             time.sleep(wait_time)
         self.last_modbus_access_time = time.time()
 
-    def read_register(self, device_id, start_address, register_count, data_format):
+    def read_register(self, device_name, device_id, start_address, register_count, data_format):
         self._wait_for_modbus_access()
         
         function_code = 0x03
@@ -134,9 +152,22 @@ class DeviceManager:
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
 
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, buffer resetted")
+        
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, vor self.ser.write()")
         self.ser.write(message)
+        time.sleep(MODBUS_WAITTIME_AFTER_WRITE)
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, nach self.ser.write() MIT WARTEZEIT und vor self.ser.read()")
 
         response = self.ser.read(100)
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_register, nach self.ser.read()")
         
         # Check if the response is at least 2 bytes long
         if len(response) < 2:
@@ -182,31 +213,40 @@ class DeviceManager:
         einer = n % 10
         return zehner | einer
 
-    def read_radar_sensor(self, device_id, register_address):
-        return self.read_register(device_id, register_address, 1, data_format='>H')
+    def read_radar_sensor(self, device_name, device_id, register_address):
+        return self.read_register(device_name=device_name, device_id=device_id, start_address=register_address, register_count=1, data_format='>H')
 
     # DTI-1 Spezifische Methoden
-    def read_UsFlowSensor_holding_raw(self, device_id, start_address, register_count):
+    def read_UsFlowSensor_holding_raw(self, device_name, device_id, start_address, register_count):
         """
         Liest Rohwerte aus Modbus-Holdings-Registern ohne Interpretation/Konvertierung.
         Gibt die Rohdaten zurück.
         """
         self._wait_for_modbus_access()
         
-        # Puffer leeren vor der Anfrage
-        self.ser.reset_input_buffer()
-        time.sleep(0.05)  # Kurze Pause für Stabilität
-        
         function_code = 0x03
         message = struct.pack('>B B H H', device_id, function_code, start_address, register_count)
         crc16 = crcmod.predefined.mkPredefinedCrcFun('modbus')(message)
         message += struct.pack('<H', crc16)
-        
+
+        # Puffer leeren vor der Anfrage
+        self.ser.reset_input_buffer()
+        self.ser.reset_output_buffer()
+        time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, buffer resetted")
+
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, vor self.ser.write()")
         self.ser.write(message)
-        time.sleep(0.1)  # Warten auf vollständige Antwort
+        time.sleep(MODBUS_WAITTIME_AFTER_WRITE)
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.write() UND WARTEZEIT, vor self.ser.read()")
         
         # Mehr Bytes lesen als minimal notwendig, falls zusätzliche Bytes kommen
         response = self.ser.read(100)
+        if commonvars.isDebugMode:
+            printTsDebug("DeviceManager.read_UsFlowSensor_holding_raw, nach self.ser.read()")
         
         # Prüfen, ob die Antwort minimal sinnvoll ist
         if len(response) < 5:
@@ -234,17 +274,17 @@ class DeviceManager:
         data = response[3:-2]  # Slave-ID (1) + Func (1) + Byte count (1) + ... + CRC (2)
         return data
 
-    def read_flow_rate_m3ph(self, device_id, isDebugMode):
+    def read_flow_rate_m3ph(self, device_name, device_id):
         """
         Liest den aktuellen Durchflusswert (m³/h, REAL4/Float) aus Register 1+2 (Adresse 0, 2 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_UsFlowSensor_holding_raw(device_id, 1, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_name=device_name, device_id=device_id, start_address=1, register_count=2)
                 value = struct.unpack('>f', data)[0]
-                if isDebugMode:
-                    printTs(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
+                if commonvars.isDebugMode:
+                    printTsDebug(f"DTI-1 Device {device_id}: Durchflusswert (aus Register 1+2): {value}")
 
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value > 1000000:  # Unrealistisch hoher Durchfluss
@@ -262,17 +302,17 @@ class DeviceManager:
         # 1 US gallon = 0.003785411784 m³
         return gallons * 0.003785411784
 
-    def read_totalizer_m3(self, device_id, isDebugMode):
+    def read_totalizer_m3(self, device_name, device_id):
         """
         Liest die gesamterfasste Menge in m³ aus dem Register 113
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_UsFlowSensor_holding_raw(device_id, 113, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_name=device_name, device_id=device_id, start_address=113, register_count=2)
                 value = struct.unpack('>f', data)[0]
-                if isDebugMode:
-                    printTs(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
+                if commonvars.isDebugMode:
+                    printTsDebug(f"DTI-1 Device {device_id}: NetAccumulator im m3 (aus Register 113): {value}")
                 return value
 
             except Exception as e:
@@ -281,14 +321,14 @@ class DeviceManager:
                 
         return None  # Nach allen Versuchen gescheitert
 
-    def read_pipediameter_mm(self, device_id):
+    def read_pipediameter_mm(self, device_name, device_id):
         """
         Liest den Pipe Durchmesser (mm, REAL4/Float) aus Register 221 (Address 221, 2 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_UsFlowSensor_holding_raw(device_id, 221, 2)
+                data = self.read_UsFlowSensor_holding_raw(device_name=device_name, device_id=device_id, start_address=221, register_count=2)
                 value = struct.unpack('>f', data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
@@ -301,14 +341,14 @@ class DeviceManager:
                 
         return None  # Nach allen Versuchen gescheitert
 
-    def read_deviceid(self, device_id):
+    def read_deviceid(self, device_name, device_id):
         """
         Liest die DeviceId (INTEGER) aus Register 1442 (Address 1442, 1 Register)
         """
         # Bis zu 3 Versuche bei Fehlern
         for attempt in range(3):
             try:
-                data = self.read_UsFlowSensor_holding_raw(device_id, 1442, 1)
+                data = self.read_UsFlowSensor_holding_raw(device_name=device_name, device_id=device_id, start_address=1442, register_count=1)
                 value = struct.unpack(">h", data)[0]
                 # Nicht-plausible Werte abfangen (extreme Ausreißer)
                 if value < 0 or value > 1000000:  # Unrealistisch
@@ -321,7 +361,7 @@ class DeviceManager:
 
         return None  # Nach allen Versuchen gescheitert
 
-    def write_VincerValve(self, device_id, start_address, register_count, value):
+    def write_VincerValve(self, device_name, device_id, start_address, register_count, value):
         """
         Write to VincerValve register using Modbus Function Code 0x06 (Write Single Register)
         """
@@ -340,13 +380,21 @@ class DeviceManager:
                 
                 # Puffer leeren vor dem Senden
                 self.ser.reset_input_buffer()
-                
+                self.ser.reset_output_buffer()
+                time.sleep(MODBUS_WAITTIME_AFTER_RESETBUFFERS)  # Kurze Pause für Stabilität
+                if commonvars.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, buffer resetted")
+
                 # Nachricht senden
                 self.ser.write(message)
-                time.sleep(6.0)  # Warten auf Antwort
+                time.sleep(MODBUS_WAITTIME_AFTER_WRITE_SETVALVETARGET)
+                if commonvars.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.write() MIT LANGER WARTEZEIT und vor self.ser.read()")
                 
                 # Antwort lesen
                 response = self.ser.read(100)
+                if commonvars.isDebugMode:
+                    printTsDebug("DeviceManager.write_VincerValve, nach self.ser.read()")
                 
                 # Minimale Antwortlänge prüfen
                 if len(response) < 8:

@@ -1,11 +1,6 @@
 import os
 # Configuration details for h2oMain.py
 
-# Thingsboard Server Configuration
-ACCESS_TOKEN = os.environ.get('THINGSBOARD_ACCESS_TOKEN')
-THINGSBOARD_SERVER = 'localhost' #Standardt IP Adresse EDGE Server
-THINGSBOARD_PORT = 1883
-
 # Machine Configuration
 autoSwitch = False
 calculatedFlowRate = 1.0
@@ -103,6 +98,10 @@ outletFlapRegisterIsLocalMode = False            # Boolean: Local-Modus aktiv
 outletFlapRegisterIsRemoteMode = False          # Boolean: Remote-Modus aktiv
 outletFlapRegisterSetpointPosition = 0.0      # Konvertierte Sollposition (%)
 
+# OutletFlap Turb Control
+outletFlapTurbControlActive = False
+outletFlapTurbControlCurrentTurbValue = 0.0
+
 # Telemetry Test Values
 telemetryTestNone = None              # Python None value
 
@@ -133,6 +132,7 @@ telemetry_keys = [
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapRegisterCurrentPosition', 'outletFlapRegisterErrorCode',
     'outletFlapRegisterHasError', 'outletFlapRegisterIsLocalMode', 'outletFlapRegisterIsRemoteMode', 'outletFlapRegisterPositionValue',
     'outletFlapRegisterRemoteOrLocalStatus', 'outletFlapRegisterSetpointPosition', 'outletFlapRegisterSetpointValue', 'outletFlapTargetPosition',
+    'outletFlapTurbControlActive', 'outletFlapTurbControlCurrentTurbValue',
     'ph_high_delay_duration', 'ph_intercept', 'ph_low_delay_start_time', 'ph_slope',
     'PHValueOffset', 'powerButton', 'pumpRelaySw', 'pumpRelaySwSig',
     'radar_1_actual_water_level', 'radarSensorActive', 'runtime_tracker_var',
@@ -157,6 +157,7 @@ shared_attributes_keys = [
     'maximumPHVal', 'maximumTurbidity', 'maximumTurbidity2', 'minimumPHVal',
     'minimumPHValStop',
     'outletFlapActive', 'outletFlapIsRemoteMode', 'outletFlapTargetPosition',
+    'outletFlapTurbControlActive', 'outletFlapTurbControlCurrentTurbValue',
     'ph_high_delay_duration', 'ph_intercept', 'ph_low_delay_start_time', 'ph_slope',
     'PHValueOffset', 'powerButton',
     'radarSensorActive',
